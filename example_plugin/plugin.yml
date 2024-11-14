@@ -2,4 +2,5 @@ configversion: 1
 version: 30
 
 # Must match the folder you are taring
-name: Example Plugin
+name: example_plugin
+displayname: Example Plugin

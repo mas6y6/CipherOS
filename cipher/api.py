@@ -1,4 +1,4 @@
-import os, socket, tarfile, yaml, sys, socket, argparse, traceback, importlib.util
+import os, socket, tarfile, yaml, sys, socket, argparse, traceback, importlib.util, shutil
 from exceptions import ExitCodes, ExitCodeError
 
 class CipherAPI:
@@ -12,7 +12,7 @@ class CipherAPI:
         self.currentenvironment = "COS"
         self.plugins = {}
         self.threads = {}
-        sys.path.append(os.path.join(self.starterdir,"data","plugins"))
+        sys.path.append(os.path.join(self.starterdir,"data","cache","plugins"))
         
     def command(self, name=None, doc=None, desc=None, extradata={}, alias=[]):
         def decorator(func):
@@ -59,16 +59,25 @@ class CipherAPI:
             print(f"Error: {plugin_yml_path} not found in the archive.")
         
         pluginname = yml["name"]
+        plugindisplayname = yml["name"]
         
-        if os.path.exists(os.path.join(self.starterdir,"data","plugins",tarname)):
-            testyml = yaml.load(tar.extractfile(os.path.join(self.starterdir,"data","plugins",tarname,"plugin.yml")), Loader=yaml.FullLoader)
+        if os.path.exists(os.path.join(self.starterdir,"data","cache","plugins",tarname)):
+            testyml = yaml.load(tar.extractfile(os.path.join(self.starterdir,"data","cache","plugins",tarname,"plugin.yml")), Loader=yaml.FullLoader)
             if not testyml["version"] == yml["version"]:
-                print("Extracting "+pluginname)
-                tar.extractall(os.path.join(self.starterdir,"data","plugins"))
+                print("Extracting "+plugindisplayname)
+                tar.extractall(os.path.join(self.starterdir,"data","cache","plugins"))
             else:
-                print(pluginname+" is already extracted. Loading...")
+                print(plugindisplayname+" is already extracted. Loading...")
         else:
-            print("Extracting "+pluginname)
-            tar.extractall(os.path.join(self.starterdir,"data","plugins"))
+            print("Extracting "+plugindisplayname)
+            tar.extractall(os.path.join(self.starterdir,"data","cache","plugins"))
         
         plugin_module = importlib.import_module(pluginname)
+        self.plugins[pluginname] = {"displayname":plugindisplayname}
+    
+    def clean_plugin_cache(self):
+        for i in os.path.join(self.starterdir,"data","cache","plugins"):
+            if i in self.plugins:
+                continue
+            else:
+                shutil.()

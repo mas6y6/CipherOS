@@ -10,7 +10,7 @@ import tarfile
 import importlib.util
 import os
 import tempfile
-
+import shutil
 
 colorama.init()
 
@@ -19,18 +19,6 @@ def hidec():
     
 def showc():
     print("\033[?25h", end="", flush=True) #show cursor
-
-print(colorama.Fore.MAGENTA+"Made by @mas6y6 and @malachi196 (on github)")
-
-print(r"""   _______       __              ____  _____
-  / ____(_)___  / /_  ___  _____/ __ \/ ___/
- / /   / / __ \/ __ \/ _ \/ ___/ / / /\__ \ 
-/ /___/ / /_/ / / / /  __/ /  / /_/ /___/ / 
-\____/_/ .___/_/ /_/\___/_/   \____//____/  
-      /_/                                   
-
-Project Codename: Paradox"""+colorama.Fore.RESET)
-
 #variables
 api = CipherAPI()
 
@@ -69,12 +57,28 @@ print("Starting CipherOS...")
 readline.set_completer(_tabcompleter)
 readline.parse_and_bind("tab: complete")
 readline.parse_and_bind("set editing-mode emacs")
-print("Loading Plugins")
 if not os.path.exists("plugins"):
     os.mkdir("plugins")
 
-for i in os.listdir(os.path.join(api.starterdir,"plugins")):
-    api.load_plugin(os.path.join(api.starterdir,"plugins",i))
+if not len(os.listdir(os.path.join(api.starterdir,"plugins"))) == 0:
+    for i in os.listdir(os.path.join(api.starterdir,"plugins")):
+        api.load_plugin(os.path.join(api.starterdir,"plugins",i))
+else:
+    print("No plugins found")
+
+api.clean_plugin_cache()
+
+print(colorama.Fore.MAGENTA+"Made by @mas6y6 and @malachi196 (on github)")
+
+print(r"""   _______       __              ____  _____
+  / ____(_)___  / /_  ___  _____/ __ \/ ___/
+ / /   / / __ \/ __ \/ _ \/ ___/ / / /\__ \ 
+/ /___/ / /_/ / / / /  __/ /  / /_/ /___/ / 
+\____/_/ .___/_/ /_/\___/_/   \____//____/  
+      /_/                                   
+
+Project Codename: Paradox"""+colorama.Fore.RESET)
+
 
 while True:
     try:

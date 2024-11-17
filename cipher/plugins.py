@@ -2,9 +2,14 @@ from cipher.api import CipherAPI
 
 class CipherPlugin:
     api = None
+<<<<<<< HEAD
     config = None
     def __init__(self, api: CipherAPI, config):
         if CipherPlugin.api is None:
+=======
+    def __init__(self, api: CipherAPI):
+        if CipherPlugin.api == None:
+>>>>>>> 6a2a9e0970b36b6939bfc3e0ffd027228a64ae15
             CipherPlugin.api = api
         
         if CipherPlugin.config is None:

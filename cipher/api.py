@@ -1,4 +1,4 @@
-import os, socket, tarfile, yaml, sys, socket, argparse, traceback, importlib.util, shutil
+import os, socket, tarfile, yaml, sys, socket, argparse, traceback, importlib.util, shutil, requests, zipfile
 from cipher.exceptions import ExitCodes, ExitCodeError, PluginError, PluginInitializationError
 
 class CipherAPI:
@@ -13,6 +13,7 @@ class CipherAPI:
         self.plugins = {}
         self.threads = {}
         sys.path.append(os.path.join(self.starterdir,"plugins"))
+        sys.path.append(os.path.join(self.starterdir,"data","cache","packages"))
         
     def command(self, name=None, doc=None, desc=None, extradata={}, alias=[]):
         def decorator(func):
@@ -60,6 +61,14 @@ class CipherAPI:
         plugin_name = yml.get("name")
         plugin_class_name = yml.get("class")
         plugin_displayname = yml.get("displayname")
+        plugin_dependencies = yml.get("dependencies")
+        print(f"Loading Plugin '{plugin_displayname}'")
+        if not plugin_dependencies == None:
+            for i in plugin_dependencies:
+                if not os.path.exists(os.path.join(self.starterdir,"data","cache","packages",i)):
+                    print("Downloading...",i)
+                    self.download_package(i)
+        
         if not plugin_name:
             raise PluginInitializationError(f"'name' is missing in {yml_path}")
         init_file = os.path.join(filepath, "__init__.py")
@@ -78,6 +87,52 @@ class CipherAPI:
             raise PluginInitializationError(f"Class '{plugin_class_name}' not found in {init_file}")
 
         plugin_instance = plugin_class(self)
-        plugin_instance.on_load()
+        plugin_instance.on_enable()
+    
+    def download_package(self,package_name, version=None):
+        """
+        Downloads the specified package from PyPI.
         
-        print(f"Plugin '{plugin_displayname}' loaded successfully.")
+        :param package_name: Name of the PyPI package
+        :param version: Optional version of the package to download
+        :param download_dir: Directory to save the downloaded package
+        """
+        base_url = "https://pypi.org/pypi"
+        version_part = f"/{version}" if version else ""
+        url = f"{base_url}/{package_name}{version_part}/json"
+        download_dir = os.path.join(self.starterdir,"data","cache","packageswhl")
+        
+        try:
+            # Fetch package metadata
+            response = requests.get(url)
+            response.raise_for_status()
+            data = response.json()
+
+            # Get the URL for the package file (source distribution or wheel)
+            releases = data.get("releases", {})
+            if version:
+                files = releases.get(version, [])
+            else:
+                # Get the latest version
+                latest_version = data.get("info", {}).get("version")
+                files = releases.get(latest_version, [])
+
+            if not files:
+                print(f"No files found for package '{package_name}' version '{version}'.")
+                return
+
+            download_url = files[0]["url"]
+            filename = download_url.split("/")[-1]
+
+            os.makedirs(download_dir, exist_ok=True)
+            file_path = os.path.join(download_dir, filename)
+
+            with requests.get(download_url, stream=True) as r:
+                r.raise_for_status()
+                with open(file_path, "wb") as f:
+                    for chunk in r.iter_content(chunk_size=8192):
+                        f.write(chunk)
+            with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                zip_ref.extractall(os.path.join(self.starterdir,"data","cache","packages"))
+        except requests.RequestException as e:
+            print(f"Failed to download package '{package_name}': {e}")

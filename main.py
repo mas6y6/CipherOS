@@ -4,7 +4,7 @@ import sys
 sys.path.append(os.getcwd())
 import argparse
 import traceback
-import colorama, websockets, math, shutil, paramiko, progressbar, time, requests, readline
+import colorama, websockets, math, shutil, paramiko, progressbar, time, requests
 from cipher.api import CipherAPI
 import cipher.exceptions as ex
 import tarfile
@@ -12,6 +12,10 @@ import importlib.util
 import os
 import tempfile
 import shutil
+try:
+    import readline
+except ImportError:
+    import pyreadline as readline
 
 colorama.init()
 
@@ -34,6 +38,9 @@ if not os.path.exists("data/config"):
 
 if not os.path.exists("data/cache/packages"):
     os.mkdir("data/cache/packages")
+
+if not os.path.exists("data/cache/packageswhl"):
+    os.mkdir("data/cache/packageswhl")
 #builtin functions
 
 @api.command()
@@ -87,7 +94,6 @@ def ls(args):
     for i in files:
         print(f"{colorama.Fore.GREEN}{i} {colorama.Fore.RESET}")
 
-
 @api.command()
 def touch(args):
     if os.path.exists(args[0]):
@@ -122,7 +128,10 @@ if not os.path.exists("plugins"):
 
 if not len(os.listdir(os.path.join(api.starterdir,"plugins"))) == 0:
     for i in os.listdir(os.path.join(api.starterdir,"plugins")):
-        api.load_plugin(os.path.join(api.starterdir,"plugins",i))
+        try:
+            api.load_plugin(os.path.join(api.starterdir,"plugins",i))
+        except:
+            print(colorama.Style.BRIGHT+colorama.Fore.RED+f"Error: Plugin '{i}' failed to load\n"+traceback.format_exc()+colorama.Fore.RESET+colorama.Style.NORMAL)
 else:
     print("No plugins found")
 

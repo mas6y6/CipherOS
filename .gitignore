@@ -6,3 +6,5 @@ build
 cipher.spec
 comple.bat
 cipher/__pycache__
+dist
+visualstudio

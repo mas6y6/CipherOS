@@ -11,6 +11,7 @@ class CipherAPI:
         self.localip = socket.gethostbyname(self.hostname)
         self.currentenvironment = "COS"
         self.plugins = {}
+        self.plugincommands = {}
         self.threads = {}
         sys.path.append(os.path.join(self.starterdir,"plugins"))
         sys.path.append(os.path.join(self.starterdir,"data","cache","packages"))

@@ -17,7 +17,7 @@ class ExamplePlugin(CipherPlugin):
         """Method to register all commands for this plugin"""
         
         # Register a command called 'hello'
-        @CipherPlugin.api.command()  # This can also be done with @CipherPlugin.command()
+        @CipherPlugin.command()  # This can also be done with @CipherPlugin.command()
         def hello(args):
             """This command prints a friendly greeting"""
             print("Hello from ExamplePlugin!")

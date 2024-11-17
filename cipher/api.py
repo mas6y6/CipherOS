@@ -52,7 +52,7 @@ class CipherAPI:
         else:
             return ExitCodes.SUCCESS, None
     
-    def load_plugin(self, filepath):
+    def load_plugin(self, filepath, api):
         yml_path = os.path.join(filepath, "plugin.yml")
         if not os.path.exists(yml_path):
             raise PluginInitializationError(f"'plugin.yml' not found in {filepath}")
@@ -87,7 +87,11 @@ class CipherAPI:
             raise PluginInitializationError(f"Class '{plugin_class_name}' not found in {init_file}")
 
         plugin_instance = plugin_class(self)
-        plugin_instance.on_enable()
+        plugin_instance.__init__(api)
+        try:
+            plugin_instance.on_enable()
+        except:
+            print(f"{plugin_name} loaded.")
     
     def download_package(self,package_name, version=None):
         """

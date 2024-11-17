@@ -3,7 +3,7 @@ from cipher.api import CipherAPI
 class CipherPlugin:
     api = None
     def __init__(self, api: CipherAPI):
-        if CipherPlugin.api is None:
+        if CipherPlugin.api == None:
             CipherPlugin.api = api
         self.api.plugins[self.__class__.__name__] = self
     

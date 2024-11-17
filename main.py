@@ -129,7 +129,7 @@ if not os.path.exists("plugins"):
 if not len(os.listdir(os.path.join(api.starterdir,"plugins"))) == 0:
     for i in os.listdir(os.path.join(api.starterdir,"plugins")):
         try:
-            api.load_plugin(os.path.join(api.starterdir,"plugins",i))
+            api.load_plugin(os.path.join(api.starterdir,"plugins",i),api)
         except:
             print(colorama.Style.BRIGHT+colorama.Fore.RED+f"Error: Plugin '{i}' failed to load\n"+traceback.format_exc()+colorama.Fore.RESET+colorama.Style.NORMAL)
 else:

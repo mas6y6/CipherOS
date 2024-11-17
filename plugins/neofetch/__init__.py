@@ -10,7 +10,7 @@ class neofetch(CipherPlugin):
         print("neofetch enabled.")
 
     def on_disable(self):
-        print("neofetch disabled")
+        print("neofetch disabled.")
         
     def register_commands(self):
         @CipherPlugin.command(name="neofetch")

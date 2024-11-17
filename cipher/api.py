@@ -42,8 +42,8 @@ class CipherAPI:
         exc = None
         try:
             exc = self.commands[args[0]]["func"](args[1:])
-        except KeyError:
-            return ExitCodes.COMMANDNOTFOUND, traceback.format_exc()
+        # except KeyError:
+        #     return ExitCodes.COMMANDNOTFOUND, traceback.format_exc()
         except ExitCodeError:
             return exc, traceback.format_exc()
         except IndexError:
@@ -91,9 +91,10 @@ class CipherAPI:
         if hasattr(plugin_instance, 'on_enable') and callable(plugin_instance.on_enable):
             plugin_instance.on_enable()
     
-    def disable_plugin(self,pluginname):
-        print(f"Disabling {pluginname}")
-        plugin_instance = self.plugins[pluginname]
+    def disable_plugin(self,plugin):
+        print(f"Disabling {plugin.__class__.__name__}")
+        pluginname = plugin.__class__.__name__
+        plugin_instance = self.plugins[plugin.__class__.__name__]
         if hasattr(plugin_instance, 'on_disable') and callable(plugin_instance.on_disable):
             plugin_instance.on_disable()
         else:

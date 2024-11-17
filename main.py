@@ -43,15 +43,6 @@ if not os.path.exists("data/cache/packageswhl"):
     os.mkdir("data/cache/packageswhl")
 #builtin functions
 
-complations = []
-
-def updatecomplations():
-    for i in os.listdir(api.pwd):
-        complations.append(i)
-    
-    for i in api.commands:
-        complations.append(i)
-
 @api.command()
 def exit(args):
     print("Closing CipherOS")
@@ -59,7 +50,7 @@ def exit(args):
 
 @api.command(alias=["cd"])
 def chdir(args):
-    updatecomplations()
+    api.updatecomplations()
     if os.path.isdir(args[0]):
         os.chdir(args[0])
     else:
@@ -160,12 +151,9 @@ print(r"""   _______       __              ____  _____
       /_/                                   
 
 Project Codename: Paradox"""+colorama.Fore.RESET)
-updatecomplations()
 
 history = InMemoryHistory()
-
-command_completer = WordCompleter(complations, ignore_case=True)
-path_completer = PathCompleter()
+command_completer = WordCompleter(api.complations, ignore_case=True)
 
 while True:
     try:

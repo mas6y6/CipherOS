@@ -3,9 +3,9 @@ from cipher.plugins import CipherAPI, CipherPlugin
 # This structure of building 
 
 class ExamplePlugin(CipherPlugin):
-    def __init__(self, api: CipherAPI):
+    def __init__(self, api: CipherAPI,config):
         # Call the parent constructor to initialize the plugin with the API
-        super().__init__(api)
+        super().__init__(api,config)
         
         # Register your plugin's commands
         self.register_commands()

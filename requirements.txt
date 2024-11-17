@@ -1,6 +1,6 @@
 colorama==0.4.6
 paramiko==3.5.0
-progressbar33==2.4
+progressbar2==4.5.0
 prompt_toolkit==3.0.48
 PyYAML==6.0.2
 PyYAML==6.0.2

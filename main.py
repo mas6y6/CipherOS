@@ -83,7 +83,7 @@ def plugins(args):
         print("Reloading all plugins")
         for i in api.plugins:
             api.disable_plugin(i)
-        for i in os.listdir(api.starterdir):
+        for i in os.listdir(os.path.join(starterdir,"plugins")):
             api.load_plugin(i)
     
     elif args[0] == "disable":

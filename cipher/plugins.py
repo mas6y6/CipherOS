@@ -5,16 +5,7 @@ class CipherPlugin:
     def __init__(self, api: CipherAPI):
         if CipherPlugin.api is None:
             CipherPlugin.api = api
-        self.on_load()
         self.api.plugins[self.__class__.__name__] = self
-    
-    def on_load(self):
-        """Called when the plugin is loaded."""
-        print(f"Plugin {self.__class__.__name__} loaded successfully!")
-    
-    def on_unload(self):
-        """Called when the plugin is unloaded."""
-        print(f"Plugin {self.__class__.__name__} unloaded successfully!")
     
     @classmethod
     def command(cls, name=None, doc=None, desc=None, extradata=None, alias=None):

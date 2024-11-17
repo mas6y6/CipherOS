@@ -96,7 +96,8 @@ class CipherAPI:
         if hasattr(plugin_instance, 'on_disable') and callable(plugin_instance.on_disable):
             plugin_instance.on_disable()
         else:
-            print(pluginname,"does not have 'on_disable' function.")
+            pass
+        del self.plugins[plugin_instance]
     
     def download_package(self,package_name, version=None):
         """

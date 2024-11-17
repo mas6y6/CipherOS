@@ -92,6 +92,7 @@ class CipherAPI:
         plugin_instance = plugin_class(self,yml)
         if hasattr(plugin_instance, 'on_enable') and callable(plugin_instance.on_enable):
             plugin_instance.on_enable()
+        self.updatecomplations()
     
     def disable_plugin(self,plugin):
         print(f"Disabling {plugin.__class__.__name__}")
@@ -100,7 +101,11 @@ class CipherAPI:
             plugin_instance.on_disable()
         else:
             pass
+        
+        for i in self.plugincommands[plugin.__class__.__name__]:
+            self.commands.pop(i)
         self.plugins.pop(plugin.__class__.__name__)
+        self.updatecomplations()
     
     def download_package(self,package_name, version=None):
         """

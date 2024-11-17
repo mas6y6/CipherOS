@@ -96,8 +96,8 @@ def plugins(args):
     elif args[0] == "info":
         pass
 
-@api.command(alias=["l"])
-def ls(args):
+@api.command(alias=["ls"])
+def list(args):
     import os
     import colorama
     if len(args) > 0:

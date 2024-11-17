@@ -2,3 +2,6 @@ plugins
 data
 compileplugin.sh
 cipher/__pycache__
+build
+cipher.spec
+comple.bat

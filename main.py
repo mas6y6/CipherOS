@@ -81,10 +81,10 @@ def clear(args):
 def plugins(args):
     if args[0] == "reloadall":
         print("Reloading all plugins")
-        for i in api.plugins:
-            api.disable_plugin(i)
+        for i in list(api.plugins):
+            api.disable_plugin(api.plugins[i])
         for i in os.listdir(os.path.join(api.starterdir,"plugins")):
-            api.load_plugin(i,api)
+            api.load_plugin(os.path.join(api.starterdir,"plugins",i), api)
     
     elif args[0] == "disable":
         api.disable_plugin(args[1])

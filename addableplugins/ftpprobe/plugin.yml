@@ -1,0 +1,6 @@
+configversion: 1
+version: 30
+# The name must match the folder of the plugin
+name: ftpprobe
+displayname: "ftpprobe"
+class: FtpProbe

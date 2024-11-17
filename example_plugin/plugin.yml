@@ -4,3 +4,5 @@ version: 30
 name: example_plugin
 displayname: "Example Plugin"
 class: ExamplePlugin
+dependencies: #Put your dependencies here cipheros will install them so your plugin can use them
+#  - requests

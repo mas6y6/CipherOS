@@ -31,6 +31,9 @@ if not os.path.exists("data/cache"):
 
 if not os.path.exists("data/config"):
     os.mkdir("data/config")
+
+if not os.path.exists("data/cache/packages"):
+    os.mkdir("data/cache/packages")
 #builtin functions
 
 @api.command()
@@ -134,14 +137,13 @@ print(r"""   _______       __              ____  _____
 
 Project Codename: Paradox"""+colorama.Fore.RESET)
 
-
 while True:
     try:
         if api.addressconnected == "":
             commandlineinfo = f"{api.currentenvironment} {api.pwd}"
         else:
             commandlineinfo = f"{api.currentenvironment} {api.addressconnected} {api.pwd}"
-        _argx = input(commandlineinfo+" > ").split(" ")
+        _argx = input(commandlineinfo+"> ").split(" ")
         if not _argx[0] == "":
             cmd = _argx[0]
             e = api.run(_argx)

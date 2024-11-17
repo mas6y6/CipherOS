@@ -13,6 +13,6 @@ class neofetch(CipherPlugin):
         print("neofetch disabled")
         
     def register_commands(self):
-        @CipherPlugin.api.command(name="neofetch")
+        @CipherPlugin.command(name="neofetch")
         def neofetch(args):
             print(platform.system())

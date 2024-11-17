@@ -25,6 +25,7 @@ def showc():
     print("\033[?25h", end="", flush=True) #show cursor
 #variables
 api = CipherAPI()
+version = 1
 
 if not os.path.exists("data"):
     os.mkdir("data")
@@ -78,8 +79,10 @@ def clear(args):
 
 @api.command(alias=["pl"])
 def plugins(args):
-    if args[0] == "reload":
-        pass
+    if args[0] == "reloadall":
+        print("Reloading all plugins")
+        for i in api.plugins:
+            api.disable_plugin(i)
     
     elif args[0] == "disable":
         pass

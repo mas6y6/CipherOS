@@ -15,10 +15,6 @@ import shutil
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import Completer, Completion, PathCompleter, WordCompleter
 from prompt_toolkit.history import InMemoryHistory
-try:
-    import readline
-except ImportError:
-    import pyreadline as readline
 
 colorama.init()
 

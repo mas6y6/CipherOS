@@ -7,9 +7,6 @@ An hacknet inspired hacking program
 **This program is very early in development so not everything will work.**
 
 If you are testing CipherOS on windows please install pyreadline3 as readline does not work on windows
-```
-pip install pyreadline3
-```
 
 # Colaborators
 + @mas6y6 (Owner)

@@ -6,5 +6,6 @@ build
 cipher.spec
 comple.bat
 cipher/__pycache__
+example_plugin/__pycache__
 dist
 visualstudio

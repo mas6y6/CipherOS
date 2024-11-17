@@ -83,7 +83,7 @@ def plugins(args):
         print("Reloading all plugins")
         for i in api.plugins:
             api.disable_plugin(i)
-        for i in os.listdir(api.starterdir,"plugins"):
+        for i in os.listdir(os.path.join(api.starterdir,"plugins")):
             api.load_plugin(i,api)
     
     elif args[0] == "disable":
@@ -184,6 +184,7 @@ while True:
         if not _argx[0] == "":
             cmd = _argx[0]
             e = api.run(_argx)
+            print(e)
             
             # Command output handling
             if e[0] == 404:

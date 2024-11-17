@@ -97,7 +97,7 @@ class CipherAPI:
             plugin_instance.on_disable()
         else:
             pass
-        del self.plugins[plugin_instance]
+        del self.plugins[pluginname]
     
     def download_package(self,package_name, version=None):
         """

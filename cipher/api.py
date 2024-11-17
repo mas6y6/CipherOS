@@ -93,10 +93,6 @@ class CipherAPI:
     
     def disable_plugin(self,plugin):
         print(f"Disabling {plugin.__class__.__name__}")
-<<<<<<< HEAD
-=======
-        pluginname = plugin.__class__.__name__
->>>>>>> f340c0659dd3c5b056b17962d7ce410d51d8413f
         plugin_instance = self.plugins[plugin.__class__.__name__]
         if hasattr(plugin_instance, 'on_disable') and callable(plugin_instance.on_disable):
             plugin_instance.on_disable()

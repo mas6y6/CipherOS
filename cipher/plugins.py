@@ -3,12 +3,17 @@ from cipher.api import CipherAPI
 class CipherPlugin:
     api = None
     config = None
+    name = None
     def __init__(self, api: CipherAPI, config):
         if CipherPlugin.api is None:
             CipherPlugin.api = api
         
         if CipherPlugin.config is None:
             CipherPlugin.config = config
+        
+        if CipherPlugin.name is None:
+            CipherPlugin.name = self.__class__.__name__
+        
         self.api.plugins[self.__class__.__name__] = self
         self.api.plugincommands[self.__class__.__name__] = []
     
@@ -31,7 +36,7 @@ class CipherPlugin:
                 "doc": doc,
                 "extradata": extradata,
             }
-            cls.api.plugincommands.append(funcname)
+            cls.api.plugincommands[cls.name].append(funcname)
             for i in alias:
                 cls.api.commands[i] = {
                     "func": func,
@@ -39,6 +44,6 @@ class CipherPlugin:
                     "doc": doc,
                     "extradata": extradata,
                 }
-                cls.api.plugincommands.append(i)
+                cls.api.plugincommands[cls.name].append(i)
             return func
         return decorator

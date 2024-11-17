@@ -1,5 +1,6 @@
 configversion: 1
 version: 1
+cipherversion: 1
 # The name must match the folder of the plugin
 name: example_plugin
 displayname: "Example Plugin"

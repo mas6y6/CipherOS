@@ -1,5 +1,6 @@
 import os, socket, tarfile, yaml, sys, socket, argparse, traceback, importlib.util, shutil, requests, zipfile
 from cipher.exceptions import ExitCodes, ExitCodeError, PluginError, PluginInitializationError
+from prompt_toolkit.completion import Completer, Completion, PathCompleter, WordCompleter
 
 class CipherAPI:
     def __init__(self):
@@ -13,6 +14,7 @@ class CipherAPI:
         self.plugins = {}
         self.plugincommands = {}
         self.threads = {}
+        self.complations = []
         sys.path.append(os.path.join(self.starterdir,"plugins"))
         sys.path.append(os.path.join(self.starterdir,"data","cache","packages"))
         
@@ -147,3 +149,10 @@ class CipherAPI:
                 zip_ref.extractall(os.path.join(self.starterdir,"data","cache","packages"))
         except requests.RequestException as e:
             print(f"Failed to download package '{package_name}': {e}")
+    
+    def updatecomplations(self):
+        for i in os.listdir(self.pwd):
+            self.complations.append(i)
+        
+        for i in self.commands:
+            self.complations.append(i)

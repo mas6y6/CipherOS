@@ -11,6 +11,7 @@ class CipherAPI:
         self.localip = socket.gethostbyname(self.hostname)
         self.currentenvironment = "COS"
         self.plugins = {}
+        self.plugincommands = {}
         self.threads = {}
         sys.path.append(os.path.join(self.starterdir,"plugins"))
         sys.path.append(os.path.join(self.starterdir,"data","cache","packages"))
@@ -92,12 +93,13 @@ class CipherAPI:
     
     def disable_plugin(self,plugin):
         print(f"Disabling {plugin.__class__.__name__}")
+        pluginname = plugin.__class__.__name__
         plugin_instance = self.plugins[plugin.__class__.__name__]
         if hasattr(plugin_instance, 'on_disable') and callable(plugin_instance.on_disable):
             plugin_instance.on_disable()
         else:
             pass
-        self.plugins.pop(plugin.__class__.__name__)
+        self.plugins.pop(pluginname)
     
     def download_package(self,package_name, version=None):
         """

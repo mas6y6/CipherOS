@@ -10,6 +10,7 @@ class CipherPlugin:
         if CipherPlugin.config is None:
             CipherPlugin.config = config
         self.api.plugins[self.__class__.__name__] = self
+        self.api.plugincommands[self.__class__.__name__] = []
     
     @classmethod
     def command(cls, name=None, doc=None, desc=None, extradata=None, alias=None):
@@ -30,6 +31,7 @@ class CipherPlugin:
                 "doc": doc,
                 "extradata": extradata,
             }
+            cls.api.plugincommands.append(funcname)
             for i in alias:
                 cls.api.commands[i] = {
                     "func": func,
@@ -37,5 +39,6 @@ class CipherPlugin:
                     "doc": doc,
                     "extradata": extradata,
                 }
+                cls.api.plugincommands.append(i)
             return func
         return decorator

@@ -84,10 +84,10 @@ def plugins(args):
         for i in api.plugins:
             api.disable_plugin(i)
         for i in os.listdir(api.starterdir):
-            api.load_plugin(i)
+            api.load_plugin(i,api)
     
     elif args[0] == "disable":
-        pass
+        api.disable_plugin(args[1])
     
     elif args[0] == "enable":
         pass

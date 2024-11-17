@@ -42,8 +42,8 @@ class CipherAPI:
         exc = None
         try:
             exc = self.commands[args[0]]["func"](args[1:])
-        # except KeyError:
-        #     return ExitCodes.COMMANDNOTFOUND, traceback.format_exc()
+        except KeyError:
+            return ExitCodes.COMMANDNOTFOUND, traceback.format_exc()
         except ExitCodeError:
             return exc, traceback.format_exc()
         except IndexError:

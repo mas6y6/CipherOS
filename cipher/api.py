@@ -63,7 +63,7 @@ class CipherAPI:
         plugin_class_name = yml.get("class")
         plugin_displayname = yml.get("displayname")
         plugin_dependencies = yml.get("dependencies")
-        print(f"Loading Plugin '{plugin_displayname}'")
+        print(f"Loading {plugin_displayname}")
         if not plugin_dependencies == None:
             for i in plugin_dependencies:
                 if not os.path.exists(os.path.join(self.starterdir,"data","cache","packages",i)):

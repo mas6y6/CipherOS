@@ -184,7 +184,6 @@ while True:
         if not _argx[0] == "":
             cmd = _argx[0]
             e = api.run(_argx)
-            print(e)
             
             # Command output handling
             if e[0] == 404:

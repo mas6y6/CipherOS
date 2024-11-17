@@ -86,7 +86,7 @@ class CipherAPI:
         if plugin_class is None:
             raise PluginInitializationError(f"Class '{plugin_class_name}' not found in {init_file}")
 
-        plugin_instance = plugin_class(self)
+        plugin_instance = plugin_class(self,yml)
         if hasattr(plugin_instance, 'on_enable') and callable(plugin_instance.on_enable):
             plugin_instance.on_enable()
     

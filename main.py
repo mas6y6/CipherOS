@@ -50,12 +50,12 @@ def exit(args):
 
 @api.command(alias=["cd"])
 def chdir(args):
-    api.updatecomplations()
     if os.path.isdir(args[0]):
         os.chdir(args[0])
     else:
         print(colorama.Style.BRIGHT+colorama.Fore.RED+f"Error:",args[0],"is a file"+colorama.Fore.RESET+colorama.Style.NORMAL)
     api.pwd = os.getcwd()
+    api.updatecomplations()
 
 @api.command()
 def mkdir(args):
@@ -76,6 +76,7 @@ def plugins(args):
             api.disable_plugin(api.plugins[i])
         for i in os.listdir(os.path.join(api.starterdir,"plugins")):
             api.load_plugin(os.path.join(api.starterdir,"plugins",i), api)
+        print("Reload complete")
     
     elif args[0] == "disable":
         api.disable_plugin(args[1])
@@ -154,6 +155,7 @@ Project Codename: Paradox"""+colorama.Fore.RESET)
 
 history = InMemoryHistory()
 command_completer = WordCompleter(api.complations, ignore_case=True)
+api.updatecomplations()
 
 while True:
     try:

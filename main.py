@@ -83,6 +83,8 @@ def plugins(args):
         print("Reloading all plugins")
         for i in api.plugins:
             api.disable_plugin(i)
+        for i in os.listdir(api.starterdir):
+            api.load_plugin(i)
     
     elif args[0] == "disable":
         pass
@@ -96,8 +98,8 @@ def plugins(args):
     elif args[0] == "info":
         pass
 
-@api.command(alias=["ls"])
-def list(args):
+@api.command(alias=["l"])
+def ls(args):
     import os
     import colorama
     if len(args) > 0:

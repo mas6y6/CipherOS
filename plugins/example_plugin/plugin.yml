@@ -1,0 +1,9 @@
+configversion: 1
+version: 1
+cipherversion: 1
+# The name must match the folder of the plugin
+name: example_plugin
+displayname: "Example Plugin"
+class: ExamplePlugin
+dependencies: #Put your dependencies here cipheros will install them so your plugin can use them
+#  - requests

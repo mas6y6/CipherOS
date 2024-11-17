@@ -1,6 +1,6 @@
 configversion: 1
 version: 30
-
-# Must match the folder you are taring
+# The name must match the folder of the plugin
 name: example_plugin
-displayname: Example Plugin
+displayname: "Example Plugin"
+class: ExamplePlugin

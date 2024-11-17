@@ -1,5 +1,5 @@
 import os, socket, tarfile, yaml, sys, socket, argparse, traceback, importlib.util, shutil
-from exceptions import ExitCodes, ExitCodeError
+from cipher.exceptions import ExitCodes, ExitCodeError, PluginError, PluginInitializationError
 
 class CipherAPI:
     def __init__(self):
@@ -12,7 +12,7 @@ class CipherAPI:
         self.currentenvironment = "COS"
         self.plugins = {}
         self.threads = {}
-        sys.path.append(os.path.join(self.starterdir,"data","cache","plugins"))
+        sys.path.append(os.path.join(self.starterdir,"plugins"))
         
     def command(self, name=None, doc=None, desc=None, extradata={}, alias=[]):
         def decorator(func):
@@ -44,40 +44,40 @@ class CipherAPI:
             return ExitCodes.COMMANDNOTFOUND, traceback.format_exc()
         except ExitCodeError:
             return exc, traceback.format_exc()
+        except IndexError:
+            return ExitCodes.OTHERERROR, "This command requires arguments"
         except Exception:
             return ExitCodes.FATALERROR, traceback.format_exc()
         else:
             return ExitCodes.SUCCESS, None
     
     def load_plugin(self, filepath):
-        tarname = os.path.basename(filepath).split(".")[0]
-        tar = tarfile.open(filepath, "r:gz")
-        plugin_yml_path = f"{tarname}/plugin.yml"
-        try:
-            yml = yaml.load(tar.extractfile(plugin_yml_path), Loader=yaml.FullLoader)
-        except KeyError:
-            print(f"Error: {plugin_yml_path} not found in the archive.")
+        yml_path = os.path.join(filepath, "plugin.yml")
+        if not os.path.exists(yml_path):
+            raise PluginInitializationError(f"'plugin.yml' not found in {filepath}")
+        with open(yml_path, "r") as yml_file:
+            yml = yaml.safe_load(yml_file)
+        plugin_name = yml.get("name")
+        plugin_class_name = yml.get("class")
+        plugin_displayname = yml.get("displayname")
+        if not plugin_name:
+            raise PluginInitializationError(f"'name' is missing in {yml_path}")
+        init_file = os.path.join(filepath, "__init__.py")
+        if not os.path.exists(init_file):
+            raise PluginInitializationError(f"'__init__.py' not found in {filepath}")
+        spec = importlib.util.spec_from_file_location(plugin_name, init_file)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
         
-        pluginname = yml["name"]
-        plugindisplayname = yml["name"]
+        plugin_class = getattr(module, plugin_class_name, None)
+        if plugin_class is None:
+            raise PluginInitializationError(f"Class '{plugin_class_name}' not found in {init_file}")
+
+        plugin_class = getattr(module, plugin_class_name, None)
+        if plugin_class is None:
+            raise PluginInitializationError(f"Class '{plugin_class_name}' not found in {init_file}")
+
+        plugin_instance = plugin_class(self)
+        plugin_instance.on_load()
         
-        if os.path.exists(os.path.join(self.starterdir,"data","cache","plugins",tarname)):
-            testyml = yaml.load(tar.extractfile(os.path.join(self.starterdir,"data","cache","plugins",tarname,"plugin.yml")), Loader=yaml.FullLoader)
-            if not testyml["version"] == yml["version"]:
-                print("Extracting "+plugindisplayname)
-                tar.extractall(os.path.join(self.starterdir,"data","cache","plugins"))
-            else:
-                print(plugindisplayname+" is already extracted. Loading...")
-        else:
-            print("Extracting "+plugindisplayname)
-            tar.extractall(os.path.join(self.starterdir,"data","cache","plugins"))
-        
-        plugin_module = importlib.import_module(pluginname)
-        self.plugins[pluginname] = {"displayname":plugindisplayname}
-    
-    def clean_plugin_cache(self):
-        for i in os.path.join(self.starterdir,"data","cache","plugins"):
-            if i in self.plugins:
-                continue
-            else:
-                shutil.()
+        print(f"Plugin '{plugin_displayname}' loaded successfully.")

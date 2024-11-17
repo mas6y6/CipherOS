@@ -1,7 +1,8 @@
 # CipherOS
-The average operating system for hacking computers 
+Average python operating system for hacking computers 
+
 
 
 # Colaborators
-+ @mas6y6 (da owner)
++ @mas6y6 (Owner)
 + @malachi196

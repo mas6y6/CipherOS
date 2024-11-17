@@ -7,5 +7,6 @@ An hacknet inspired hacking program
 **This program is very early in development so not everything will work.**
 
 # Colaborators
-+ @mas6y6 (Owner)
-+ @malachi196
++ [@mas6y6](https://github.com/mas6y6) (Owner)
++ [@malachi196](https://github.com/malachi196)
++ [@overo3](https://github.com/Overo3)

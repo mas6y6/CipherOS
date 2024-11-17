@@ -17,7 +17,6 @@ try:
 except ImportError:
     import pyreadline as readline
 
-
 colorama.init()
 
 def hidec():

@@ -4,7 +4,9 @@ import sys
 sys.path.append(os.getcwd())
 import argparse
 import traceback
-import colorama, websockets, math, shutil, paramiko, progressbar, time, requests, readline
+import colorama, websockets, math, shutil, paramiko, progressbar, time, requests
+from pyreadline3 import Readline
+readline = Readline()
 from cipher.api import CipherAPI
 import cipher.exceptions as ex
 import tarfile

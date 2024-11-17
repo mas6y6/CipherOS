@@ -13,7 +13,6 @@ class CipherPlugin:
         A method to add commands through the plugin class using the API.
         This method is now a class method, so it can be used with `CipherPlugin.command()`.
         """
-        # Use None as default values, and initialize the mutable objects inside the function
         if extradata is None:
             extradata = {}
         if alias is None:
@@ -27,7 +26,6 @@ class CipherPlugin:
                 "doc": doc,
                 "extradata": extradata,
             }
-            # Handle any aliases
             for i in alias:
                 cls.api.commands[i] = {
                     "func": func,

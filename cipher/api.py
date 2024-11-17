@@ -87,7 +87,16 @@ class CipherAPI:
             raise PluginInitializationError(f"Class '{plugin_class_name}' not found in {init_file}")
 
         plugin_instance = plugin_class(self)
-        plugin_instance.on_enable()
+        if hasattr(plugin_instance, 'on_enable') and callable(plugin_instance.on_enable):
+            plugin_instance.on_enable()
+    
+    def disable_plugin(self,pluginname):
+        print("Disabling pluginname")
+        plugin_instance = self.plugins[pluginname]
+        if hasattr(plugin_instance, 'on_disable') and callable(plugin_instance.on_disable):
+            plugin_instance.on_disable()
+        else:
+            print(pluginname,"does not have 'on_disable' function.")
     
     def download_package(self,package_name, version=None):
         """

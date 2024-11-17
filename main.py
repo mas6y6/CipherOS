@@ -12,6 +12,9 @@ import importlib.util
 import os
 import tempfile
 import shutil
+from prompt_toolkit import prompt
+from prompt_toolkit.completion import Completer, Completion, PathCompleter, WordCompleter
+from prompt_toolkit.history import InMemoryHistory
 try:
     import readline
 except ImportError:
@@ -43,6 +46,15 @@ if not os.path.exists("data/cache/packageswhl"):
     os.mkdir("data/cache/packageswhl")
 #builtin functions
 
+complations = []
+
+def updatecomplations():
+    for i in os.listdir(api.pwd):
+        complations.append(i)
+    
+    for i in api.commands:
+        complations.append(i)
+
 @api.command()
 def exit(args):
     print("Closing CipherOS")
@@ -50,6 +62,7 @@ def exit(args):
 
 @api.command(alias=["cd"])
 def chdir(args):
+    updatecomplations()
     if os.path.isdir(args[0]):
         os.chdir(args[0])
     else:
@@ -62,6 +75,27 @@ def mkdir(args):
         os.mkdir(args[0])
     else:
         print(colorama.Style.BRIGHT+colorama.Fore.RED+f"Error:",args[0],"exists"+colorama.Fore.RESET+colorama.Style.NORMAL)
+
+@api.command(alias=["cls"])
+def clear(args):
+    print("\033c", end="")
+
+@api.command(alias=["pl"])
+def plugins(args):
+    if args[0] == "reload":
+        pass
+    
+    elif args[0] == "disable":
+        pass
+    
+    elif args[0] == "enable":
+        pass
+    
+    elif args[0] == "list":
+        pass
+    
+    elif args[0] == "info":
+        pass
 
 @api.command(alias=["l"])
 def ls(args):
@@ -102,27 +136,7 @@ def touch(args):
     else:
         print(colorama.Style.BRIGHT+colorama.Fore.RED+f"Error:",args[0],"exists"+colorama.Fore.RESET+colorama.Style.NORMAL)
 
-def _tabcompleter(text, state):
-    # Get command options from the API
-    command_options = [cmd for cmd in api.commands if cmd.startswith(text)]
-    
-    # Get file and folder options from the current directory
-    current_dir = os.getcwd()
-    file_folder_options = [item for item in os.listdir(current_dir) if item.startswith(text)]
-    
-    # Combine command options and file/folder options
-    options = command_options + file_folder_options
-    
-    # Return the state-th option if it exists
-    if state < len(options):
-        return options[state]
-    else:
-        return None
-
 print("Starting CipherOS...")
-readline.set_completer(_tabcompleter)
-readline.parse_and_bind("tab: complete")
-readline.parse_and_bind("set editing-mode emacs")
 if not os.path.exists("plugins"):
     os.mkdir("plugins")
 
@@ -145,21 +159,36 @@ print(r"""   _______       __              ____  _____
       /_/                                   
 
 Project Codename: Paradox"""+colorama.Fore.RESET)
+updatecomplations()
+
+history = InMemoryHistory()
+
+command_completer = WordCompleter(complations, ignore_case=True)
+path_completer = PathCompleter()
 
 while True:
     try:
+        # Construct command line info
         if api.addressconnected == "":
             commandlineinfo = f"{api.currentenvironment} {api.pwd}"
         else:
             commandlineinfo = f"{api.currentenvironment} {api.addressconnected} {api.pwd}"
-        _argx = input(commandlineinfo+"> ").split(" ")
+
+        # Use prompt_toolkit to gather input
+        user_input = prompt(f"{commandlineinfo}> ",completer=command_completer ,history=history)
+
+        # Split input into arguments
+        _argx = user_input.split(" ")
+
         if not _argx[0] == "":
             cmd = _argx[0]
             e = api.run(_argx)
+            
+            # Command output handling
             if e[0] == 404:
-                print(colorama.Style.BRIGHT+colorama.Fore.RED+f"Error: Command \"{cmd}\" not found"+colorama.Fore.RESET+colorama.Style.NORMAL)
+                print(colorama.Style.BRIGHT + colorama.Fore.RED + f"Error: Command \"{cmd}\" not found" + colorama.Fore.RESET + colorama.Style.NORMAL)
             elif not e[0] == 0:
-                print(colorama.Style.BRIGHT+colorama.Fore.RED+f"Error: Command \"{cmd}\" incountered an error\n"+e[1]+colorama.Fore.RESET+colorama.Style.NORMAL)
+                print(colorama.Style.BRIGHT + colorama.Fore.RED + f"Error: Command \"{cmd}\" encountered an error\n" + e[1] + colorama.Fore.RESET + colorama.Style.NORMAL)
             else:
                 pass
         else:

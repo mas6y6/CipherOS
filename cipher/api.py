@@ -156,6 +156,7 @@ class CipherAPI:
             print(f"Failed to download package '{package_name}': {e}")
     
     def updatecomplations(self):
+        self.complations = []
         for i in os.listdir(self.pwd):
             self.complations.append(i)
         

@@ -16,7 +16,7 @@ You can install using the installer if you are using windows or you can download
 
 If you are on macOS go to [macos](https://github.com/mas6y6/CipherOS/tree/main/macos) where the zip is containing the .app of cipheros and the [cipher](https://github.com/mas6y6/CipherOS/tree/main/cipher) library
 
-All of these can be downloaded in [dist](https://github.com/mas6y6/CipherOS/releases)
+All of these can be downloaded in [releases](https://github.com/mas6y6/CipherOS/releases)
 
 ## Discord
 [Click me](https://discord.gg/hFxyTqGshN) to join the CipherOS discord server

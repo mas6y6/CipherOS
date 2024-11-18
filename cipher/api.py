@@ -154,10 +154,8 @@ class CipherAPI:
                 zip_ref.extractall(os.path.join(self.starterdir,"data","cache","packages"))
         except requests.RequestException as e:
             print(f"Failed to download package '{package_name}': {e}")
-    
-    def updatecomplations(self):
-        self.complations = []
     def updatecompletions(self):
+        self.complations = []
         for i in os.listdir(self.pwd):
             self.completions.append(i)
         

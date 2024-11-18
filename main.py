@@ -189,7 +189,6 @@ print(r"""   _______       __              ____  _____
 Project Codename: Paradox"""+colorama.Fore.RESET)
 
 history = InMemoryHistory()
-command_completer = WordCompleter(api.completions, ignore_case=True)
 api.updatecompletions()
 
 while True:
@@ -201,7 +200,7 @@ while True:
             commandlineinfo = f"{api.currentenvironment} {api.addressconnected} {api.pwd}"
 
         # Use prompt_toolkit to gather input
-        command_completer = WordCompleter(api.complations, ignore_case=True)
+        command_completer = WordCompleter(api.completions, ignore_case=True)
         user_input = prompt(f"{commandlineinfo}> ",completer=command_completer ,history=history)
 
         # Split input into arguments

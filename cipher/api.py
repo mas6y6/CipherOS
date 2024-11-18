@@ -155,7 +155,7 @@ class CipherAPI:
         except requests.RequestException as e:
             print(f"Failed to download package '{package_name}': {e}")
     def updatecompletions(self):
-        self.complations = []
+        self.completions = []
         for i in os.listdir(self.pwd):
             self.completions.append(i)
         

@@ -24,7 +24,7 @@ def hidec():
 def showc():
     print("\033[?25h", end="", flush=True) #show cursor
 
-def error(msg):
+def printerror(msg):
     print(colorama.Style.BRIGHT+colorama.Fore.RED+msg+colorama.Fore.RESET+colorama.Style.NORMAL)
 #variables
 api = CipherAPI()

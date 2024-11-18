@@ -14,7 +14,7 @@ An hacknet inspired hacking program
 ## Discord
 https://discord.gg/hFxyTqGshN
 
-# Colaborators
+# Contributors
 + [@mas6y6](https://github.com/mas6y6) (Owner)
 + [@malachi196](https://github.com/malachi196)
 + [@overo3](https://github.com/Overo3)

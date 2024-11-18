@@ -154,11 +154,11 @@ print(r"""   _______       __              ____  _____
 Project Codename: Paradox"""+colorama.Fore.RESET)
 
 history = InMemoryHistory()
-command_completer = WordCompleter(api.complations, ignore_case=True)
-api.updatecomplations()
+command_completer = WordCompleter(api.completions, ignore_case=True)
 
 while True:
     try:
+        api.updatecompletions()
         # Construct command line info
         if api.addressconnected == "":
             commandlineinfo = f"{api.currentenvironment} {api.pwd}"

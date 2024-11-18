@@ -1,1 +1,0 @@
-pyinstaller main.py --exclude-module=cipher --onefile --icon="./icon.ico" --name="cipher"

@@ -14,7 +14,7 @@ class CipherAPI:
         self.plugins = {}
         self.plugincommands = {}
         self.threads = {}
-        self.complations = []
+        self.completions = []
         sys.path.append(os.path.join(self.starterdir,"plugins"))
         sys.path.append(os.path.join(self.starterdir,"data","cache","packages"))
         
@@ -92,7 +92,7 @@ class CipherAPI:
         plugin_instance = plugin_class(self,yml)
         if hasattr(plugin_instance, 'on_enable') and callable(plugin_instance.on_enable):
             plugin_instance.on_enable()
-        self.updatecomplations()
+        self.updatecompletions()
     
     def disable_plugin(self,plugin):
         print(f"Disabling {plugin.__class__.__name__}")
@@ -105,7 +105,7 @@ class CipherAPI:
         for i in self.plugincommands[plugin.__class__.__name__]:
             self.commands.pop(i)
         self.plugins.pop(plugin.__class__.__name__)
-        self.updatecomplations()
+        self.updatecompletions()
     
     def download_package(self,package_name, version=None):
         """
@@ -157,8 +157,9 @@ class CipherAPI:
     
     def updatecomplations(self):
         self.complations = []
+    def updatecompletions(self):
         for i in os.listdir(self.pwd):
-            self.complations.append(i)
+            self.completions.append(i)
         
         for i in self.commands:
-            self.complations.append(i)
+            self.completions.append(i)

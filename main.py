@@ -91,7 +91,7 @@ def chdir(args):
     else:
         print(colorama.Style.BRIGHT+colorama.Fore.RED+f"Error:",args[0],"is a file"+colorama.Fore.RESET+colorama.Style.NORMAL)
     api.pwd = os.getcwd()
-    api.updatecomplations()
+    api.updatecompletions()
 
 @api.command()
 def mkdir(args):
@@ -159,9 +159,10 @@ def ls(args):
 
 @api.command()
 def touch(args):
-    if os.path.exists(args[0]):
+    if not os.path.exists(args[0]):
         open(args[0],"w")
         print("Created file",args[0])
+        api.updatecompletions()
     else:
         print(colorama.Style.BRIGHT+colorama.Fore.RED+f"Error:",args[0],"exists"+colorama.Fore.RESET+colorama.Style.NORMAL)
 
@@ -176,7 +177,7 @@ if not len(os.listdir(os.path.join(api.starterdir,"plugins"))) == 0:
 else:
     print("No plugins found")
 
-print(colorama.Fore.MAGENTA+"Made by @mas6y6 and @malachi196 (on github)")
+print(colorama.Fore.MAGENTA+"Made by @mas6y6, @malachi196, and @overo3 (on github)")
 
 print(r"""   _______       __              ____  _____
   / ____(_)___  / /_  ___  _____/ __ \/ ___/
@@ -188,7 +189,8 @@ print(r"""   _______       __              ____  _____
 Project Codename: Paradox"""+colorama.Fore.RESET)
 
 history = InMemoryHistory()
-api.updatecomplations()
+command_completer = WordCompleter(api.completions, ignore_case=True)
+api.updatecompletions()
 
 while True:
     try:

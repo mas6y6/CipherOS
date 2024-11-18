@@ -15,4 +15,4 @@ class neofetch(CipherPlugin):
     def register_commands(self):
         @CipherPlugin.command(name="neofetch")
         def neofetch(args):
-            print(platform.system())
+            print("OS: "+platform.system()+" "+platform.version()+" "+platform.machine())

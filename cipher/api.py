@@ -15,8 +15,6 @@ class CipherAPI:
         self.plugincommands = {}
         self.threads = {}
         self.completions = []
-        sys.path.append(os.path.join(self.starterdir,"plugins"))
-        sys.path.append(os.path.join(self.starterdir,"data","cache","packages"))
         
     def command(self, name=None, doc=None, desc=None, extradata={}, alias=[]):
         def decorator(func):

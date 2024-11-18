@@ -4,12 +4,9 @@ import sys
 sys.path.append(os.getcwd())
 import argparse
 import traceback
-import colorama, websockets, math, shutil, paramiko, progressbar, time, requests, platform
-from cipher.api import CipherAPI
-import cipher.exceptions as ex
+import colorama, websockets, math, shutil, paramiko, progressbar, time, requests, platform, pyinputplus, urllib3
 import tarfile
 import importlib.util
-import os
 import tempfile
 import shutil
 from prompt_toolkit import prompt
@@ -17,6 +14,64 @@ from prompt_toolkit.completion import Completer, Completion, PathCompleter, Word
 from prompt_toolkit.history import InMemoryHistory
 
 colorama.init()
+running_on_mac = False #Meant as the cipher library is not installed
+macpwd = None
+macapistarter = None
+
+import urllib.request
+import progressbar
+import os
+pbar = None
+def show_progress(block_num, block_size, total_size):
+    global pbar
+    if pbar is None:
+        pbar = progressbar.ProgressBar(widgets=[progressbar.Percentage()," ",progressbar.Bar(left="[",right="]")," ",progressbar.AbsoluteETA()],maxval=total_size)
+        pbar.start()
+
+    downloaded = block_num * block_size
+    if downloaded < total_size:
+        pbar.update(downloaded)
+    else:
+        pbar.finish()
+        pbar = None
+
+if os.name == "posix":
+    if os.getcwd() == os.path.expanduser("~"):
+        macpwd = os.path.expanduser("~")
+        os.chdir(macpwd)
+        if not os.path.exists(os.path.join(os.path.expanduser("~"),"CipherOS")):
+            os.mkdir(os.path.join(os.path.expanduser("~"),"CipherOS"))
+        macapistarter = os.path.join(os.path.expanduser("~"),"CipherOS")
+        if not os.path.exists(os.path.join(os.path.expanduser("~"),"CipherOS","cipher")):
+            print("Warning the \"cipher\" library is not installed and its required to run")
+            print("Do you want to download the \"cipher\" library?")
+            print()
+            print("You cannot install it using \"pip\" as its not available on pypi.org")
+            print()
+            q = pyinputplus.inputYesNo("Would you like to continue? (Y/n): ")
+            if q:
+                urllib.request.urlretrieve("https://codeload.github.com/mas6y6/CipherOS/zip/refs/heads/main",os.path.join(os.path.expanduser("~"),"CipherOS","cache.zip"), show_progress)
+            else:
+                print("You can download the \"cipher\" folder from github https://github.com/mas6y6/CipherOS/archive")
+                sys.exit()
+        
+
+from cipher.api import CipherAPI
+import cipher.exceptions as ex
+
+api = CipherAPI()
+
+if running_on_mac:
+    # To fix the path plugins and data folders being created in the ~ folder
+    #
+    # The plugins folder must be in the ~/CipherOS/plugins if you are using linux or macOS
+    #
+    # macOS is just a linux distro so :)
+    api.pwd = macpwd
+    api.starterdir = macapistarter
+
+sys.path.append(os.path.join(api.starterdir,"plugins"))
+sys.path.append(os.path.join(api.starterdir,"data","cache","packages"))
 
 def hidec():
     print("\033[?25l", end="", flush=True) #hide cursor
@@ -27,38 +82,23 @@ def showc():
 def printerror(msg):
     print(colorama.Style.BRIGHT+colorama.Fore.RED+msg+colorama.Fore.RESET+colorama.Style.NORMAL)
 #variables
-api = CipherAPI()
 version = 1
 
 def is_running_in_program_files():
-    # Get Program Files directories
     program_files = os.environ.get("ProgramFiles")  # C:\Program Files
     program_files_x86 = os.environ.get("ProgramFiles(x86)")  # C:\Program Files (x86)
-
-    # Get the current directory of the script
     current_dir = os.path.abspath(os.getcwd())
-
-    # Check if the current directory starts with either Program Files path
     return current_dir.startswith(program_files) or current_dir.startswith(program_files_x86)
 
-# Example usage
-if os.name == "nt":  # Check if running on Windows
+if os.name == "nt":
     if is_running_in_program_files():
-        # Set api.pwd to the home directory
         api.pwd = os.path.expanduser("~")
-        print(f"api.pwd set to: {api.pwd}")
-
-        # Set api.starterdir to Roaming\cipheros
         roaming_folder = os.path.join(os.environ.get("APPDATA"), "cipheros")
-        os.makedirs(roaming_folder, exist_ok=True)  # Ensure the folder exists
+        os.makedirs(roaming_folder, exist_ok=True)
         api.starterdir = roaming_folder
         os.chdir(api.pwd)
-        print(f"api.starterdir set to: {api.starterdir}")
     else:
         pass
-else:
-    pass
-
 
 if not os.path.exists(os.path.join(api.starterdir,"data")):
     os.mkdir(os.path.join(api.starterdir,"data"))

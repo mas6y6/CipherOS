@@ -4,7 +4,7 @@ import sys
 sys.path.append(os.getcwd())
 import argparse
 import traceback
-import colorama, websockets, math, shutil, paramiko, progressbar, time, requests
+import colorama, websockets, math, shutil, paramiko, progressbar, time, requests, platform
 from cipher.api import CipherAPI
 import cipher.exceptions as ex
 import tarfile
@@ -30,20 +30,53 @@ def error(msg):
 api = CipherAPI()
 version = 1
 
-if not os.path.exists("data"):
-    os.mkdir("data")
+def is_running_in_program_files():
+    # Get Program Files directories
+    program_files = os.environ.get("ProgramFiles")  # C:\Program Files
+    program_files_x86 = os.environ.get("ProgramFiles(x86)")  # C:\Program Files (x86)
 
-if not os.path.exists("data/cache"):
-    os.mkdir("data/cache")
+    # Get the current directory of the script
+    current_dir = os.path.abspath(os.getcwd())
 
-if not os.path.exists("data/config"):
-    os.mkdir("data/config")
+    # Check if the current directory starts with either Program Files path
+    return current_dir.startswith(program_files) or current_dir.startswith(program_files_x86)
 
-if not os.path.exists("data/cache/packages"):
-    os.mkdir("data/cache/packages")
+# Example usage
+if os.name == "nt":  # Check if running on Windows
+    if is_running_in_program_files():
+        # Set api.pwd to the home directory
+        api.pwd = os.path.expanduser("~")
+        print(f"api.pwd set to: {api.pwd}")
 
-if not os.path.exists("data/cache/packageswhl"):
-    os.mkdir("data/cache/packageswhl")
+        # Set api.starterdir to Roaming\cipheros
+        roaming_folder = os.path.join(os.environ.get("APPDATA"), "cipheros")
+        os.makedirs(roaming_folder, exist_ok=True)  # Ensure the folder exists
+        api.starterdir = roaming_folder
+        os.chdir(api.pwd)
+        print(f"api.starterdir set to: {api.starterdir}")
+    else:
+        pass
+else:
+    pass
+
+
+if not os.path.exists(os.path.join(api.starterdir,"data")):
+    os.mkdir(os.path.join(api.starterdir,"data"))
+
+if not os.path.exists(os.path.join(api.starterdir,"plugins")):
+    os.mkdir(os.path.join(api.starterdir,"plugins"))
+
+if not os.path.exists(os.path.join(api.starterdir,"data","cache")):
+    os.mkdir(os.path.join(api.starterdir,"data","cache"))
+
+if not os.path.exists(os.path.join(api.starterdir,"data","config")):
+    os.mkdir(os.path.join(api.starterdir,"data","config"))
+
+if not os.path.exists(os.path.join(api.starterdir,"data","cache","packages")):
+    os.mkdir(os.path.join(api.starterdir,"data","cache","packages"))
+
+if not os.path.exists(os.path.join(api.starterdir,"data","cache","packageswhl")):
+    os.mkdir(os.path.join(api.starterdir,"data","cache","packageswhl"))
 #builtin functions
 
 @api.command()
@@ -143,8 +176,6 @@ def remove(args):
         printerror(f"Error: '{args[0]}' does not exist.")
 
 print("Starting CipherOS...")
-if not os.path.exists("plugins"):
-    os.mkdir("plugins")
 
 if not len(os.listdir(os.path.join(api.starterdir,"plugins"))) == 0:
     for i in os.listdir(os.path.join(api.starterdir,"plugins")):
@@ -167,7 +198,6 @@ print(r"""   _______       __              ____  _____
 Project Codename: Paradox"""+colorama.Fore.RESET)
 
 history = InMemoryHistory()
-command_completer = WordCompleter(api.completions, ignore_case=True)
 api.updatecompletions()
 
 while True:
@@ -179,6 +209,7 @@ while True:
             commandlineinfo = f"{api.currentenvironment} {api.addressconnected} {api.pwd}"
 
         # Use prompt_toolkit to gather input
+        command_completer = WordCompleter(api.completions, ignore_case=True)
         user_input = prompt(f"{commandlineinfo}> ",completer=command_completer ,history=history)
 
         # Split input into arguments

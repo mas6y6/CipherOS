@@ -1,9 +1,7 @@
 data
-compileplugin.sh
 cipher/__pycache__
 build
 cipher.spec
-comple.bat
 cipher/__pycache__
 example_plugin/__pycache__
 plugins/neofetch/__pycache__

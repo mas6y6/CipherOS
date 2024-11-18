@@ -23,6 +23,9 @@ def hidec():
     
 def showc():
     print("\033[?25h", end="", flush=True) #show cursor
+
+def error(msg):
+    print(colorama.Style.BRIGHT+colorama.Fore.RED+msg+colorama.Fore.RESET+colorama.Style.NORMAL)
 #variables
 api = CipherAPI()
 version = 1
@@ -53,7 +56,7 @@ def chdir(args):
     if os.path.isdir(args[0]):
         os.chdir(args[0])
     else:
-        print(colorama.Style.BRIGHT+colorama.Fore.RED+f"Error:",args[0],"is a file"+colorama.Fore.RESET+colorama.Style.NORMAL)
+        printerror(f"Error: {args[0]} is a file")
     api.pwd = os.getcwd()
     api.updatecompletions()
 
@@ -62,7 +65,7 @@ def mkdir(args):
     if os.path.exists(args[0]):
         os.mkdir(args[0])
     else:
-        print(colorama.Style.BRIGHT+colorama.Fore.RED+f"Error:",args[0],"exists"+colorama.Fore.RESET+colorama.Style.NORMAL)
+        printerror(f"Error: {args[0]} exists")
 
 @api.command(alias=["cls"])
 def clear(args):
@@ -90,7 +93,7 @@ def plugins(args):
     elif args[0] == "info":
         pass
 
-@api.command(alias=["l"])
+@api.command(alias=["list","l"])
 def ls(args):
     import os
     import colorama
@@ -101,10 +104,10 @@ def ls(args):
     try:
         raw = os.listdir(path)
     except FileNotFoundError:
-        print(f"Error: The directory '{path}' does not exist.")
+        printerror(f"Error: The directory '{path}' does not exist.")
         return
     except PermissionError:
-        print(f"Error: Permission denied to access '{path}'.")
+        printerror(f"Error: Permission denied to access '{path}'.")
         return
     files = []
     folders = []
@@ -130,6 +133,15 @@ def touch(args):
     else:
         print(colorama.Style.BRIGHT+colorama.Fore.RED+f"Error:",args[0],"exists"+colorama.Fore.RESET+colorama.Style.NORMAL)
 
+@api.command(alias=["rm"])
+def remove(args):
+    try:
+        os.remove(os.path.join(api.starterdir,args[0]))
+    except PermissionError:
+        printerror(f"Error: Permission to delete '{args[0]}' denied")
+    except FileNotFoundError:
+        printerror(f"Error: '{args[0]}' does not exist.")
+
 print("Starting CipherOS...")
 if not os.path.exists("plugins"):
     os.mkdir("plugins")
@@ -139,7 +151,7 @@ if not len(os.listdir(os.path.join(api.starterdir,"plugins"))) == 0:
         try:
             api.load_plugin(os.path.join(api.starterdir,"plugins",i),api)
         except:
-            print(colorama.Style.BRIGHT+colorama.Fore.RED+f"Error: Plugin '{i}' failed to load\n"+traceback.format_exc()+colorama.Fore.RESET+colorama.Style.NORMAL)
+            printerror(f"Error: Plugin '{i}' failed to load\n")
 else:
     print("No plugins found")
 
@@ -178,9 +190,9 @@ while True:
             
             # Command output handling
             if e[0] == 404:
-                print(colorama.Style.BRIGHT + colorama.Fore.RED + f"Error: Command \"{cmd}\" not found" + colorama.Fore.RESET + colorama.Style.NORMAL)
+                printerror(f"Error: Command \"{cmd}\" not found")
             elif not e[0] == 0:
-                print(colorama.Style.BRIGHT + colorama.Fore.RED + f"Error: Command \"{cmd}\" encountered an error\n" + e[1] + colorama.Fore.RESET + colorama.Style.NORMAL)
+                printerror(f"Error: Command \"{cmd}\" encountered an error\n{e[1]}")
             else:
                 pass
         else:

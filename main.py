@@ -15,9 +15,6 @@ import shutil
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import Completer, Completion, PathCompleter, WordCompleter
 from prompt_toolkit.history import InMemoryHistory
-from PyInstaller.utils.hooks import collect_all
-
-datas, binaries, hiddenimports = collect_all('prompt_toolkit')
 
 colorama.init()
 

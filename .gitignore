@@ -7,5 +7,6 @@ comple.bat
 cipher/__pycache__
 example_plugin/__pycache__
 plugins/neofetch/__pycache__
-dist
+dist/plugins
+dist/data
 visualstudio

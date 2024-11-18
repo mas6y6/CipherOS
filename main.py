@@ -55,7 +55,7 @@ def chdir(args):
     else:
         print(colorama.Style.BRIGHT+colorama.Fore.RED+f"Error:",args[0],"is a file"+colorama.Fore.RESET+colorama.Style.NORMAL)
     api.pwd = os.getcwd()
-    api.updatecomplations()
+    api.updatecompletions()
 
 @api.command()
 def mkdir(args):
@@ -123,9 +123,10 @@ def ls(args):
 
 @api.command()
 def touch(args):
-    if os.path.exists(args[0]):
+    if not os.path.exists(args[0]):
         open(args[0],"w")
         print("Created file",args[0])
+        api.updatecompletions()
     else:
         print(colorama.Style.BRIGHT+colorama.Fore.RED+f"Error:",args[0],"exists"+colorama.Fore.RESET+colorama.Style.NORMAL)
 
@@ -155,10 +156,10 @@ Project Codename: Paradox"""+colorama.Fore.RESET)
 
 history = InMemoryHistory()
 command_completer = WordCompleter(api.completions, ignore_case=True)
+api.updatecompletions()
 
 while True:
     try:
-        api.updatecompletions()
         # Construct command line info
         if api.addressconnected == "":
             commandlineinfo = f"{api.currentenvironment} {api.pwd}"

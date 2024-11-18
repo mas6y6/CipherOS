@@ -142,7 +142,7 @@ if not len(os.listdir(os.path.join(api.starterdir,"plugins"))) == 0:
 else:
     print("No plugins found")
 
-print(colorama.Fore.MAGENTA+"Made by @mas6y6 and @malachi196 (on github)")
+print(colorama.Fore.MAGENTA+"Made by @mas6y6, @malachi196, and @overo3 (on github)")
 
 print(r"""   _______       __              ____  _____
   / ____(_)___  / /_  ___  _____/ __ \/ ___/

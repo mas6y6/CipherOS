@@ -1,4 +1,4 @@
-import os, socket, tarfile, yaml, sys, socket, argparse, traceback, importlib.util, shutil, requests, zipfile
+import os, socket, tarfile, yaml, sys, socket, argparse, traceback, importlib.util, shutil, requests, zipfile, progressbar
 from cipher.exceptions import ExitCodes, ExitCodeError, PluginError, PluginInitializationError
 from prompt_toolkit.completion import Completer, Completion, PathCompleter, WordCompleter
 
@@ -105,53 +105,69 @@ class CipherAPI:
         self.plugins.pop(plugin.__class__.__name__)
         self.updatecompletions()
     
-    def download_package(self,package_name, version=None):
+    def download_package(self, package_name, version=None):
         """
-        Downloads the specified package from PyPI.
-        
-        :param package_name: Name of the PyPI package
-        :param version: Optional version of the package to download
-        :param download_dir: Directory to save the downloaded package
+        Downloads the specified package and its dependencies from PyPI with a progress bar.
+
+        :param package_name: Name of the PyPI package.
+        :param version: Optional version of the package to download.
         """
         base_url = "https://pypi.org/pypi"
         version_part = f"/{version}" if version else ""
         url = f"{base_url}/{package_name}{version_part}/json"
-        download_dir = os.path.join(self.starterdir,"data","cache","packageswhl")
-        
+        download_dir = os.path.join(self.starterdir, "data", "cache", "packageswhl")
+
         try:
-            # Fetch package metadata
             response = requests.get(url)
             response.raise_for_status()
             data = response.json()
-
-            # Get the URL for the package file (source distribution or wheel)
             releases = data.get("releases", {})
             if version:
                 files = releases.get(version, [])
             else:
-                # Get the latest version
                 latest_version = data.get("info", {}).get("version")
                 files = releases.get(latest_version, [])
 
             if not files:
                 print(f"No files found for package '{package_name}' version '{version}'.")
                 return
-
             download_url = files[0]["url"]
             filename = download_url.split("/")[-1]
 
             os.makedirs(download_dir, exist_ok=True)
             file_path = os.path.join(download_dir, filename)
+            print(f"Downloading {package_name}...")
+            response = requests.get(download_url, stream=True)
+            response.raise_for_status()
 
-            with requests.get(download_url, stream=True) as r:
-                r.raise_for_status()
+            total_size = int(response.headers.get("Content-Length", 0))
+            widgets = [
+                f"Downloading {filename}: ",
+                progressbar.Percentage(),
+                " [", progressbar.Bar(), "] ",
+                progressbar.DataSize(),
+                " of ", progressbar.DataSize("max_value"),
+                " | ETA: ", progressbar.ETA(),
+            ]
+            with progressbar.ProgressBar(max_value=total_size, widgets=widgets) as bar:
                 with open(file_path, "wb") as f:
-                    for chunk in r.iter_content(chunk_size=8192):
+                    downloaded = 0
+                    for chunk in response.iter_content(chunk_size=8192):
                         f.write(chunk)
-            with zipfile.ZipFile(file_path, 'r') as zip_ref:
-                zip_ref.extractall(os.path.join(self.starterdir,"data","cache","packages"))
+                        downloaded += len(chunk)
+                        bar.update(downloaded)
+
+            print(f"\nDownloaded {package_name} to {file_path}")
+            if file_path.endswith(".zip"):
+                extract_path = os.path.join(self.starterdir, "data", "cache", "packages")
+                os.makedirs(extract_path, exist_ok=True)
+                with zipfile.ZipFile(file_path, "r") as zip_ref:
+                    zip_ref.extractall(extract_path)
+                print(f"Extracted {package_name} to {extract_path}")
+
         except requests.RequestException as e:
             print(f"Failed to download package '{package_name}': {e}")
+
     def updatecompletions(self):
         self.completions = []
         for i in os.listdir(self.pwd):

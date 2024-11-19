@@ -217,10 +217,10 @@ def remove(args):
 
 print("Starting CipherOS...")
 
-if not len(os.listdir(os.path.join(api.starterdir,"plugins"))) == 0:
-    for i in os.listdir(os.path.join(api.starterdir,"plugins")):
+if not len(os.listdir(os.path.join(api.pwd,"plugins"))) == 0:
+    for i in os.listdir(os.path.join(api.pwd,"plugins")):
         try:
-            api.load_plugin(os.path.join(api.starterdir,"plugins",i),api)
+            api.load_plugin(os.path.join(api.pwd,"plugins",i),api)
         except:
             printerror(f"Error: Plugin '{i}' failed to load\n")
 else:

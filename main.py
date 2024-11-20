@@ -22,6 +22,11 @@ import urllib.request
 import progressbar
 import os
 pbar = None
+
+#! README
+# The api.pwd class is the current path where CipherOS is in right now
+# The api.starterdir is where the plugins and data folder is located in the this variable is to not change and if it changes then its going to break a lot of problems.
+
 def show_progress(block_num, block_size, total_size):
     global pbar
     if pbar is None:
@@ -59,6 +64,8 @@ if os.name == "posix":
 from cipher.api import CipherAPI
 import cipher.exceptions as ex
 
+#variables
+version = 1
 api = CipherAPI()
 
 if running_on_mac:
@@ -81,8 +88,6 @@ def showc():
 
 def printerror(msg):
     print(colorama.Style.BRIGHT+colorama.Fore.RED+msg+colorama.Fore.RESET+colorama.Style.NORMAL)
-#variables
-version = 1
 
 def is_running_in_program_files():
     program_files = os.environ.get("ProgramFiles")  # C:\Program Files
@@ -209,7 +214,7 @@ def touch(args):
 @api.command(alias=["rm"])
 def remove(args):
     try:
-        os.remove(os.path.join(api.starterdir,args[0]))
+        os.remove(os.path.join(api.pwd,args[0]))
     except PermissionError:
         printerror(f"Error: Permission to delete '{args[0]}' denied")
     except FileNotFoundError:

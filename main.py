@@ -4,7 +4,7 @@ import sys
 sys.path.append(os.getcwd())
 import argparse
 import traceback
-import colorama, websockets, math, shutil, paramiko, progressbar, time, requests, platform, pyinputplus, urllib3
+import colorama, websockets, math, shutil, paramiko, progressbar, time, requests, platform, pyinputplus, urllib3, subprocess
 import tarfile
 import importlib.util
 import tempfile
@@ -219,6 +219,7 @@ def remove(args):
         printerror(f"Error: Permission to delete '{args[0]}' denied")
     except FileNotFoundError:
         printerror(f"Error: '{args[0]}' does not exist.")
+    
 
 print("Starting CipherOS...")
 
@@ -227,7 +228,7 @@ if not len(os.listdir(os.path.join(api.pwd,"plugins"))) == 0:
         try:
             api.load_plugin(os.path.join(api.pwd,"plugins",i),api)
         except:
-            printerror(f"Error: Plugin '{i}' failed to load\n")
+            printerror(f"Error: Plugin '{i}' failed to load\n"+traceback.format_exc())
 else:
     print("No plugins found")
 

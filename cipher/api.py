@@ -1,6 +1,7 @@
-import os, socket, tarfile, yaml, sys, socket, argparse, traceback, importlib.util, shutil, requests, zipfile, progressbar
+import os, socket, tarfile, yaml, sys, socket, argparse, traceback, importlib.util, shutil, requests, zipfile, progressbar, re, colorama
 from cipher.exceptions import ExitCodes, ExitCodeError, PluginError, PluginInitializationError
 from prompt_toolkit.completion import Completer, Completion, PathCompleter, WordCompleter
+from wheel.wheelfile import WheelFile
 
 class CipherAPI:
     def __init__(self):
@@ -67,7 +68,6 @@ class CipherAPI:
         if not plugin_dependencies == None:
             for i in plugin_dependencies:
                 if not os.path.exists(os.path.join(self.starterdir,"data","cache","packages",i)):
-                    print("Downloading...",i)
                     self.download_package(i)
         
         if not plugin_name:
@@ -107,7 +107,7 @@ class CipherAPI:
     
     def download_package(self, package_name, version=None):
         """
-        Downloads the specified package and its dependencies from PyPI with a progress bar.
+        Downloads the specified package from PyPI, resolving dependencies recursively.
 
         :param package_name: Name of the PyPI package.
         :param version: Optional version of the package to download.
@@ -116,11 +116,22 @@ class CipherAPI:
         version_part = f"/{version}" if version else ""
         url = f"{base_url}/{package_name}{version_part}/json"
         download_dir = os.path.join(self.starterdir, "data", "cache", "packageswhl")
+        packages_dir = os.path.join(self.starterdir, "data", "cache", "packages")
 
         try:
+            # Fetch package metadata
             response = requests.get(url)
             response.raise_for_status()
             data = response.json()
+
+            # Resolve dependencies
+            dependencies = data.get("info", {}).get("requires_dist", [])
+            if dependencies:
+                print(f"Resolving dependencies for "+colorama.Fore.YELLOW+package_name+": "+colorama.Fore.LIGHTBLUE_EX+f"{dependencies}"+colorama.Fore.RESET)
+                for dep in dependencies:
+                    dep_name, dep_version = self._parse_dependency(dep)
+                    if dep_name and not self.is_package_installed(dep_name, dep_version):
+                        self.download_package(dep_name, dep_version)  # Recursive call
             releases = data.get("releases", {})
             if version:
                 files = releases.get(version, [])
@@ -129,44 +140,79 @@ class CipherAPI:
                 files = releases.get(latest_version, [])
 
             if not files:
-                print(f"No files found for package '{package_name}' version '{version}'.")
+                print(colorama.Fore.RED+colorama.Style.BRIGHT+f"No files found for package '{package_name}' version '{version}'."+colorama.Fore.RESET+colorama.Style.NORMAL)
                 return
             download_url = files[0]["url"]
             filename = download_url.split("/")[-1]
 
             os.makedirs(download_dir, exist_ok=True)
             file_path = os.path.join(download_dir, filename)
-            print(f"Downloading {package_name}...")
-            response = requests.get(download_url, stream=True)
-            response.raise_for_status()
 
-            total_size = int(response.headers.get("Content-Length", 0))
-            widgets = [
-                f"Downloading {filename}: ",
-                progressbar.Percentage(),
-                " [", progressbar.Bar(), "] ",
-                progressbar.DataSize(),
-                " of ", progressbar.DataSize("max_value"),
-                " | ETA: ", progressbar.ETA(),
-            ]
-            with progressbar.ProgressBar(max_value=total_size, widgets=widgets) as bar:
-                with open(file_path, "wb") as f:
+            print(f"Downloading {package_name} from {download_url}...")
+            with requests.get(download_url, stream=True) as r:
+                r.raise_for_status()
+                total_size = int(r.headers.get('Content-Length', 0))
+                with open(file_path, "wb") as f, progressbar.ProgressBar(
+                max_value=total_size,
+                widgets=[
+                    "Downloading: ",
+                    progressbar.Percentage(),
+                    " ",
+                    progressbar.Bar(),
+                    " ",
+                    progressbar.ETA(),
+                ],
+                ) as bar:
                     downloaded = 0
-                    for chunk in response.iter_content(chunk_size=8192):
+                    for chunk in r.iter_content(chunk_size=8192):
                         f.write(chunk)
                         downloaded += len(chunk)
                         bar.update(downloaded)
-
-            print(f"\nDownloaded {package_name} to {file_path}")
-            if file_path.endswith(".zip"):
-                extract_path = os.path.join(self.starterdir, "data", "cache", "packages")
-                os.makedirs(extract_path, exist_ok=True)
-                with zipfile.ZipFile(file_path, "r") as zip_ref:
-                    zip_ref.extractall(extract_path)
-                print(f"Extracted {package_name} to {extract_path}")
-
+                
+            if filename.endswith(".zip"):
+                os.makedirs(packages_dir, exist_ok=True)
+                with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                    zip_ref.extractall(packages_dir)
+            
+            if filename.endswith(".whl"):
+                with WheelFile(file_path,"r") as whl_ref:
+                    whl_ref.extractall(packages_dir)
         except requests.RequestException as e:
-            print(f"Failed to download package '{package_name}': {e}")
+            print(colorama.Fore.RED+colorama.Style.BRIGHT+f"Failed to download package '{package_name}': {e}"+colorama.Fore.RESET+colorama.Style.NORMAL)
+
+    def _parse_dependency(self, dependency_string):
+        """
+        Parse a dependency string from requires_dist into name and version.
+
+        :param dependency_string: A dependency string from requires_dist.
+        :return: A tuple of (name, version) or (name, None).
+        """
+        import re
+        match = re.match(r"([a-zA-Z0-9_\-\.]+)(?:\[.*\])?(?:\s+\((.+)\))?", dependency_string)
+        if match:
+            dep_name = match.group(1).strip()
+            dep_version = match.group(2)
+            return dep_name, dep_version
+        return dependency_string, None
+
+    def is_package_installed(self, package_name, version=None):
+        """
+        Checks if a package is already downloaded and installed.
+
+        :param package_name: Name of the package.
+        :param version: Optional version of the package.
+        :return: True if installed, False otherwise.
+        """
+        try:
+            importlib.import_module(package_name)
+            return True
+        except ImportError:
+            installed_dir = os.path.join(self.starterdir, "data", "cache", "packages")
+            if version:
+                package_path = os.path.join(installed_dir, f"{package_name}-{version}")
+            else:
+                package_path = os.path.join(installed_dir, package_name)
+            return os.path.exists(package_path)
 
     def updatecompletions(self):
         self.completions = []

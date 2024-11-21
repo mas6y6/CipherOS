@@ -5,4 +5,4 @@ name: neofetch
 displayname: "neofetch"
 class: neofetch
 dependencies: #Put your dependencies here cipheros will install them so your plugin can use them
-#  - requests
+# - requests

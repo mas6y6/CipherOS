@@ -17,22 +17,24 @@ class CipherAPI:
         self.completions = []
         
     def command(self, name=None, doc=None, desc=None, extradata={}, alias=[]):
-        def decorator(func):
-            funcname = name if name is not None else func.__name__
-            self.commands[funcname] = {
-                "func": func,
+        def decorator(orig_class):
+            classname = name if name is not None else orig_class.__name__
+            self.commands[orig_class.__name__] = {
+                "class": orig_class,
+                "func": orig_class.execute,
                 "desc": desc,
                 "doc": doc,
                 "extradata": extradata,
             }
             for i in alias:
                 self.commands[i] = {
-                    "func": func,
+                    "class": orig_class,
+                    "func": orig_class.execute,
                     "desc": desc,
                     "doc": doc,
                     "extradata": extradata,
                 }
-            return func
+            return orig_class.execute
         return decorator
     
     def rm_command(self,name):

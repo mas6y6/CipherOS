@@ -2,6 +2,7 @@ import os
 import socket
 import sys
 sys.path.append(os.getcwd())
+sys.path.append('./cipher')
 import argparse
 import traceback
 import colorama, websockets, math, shutil, paramiko, progressbar, time, requests, platform, pyinputplus, urllib3
@@ -12,6 +13,8 @@ import shutil
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import Completer, Completion, PathCompleter, WordCompleter
 from prompt_toolkit.history import InMemoryHistory
+from commands import register_main_cmds
+from completer import get_full_completer
 
 colorama.init()
 running_on_mac = False #Meant as the cipher library is not installed
@@ -117,103 +120,9 @@ if not os.path.exists(os.path.join(api.starterdir,"data","cache","packages")):
 
 if not os.path.exists(os.path.join(api.starterdir,"data","cache","packageswhl")):
     os.mkdir(os.path.join(api.starterdir,"data","cache","packageswhl"))
-#builtin functions
+#register all builtin functions
 
-@api.command()
-def exit(args):
-    print("Closing CipherOS")
-    sys.exit(0)
-
-@api.command(alias=["cd"])
-def chdir(args):
-    if os.path.isdir(args[0]):
-        os.chdir(args[0])
-    else:
-        printerror(f"Error: {args[0]} is a file")
-    api.pwd = os.getcwd()
-    api.updatecompletions()
-
-@api.command()
-def mkdir(args):
-    if os.path.exists(args[0]):
-        os.mkdir(args[0])
-    else:
-        printerror(f"Error: {args[0]} exists")
-
-@api.command(alias=["cls"])
-def clear(args):
-    print("\033c", end="")
-
-@api.command(alias=["pl"])
-def plugins(args):
-    if args[0] == "reloadall":
-        print("Reloading all plugins")
-        for i in list(api.plugins):
-            api.disable_plugin(api.plugins[i])
-        for i in os.listdir(os.path.join(api.starterdir,"plugins")):
-            api.load_plugin(os.path.join(api.starterdir,"plugins",i), api)
-        print("Reload complete")
-    
-    elif args[0] == "disable":
-        api.disable_plugin(args[1])
-    
-    elif args[0] == "enable":
-        pass
-    
-    elif args[0] == "list":
-        pass
-    
-    elif args[0] == "info":
-        pass
-
-@api.command(alias=["list","l"])
-def ls(args):
-    import os
-    import colorama
-    if len(args) > 0:
-        path = args[0]
-    else:
-        path = api.pwd
-    try:
-        raw = os.listdir(path)
-    except FileNotFoundError:
-        printerror(f"Error: The directory '{path}' does not exist.")
-        return
-    except PermissionError:
-        printerror(f"Error: Permission denied to access '{path}'.")
-        return
-    files = []
-    folders = []
-    for item in raw:
-        full_path = os.path.join(path, item)
-        if os.path.isfile(full_path):
-            files.append(item)
-        elif os.path.isdir(full_path):
-            folders.append(item)
-    folders.sort()
-    files.sort()
-    for i in folders:
-        print(f"{colorama.Fore.BLUE}{i}/ {colorama.Fore.RESET}")
-    for i in files:
-        print(f"{colorama.Fore.GREEN}{i} {colorama.Fore.RESET}")
-
-@api.command()
-def touch(args):
-    if not os.path.exists(args[0]):
-        open(args[0],"w")
-        print("Created file",args[0])
-        api.updatecompletions()
-    else:
-        print(colorama.Style.BRIGHT+colorama.Fore.RED+f"Error:",args[0],"exists"+colorama.Fore.RESET+colorama.Style.NORMAL)
-
-@api.command(alias=["rm"])
-def remove(args):
-    try:
-        os.remove(os.path.join(api.starterdir,args[0]))
-    except PermissionError:
-        printerror(f"Error: Permission to delete '{args[0]}' denied")
-    except FileNotFoundError:
-        printerror(f"Error: '{args[0]}' does not exist.")
+register_main_cmds(api)
 
 print("Starting CipherOS...")
 
@@ -250,7 +159,7 @@ while True:
 
         # Use prompt_toolkit to gather input
         command_completer = WordCompleter(api.completions, ignore_case=True)
-        user_input = prompt(f"{commandlineinfo}> ",completer=command_completer ,history=history)
+        user_input = prompt(f"{commandlineinfo}> ",completer=get_full_completer(api) ,history=history)
 
         # Split input into arguments
         _argx = user_input.split(" ")

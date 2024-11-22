@@ -9,3 +9,4 @@ dist/plugins
 dist/data
 visualstudio
 macos/cipher/.DS_Store
+netmaptest.py

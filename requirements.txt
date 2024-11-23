@@ -14,6 +14,7 @@ PyInputPlus==0.2.12
 pyOpenSSL==24.2.1
 PyYAML==6.0.2
 PyYAML==6.0.2
+scapy==2.6.1
 simplejson==3.19.3
 speedups==1.4.0
 typing_extensions==4.12.2

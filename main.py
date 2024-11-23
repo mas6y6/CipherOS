@@ -12,15 +12,21 @@ import shutil
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import Completer, Completion, PathCompleter, WordCompleter
 from prompt_toolkit.history import InMemoryHistory
+import urllib.request
+import progressbar
+import os
+import socket,platform, subprocess
+import fcntl
+import struct, json
+from ipaddress import IPv4Network, IPv4Address
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import nmap3,nmap
 
 colorama.init()
 running_on_mac = False #Meant as the cipher library is not installed
 macpwd = None
 macapistarter = None
 
-import urllib.request
-import progressbar
-import os
 pbar = None
 
 #! README
@@ -63,6 +69,7 @@ if os.name == "posix":
 
 from cipher.api import CipherAPI
 import cipher.exceptions as ex
+import cipher.network
 
 #variables
 version = 1
@@ -88,6 +95,17 @@ def showc():
 
 def printerror(msg):
     print(colorama.Style.BRIGHT+colorama.Fore.RED+msg+colorama.Fore.RESET+colorama.Style.NORMAL)
+
+if not os.path.exists(os.path.join(api.starterdir,"data","cache","networkmap.json")):
+    json.dump({},open(os.path.join(api.starterdir,"data","cache","networkmap.json"),"w"))
+
+networkmap = json.load(open(os.path.join(api.starterdir,"data","cache","networkmap.json"),"r"))
+
+def networkmap_save():
+    global networkmap
+    with open(os.path.join(api.starterdir,"data","cache","networkmap.json"),"w") as f:
+        json.dump(networkmap,f,indent=4)
+        f.close()
 
 def is_running_in_program_files():
     program_files = os.environ.get("ProgramFiles")  # C:\Program Files
@@ -128,6 +146,135 @@ if not os.path.exists(os.path.join(api.starterdir,"data","cache","packageswhl"))
 def exit(args):
     print("Closing CipherOS")
     sys.exit(0)
+
+@api.command(alias=["pscn"])
+def portscan(args):
+    ip = args[0]
+    print(colorama.Fore.LIGHTBLUE_EX+"CipherOS Port Scanner"+colorama.Fore.RESET)
+    print(colorama.Fore.LIGHTBLUE_EX+"Scanning..."+colorama.Fore.RESET)
+    def scan_port(ip, port):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(0.5)
+                result = s.connect_ex((ip, port))
+                if result == 0:
+                    return port
+        except Exception:
+            pass
+        return None
+    
+    open_ports = []
+    
+    with ThreadPoolExecutor(max_workers=300) as executor:
+        port_ranges = [f"{i}-{i+999}" for i in range(1, 65536, 1000)]
+        futures = {executor.submit(cipher.network.scan_ports_nmap, ip, port_range): port_range for port_range in port_ranges}
+        
+        for future in as_completed(futures):
+            try:
+                result = future.result()
+                if result:
+                    open_ports.extend(result)
+            except Exception as e:
+                print(f"Error scanning port range {futures[future]}: {e}")
+    
+    print(colorama.Fore.LIGHTGREEN_EX + "\nOpen Ports Found:" + colorama.Fore.RESET)
+    print(colorama.Style.BRIGHT + "PORT" + colorama.Style.NORMAL)
+    print("-" * 10)
+    for port in open_ports:
+        print(f"{colorama.Fore.YELLOW}{port}{colorama.Fore.RESET}")
+
+@api.command(alias=["scn","netscan"])
+def scannet(args):
+    print(colorama.Fore.LIGHTBLUE_EX+"CipherOS Network Device Scanner"+colorama.Fore.RESET)
+    print(colorama.Fore.LIGHTBLUE_EX+"Getting Network Range... "+colorama.Fore.RESET)
+    print(colorama.Fore.LIGHTBLUE_EX+"\tGetting localip... "+colorama.Fore.RESET,end="")
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        localip = s.getsockname()[0]
+        s.close()
+    except Exception as e:
+        raise ConnectionError(e)
+    else:
+        print(colorama.Fore.LIGHTGREEN_EX+"Success"+colorama.Fore.RESET)
+    print(colorama.Fore.LIGHTBLUE_EX+"\tTesting Network connectivity... "+colorama.Fore.RESET,end="")
+    try:
+        onlineip = requests.get("https://ifconfig.me/").text
+    except:
+        print(colorama.Fore.LIGHTRED_EX+"Failed continuing."+colorama.Fore.RESET)
+        onlineip = ""
+    else:
+        print(colorama.Fore.LIGHTGREEN_EX+"Success"+colorama.Fore.RESET)
+    
+    print(colorama.Fore.LIGHTBLUE_EX+"\tGetting Submask... "+colorama.Fore.RESET,end="")
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        subnet_mask = socket.inet_ntoa(
+            fcntl.ioctl(
+                s.fileno(),
+                0x891b,
+                struct.pack('256s', bytes(localip[:15], 'utf-8'))
+            )[20:24]
+        )
+    except Exception:
+        print(colorama.Fore.LIGHTRED_EX+"Failed continuing."+colorama.Fore.RESET)
+        subnet_mask = "255.255.255.0"
+    else:
+        print(colorama.Fore.LIGHTGREEN_EX+"Success"+colorama.Fore.RESET)
+    cidr = sum(bin(int(x)).count("1") for x in subnet_mask.split("."))
+    network_range = f"{localip}/{cidr}"
+    print(colorama.Fore.GREEN+"OnlineIP:",onlineip+colorama.Fore.RESET)
+    print(colorama.Fore.GREEN+"LocalIP:",localip+colorama.Fore.RESET)
+    print(colorama.Fore.GREEN+"Submask:",subnet_mask+colorama.Fore.RESET)
+    print(colorama.Fore.GREEN+"NetworkRange:",network_range+colorama.Fore.RESET)
+    print(colorama.Fore.LIGHTGREEN_EX+"Ready. Scanning for devices..."+colorama.Fore.RESET)
+    print("")
+    network = IPv4Network(network_range, strict=False)
+    devices = []
+    with ThreadPoolExecutor(max_workers=300) as executor:
+        future_to_ip = {executor.submit(cipher.network.ping, str(ip)): str(ip) for ip in network}
+        for future in as_completed(future_to_ip):
+            ip = future_to_ip[future]
+            try:
+                if future.result():
+                    mac_address = cipher.network.get_mac(ip)
+                    try:
+                        if IPv4Address(ip).is_multicast or IPv4Address(ip).is_reserved or IPv4Address(ip).is_loopback:
+                            hostname = "Skipped"
+                        else:
+                            hostname = socket.gethostbyaddr(ip)[0]
+                    except socket.herror:
+                        hostname = "Unknown"
+                    except ValueError:
+                        hostname = "Unknown"
+                    
+                    devices.append({"ip": ip, "mac": mac_address,"hostname":hostname})
+            except Exception as e:
+                print(f"Error scanning {ip}: {e}")
+    print(colorama.Style.BRIGHT+colorama.Fore.LIGHTGREEN_EX+"Scan Complete"+colorama.Style.NORMAL+colorama.Fore.RESET)
+    networkmap[onlineip] = {"devices":{}}
+    sorted_devices = sorted(devices, key=lambda d: (len(d['ip']), tuple(map(int, d['ip'].split(".")))))
+    print("\nDevices Found:")
+    print(f"{'IP Address':<20}{'Hostname':<30}{'MAC Address':<20}")
+    print("-" * 70)
+
+    networkmap[onlineip] = {"devices": {}}
+    sorted_devices = sorted(devices, key=lambda d: (len(d['ip']), tuple(map(int, d['ip'].split(".")))))
+
+    for device in sorted_devices:
+        ip = device['ip']
+        hostname = device['hostname']
+        mac = device['mac']
+        print(
+            f"{colorama.Fore.LIGHTYELLOW_EX}{ip:<20}"
+            f"{colorama.Fore.LIGHTBLUE_EX}{hostname:<30}"
+            f"{colorama.Fore.LIGHTMAGENTA_EX}{mac:<20}"
+            f"{colorama.Fore.RESET}"
+        )
+        networkmap[onlineip]['devices'][ip] = {"mac": mac, "hostname": hostname}
+    networkmap_save()
+
+
 
 @api.command(alias=["cd"])
 def chdir(args):

@@ -16,7 +16,7 @@ import urllib.request
 import progressbar
 import os
 import socket,platform, subprocess
-import fcntl
+import psutil
 import struct, json
 from ipaddress import IPv4Network, IPv4Address
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -164,10 +164,11 @@ def portscan(args):
         return None
     
     open_ports = []
+    port_ranges = [f"{i}-{i+999}" for i in range(1, 65536, 1000)]
+    open_ports = []
     
-    with ThreadPoolExecutor(max_workers=300) as executor:
-        port_ranges = [f"{i}-{i+999}" for i in range(1, 65536, 1000)]
-        futures = {executor.submit(cipher.network.scan_ports_nmap, ip, port_range): port_range for port_range in port_ranges}
+    with ThreadPoolExecutor(max_workers=30) as executor:
+        futures = {executor.submit(cipher.network.scan_ports, ip, port_range): port_range for port_range in port_ranges}
         
         for future in as_completed(futures):
             try:
@@ -201,23 +202,16 @@ def scannet(args):
     try:
         onlineip = requests.get("https://ifconfig.me/").text
     except:
-        print(colorama.Fore.LIGHTRED_EX+"Failed continuing."+colorama.Fore.RESET)
+        print(colorama.Fore.LIGHTRED_EX+"Failed"+colorama.Fore.RESET)
         onlineip = ""
     else:
         print(colorama.Fore.LIGHTGREEN_EX+"Success"+colorama.Fore.RESET)
     
     print(colorama.Fore.LIGHTBLUE_EX+"\tGetting Submask... "+colorama.Fore.RESET,end="")
     try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        subnet_mask = socket.inet_ntoa(
-            fcntl.ioctl(
-                s.fileno(),
-                0x891b,
-                struct.pack('256s', bytes(localip[:15], 'utf-8'))
-            )[20:24]
-        )
+        subnet_mask = cipher.network.get_subnet_mask()
     except Exception:
-        print(colorama.Fore.LIGHTRED_EX+"Failed continuing."+colorama.Fore.RESET)
+        print(colorama.Fore.LIGHTRED_EX+"Failed. using \"255.255.255.0\" as submask"+colorama.Fore.RESET)
         subnet_mask = "255.255.255.0"
     else:
         print(colorama.Fore.LIGHTGREEN_EX+"Success"+colorama.Fore.RESET)
@@ -229,8 +223,8 @@ def scannet(args):
     print(colorama.Fore.GREEN+"NetworkRange:",network_range+colorama.Fore.RESET)
     print(colorama.Fore.LIGHTGREEN_EX+"Ready. Scanning for devices..."+colorama.Fore.RESET)
     print("")
-    network = IPv4Network(network_range, strict=False)
     devices = []
+    
     with ThreadPoolExecutor(max_workers=300) as executor:
         future_to_ip = {executor.submit(cipher.network.ping, str(ip)): str(ip) for ip in network}
         for future in as_completed(future_to_ip):
@@ -251,6 +245,7 @@ def scannet(args):
                     devices.append({"ip": ip, "mac": mac_address,"hostname":hostname})
             except Exception as e:
                 print(f"Error scanning {ip}: {e}")
+    
     print(colorama.Style.BRIGHT+colorama.Fore.LIGHTGREEN_EX+"Scan Complete"+colorama.Style.NORMAL+colorama.Fore.RESET)
     networkmap[onlineip] = {"devices":{}}
     sorted_devices = sorted(devices, key=lambda d: (len(d['ip']), tuple(map(int, d['ip'].split(".")))))

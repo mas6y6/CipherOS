@@ -1,52 +1,96 @@
 import socket,platform, subprocess
-import fcntl, nmap, nmap3
-import struct
+import traceback
+import nmap, nmap3
+import struct, re
 from ipaddress import IPv4Network
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from .exceptions import ExitCodeError
-
-def ping(host):
-    param = "-n" if platform.system().lower() == "windows" else "-c"
-    try:
-        result = subprocess.run(
-            ["ping", param, "1", host],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
-        return result.returncode == 0
-    except Exception as e:
-        return False
+from ping3 import ping, verbose_ping
 
 def get_mac(ip):
     try:
+        # Check platform to determine which command to use
         if platform.system().lower() == "windows":
             command = ["arp", "-a", ip]
         else:
             command = ["arp", "-n", ip]
-        result = subprocess.run(command, capture_output=True, text=True)
+
+        # Run the arp command
+        result = subprocess.run(command, capture_output=True, text=True, check=True)
         output = result.stdout
+        
+        # Search for the MAC address in the output
         for line in output.splitlines():
             if ip in line:
                 parts = line.split()
                 for part in parts:
-                    if ":" in part or "-" in part:
+                    if ":" in part or "-" in part:  # MAC address pattern
                         return part.upper()
 
         return "Unknown"
+    except subprocess.CalledProcessError as e:
+        # This will catch errors in subprocess execution
+        print(f"An error occurred while running arp for {ip}: {e}")
+        return "Unknown"
     except Exception as e:
+        # Catch other types of exceptions
         print(f"An error occurred while getting MAC for {ip}: {e}")
         return "Unknown"
 
-def scan_ports_nmap(ip, port_range):
-    scanner = nmap.PortScanner()
+def cipher_ping(host):
     try:
-        scanner.scan(ip, port_range)
+        ping()
+    except Exception as e:
+        # General error handling
+        print(f"An error occurred while pinging {host}: {e}")
+        return False
+
+def scan_ports(ip, port_range):
+    try:
+        start, end = map(int, port_range.split('-'))
         open_ports = []
-        for proto in scanner[ip].all_protocols():
-            ports = scanner[ip][proto].keys()
-            for port in ports:
-                if scanner[ip][proto][port]['state'] == 'open':
+        
+        for port in range(start, end + 1):
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.settimeout(0.5)
+                result = s.connect_ex((ip, port))
+                if result == 0:
                     open_ports.append(port)
+                s.close()
+            except Exception as e:
+                print(f"Error scanning port {port} on {ip}: {e}")
         return open_ports
     except Exception as e:
+        traceback.print_exc()
         return []
+
+def get_subnet_mask():
+    system = platform.system()
+
+    if system == 'Windows':
+        # On Windows, use ipconfig to get the subnet mask
+        cmd = 'ipconfig'
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        # Use regex to find the subnet mask
+        match = re.search(r"Subnet Mask[ .]*: ([\d\.]+)", result.stdout)
+        if match:
+            return match.group(1)
+        else:
+            raise Exception("Subnet Mask not found")
+
+    elif system == 'Linux' or system == 'Darwin':  # Darwin is macOS
+        # On Unix-like systems (Linux/macOS), use ifconfig or ip
+        cmd = 'ifconfig'  # Alternatively, you can use 'ip a' on Linux
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        # Use regex to find the subnet mask
+        match = re.search(r"inet\s([\d\.]+)\snetmask\s([\d\.]+)", result.stdout)
+        if match:
+            return match.group(2)
+        else:
+            raise Exception("Subnet Mask not found")
+
+    else:
+        raise Exception("Unsupported OS")

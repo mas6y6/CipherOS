@@ -20,3 +20,4 @@ speedups==1.4.0
 typing_extensions==4.12.2
 wheel==0.45.0
 win_inet_pton==1.1.0
+    

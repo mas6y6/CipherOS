@@ -39,9 +39,14 @@ def get_mac(ip):
 
 def cipher_ping(host):
     try:
-        ping()
+        response_time = ping(host, timeout=2)
+        if response_time is not None:
+            return True
+        return False
+    except TimeoutError:
+        print(f"Timeout while pinging {host}.")
+        return False
     except Exception as e:
-        # General error handling
         print(f"An error occurred while pinging {host}: {e}")
         return False
 

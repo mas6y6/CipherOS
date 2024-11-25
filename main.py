@@ -223,10 +223,18 @@ def scannet(args):
     print(colorama.Fore.GREEN+"NetworkRange:",network_range+colorama.Fore.RESET)
     print(colorama.Fore.LIGHTGREEN_EX+"Ready. Scanning for devices..."+colorama.Fore.RESET)
     print("")
+    network = IPv4Network(network_range,strict=False)
     devices = []
+    devicerange = 0
+    completed = 0
+    for i in network:
+        devicerange += 1
     
+    pbar = progressbar.ProgressBar(widgets=["Progress:",progressbar.Percentage()," [",progressbar.Bar(),"] ",progressbar.AdaptiveETA()," ",progressbar.AnimatedMarker()])
+    pbar.start()
+        
     with ThreadPoolExecutor(max_workers=300) as executor:
-        future_to_ip = {executor.submit(cipher.network.ping, str(ip)): str(ip) for ip in network}
+        future_to_ip = {executor.submit(cipher.network.cipher_ping, str(ip)): str(ip) for ip in network}
         for future in as_completed(future_to_ip):
             ip = future_to_ip[future]
             try:
@@ -243,8 +251,12 @@ def scannet(args):
                         hostname = "Unknown"
                     
                     devices.append({"ip": ip, "mac": mac_address,"hostname":hostname})
+                    completed += 1
+                    pbar.update(completed)
             except Exception as e:
                 print(f"Error scanning {ip}: {e}")
+    
+    pbar.finish()
     
     print(colorama.Style.BRIGHT+colorama.Fore.LIGHTGREEN_EX+"Scan Complete"+colorama.Style.NORMAL+colorama.Fore.RESET)
     networkmap[onlineip] = {"devices":{}}

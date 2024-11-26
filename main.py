@@ -23,7 +23,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import nmap3,nmap
 
 colorama.init()
-running_on_mac = False #Meant as the cipher library is not installed
+running_on_mac = False # Meant as the cipher library is not installed (for macOS)
 macpwd = None
 macapistarter = None
 
@@ -152,32 +152,33 @@ def portscan(args):
     ip = args[0]
     print(colorama.Fore.LIGHTBLUE_EX+"CipherOS Port Scanner"+colorama.Fore.RESET)
     print(colorama.Fore.LIGHTBLUE_EX+"Scanning..."+colorama.Fore.RESET)
-    def scan_port(ip, port):
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.settimeout(0.5)
-                result = s.connect_ex((ip, port))
-                if result == 0:
-                    return port
-        except Exception:
-            pass
-        return None
-    
-    open_ports = []
-    port_ranges = [f"{i}-{i+999}" for i in range(1, 65536, 1000)]
     open_ports = []
     
-    with ThreadPoolExecutor(max_workers=30) as executor:
-        futures = {executor.submit(cipher.network.scan_ports, ip, port_range): port_range for port_range in port_ranges}
-        
+    errors = []
+    completed = 0
+    
+    max_workers = min(3000, os.cpu_count() * 5)
+    print("MAX WORKERS PER CHUNK:",max_workers)
+    pbar = progressbar.ProgressBar(widgets=[f"{colorama.Fore.LIGHTBLUE_EX}Progress: ",f" [SCANNED: N/A,OPEN: N/A]",progressbar.Percentage()," [",progressbar.Bar(),"] ",progressbar.AdaptiveETA()," ",progressbar.AnimatedMarker(),colorama.Fore.RESET])
+    pbar.maxval=65536
+    pbar.start()
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(cipher.network.scan_port, ip, port): port for port in range(1, 65536)}
         for future in as_completed(futures):
+            port = futures[future]
             try:
                 result = future.result()
                 if result:
-                    open_ports.extend(result)
+                    open_ports.append(port)
+                completed += 1
+                pbar.widgets[1] = f"[SCANNED: {completed},OPEN: {len(open_ports)}]"
+                pbar.update(completed)
             except Exception as e:
-                print(f"Error scanning port range {futures[future]}: {e}")
+                error_msg = f"Error scanning port {port}: {e}"
+                errors.append(error_msg)
+                print(colorama.Fore.RED + error_msg + colorama.Fore.RESET)
     
+    pbar.finish()
     print(colorama.Fore.LIGHTGREEN_EX + "\nOpen Ports Found:" + colorama.Fore.RESET)
     print(colorama.Style.BRIGHT + "PORT" + colorama.Style.NORMAL)
     print("-" * 10)
@@ -209,14 +210,18 @@ def scannet(args):
     
     print(colorama.Fore.LIGHTBLUE_EX+"\tGetting Submask... "+colorama.Fore.RESET,end="")
     try:
-        subnet_mask = cipher.network.get_subnet_mask()
+        interface, subnet_mask = cipher.network.get_active_interface_and_netmask()
+        if subnet_mask == 0:
+            raise ConnectionAbortedError()
     except Exception:
         print(colorama.Fore.LIGHTRED_EX+"Failed. using \"255.255.255.0\" as submask"+colorama.Fore.RESET)
         subnet_mask = "255.255.255.0"
     else:
         print(colorama.Fore.LIGHTGREEN_EX+"Success"+colorama.Fore.RESET)
+    
     cidr = sum(bin(int(x)).count("1") for x in subnet_mask.split("."))
     network_range = f"{localip}/{cidr}"
+    print(colorama.Fore.GREEN+"Using Interface:",interface+colorama.Fore.RESET)
     print(colorama.Fore.GREEN+"OnlineIP:",onlineip+colorama.Fore.RESET)
     print(colorama.Fore.GREEN+"LocalIP:",localip+colorama.Fore.RESET)
     print(colorama.Fore.GREEN+"Submask:",subnet_mask+colorama.Fore.RESET)
@@ -230,10 +235,11 @@ def scannet(args):
     for i in network:
         devicerange += 1
     
-    pbar = progressbar.ProgressBar(widgets=["Progress:",progressbar.Percentage()," [",progressbar.Bar(),"] ",progressbar.AdaptiveETA()," ",progressbar.AnimatedMarker()])
+    pbar = progressbar.ProgressBar(widgets=[colorama.Fore.LIGHTBLUE_EX,"Progress:",progressbar.Percentage()," [",progressbar.Bar(),"] ",progressbar.AdaptiveETA()," ",progressbar.AnimatedMarker(),colorama.Fore.RESET])
     pbar.start()
-        
-    with ThreadPoolExecutor(max_workers=300) as executor:
+    
+    max_workers = min(30, os.cpu_count() * 5)
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_ip = {executor.submit(cipher.network.cipher_ping, str(ip)): str(ip) for ip in network}
         for future in as_completed(future_to_ip):
             ip = future_to_ip[future]
@@ -254,10 +260,12 @@ def scannet(args):
                     completed += 1
                     pbar.update(completed)
             except Exception as e:
-                print(f"Error scanning {ip}: {e}")
+                pass
+                #print(f"Error scanning {ip}: {e}")
     
     pbar.finish()
     
+    print()
     print(colorama.Style.BRIGHT+colorama.Fore.LIGHTGREEN_EX+"Scan Complete"+colorama.Style.NORMAL+colorama.Fore.RESET)
     networkmap[onlineip] = {"devices":{}}
     sorted_devices = sorted(devices, key=lambda d: (len(d['ip']), tuple(map(int, d['ip'].split(".")))))
@@ -280,8 +288,6 @@ def scannet(args):
         )
         networkmap[onlineip]['devices'][ip] = {"mac": mac, "hostname": hostname}
     networkmap_save()
-
-
 
 @api.command(alias=["cd"])
 def chdir(args):
@@ -402,17 +408,13 @@ api.updatecompletions()
 
 while True:
     try:
-        # Construct command line info
+
         if api.addressconnected == "":
             commandlineinfo = f"{api.currentenvironment} {api.pwd}"
         else:
             commandlineinfo = f"{api.currentenvironment} {api.addressconnected} {api.pwd}"
-
-        # Use prompt_toolkit to gather input
         command_completer = WordCompleter(api.completions, ignore_case=True)
         user_input = prompt(f"{commandlineinfo}> ",completer=command_completer ,history=history)
-
-        # Split input into arguments
         _argx = user_input.split(" ")
 
         if not _argx[0] == "":

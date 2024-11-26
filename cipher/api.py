@@ -152,22 +152,16 @@ class CipherAPI:
             with requests.get(download_url, stream=True) as r:
                 r.raise_for_status()
                 total_size = int(r.headers.get('Content-Length', 0))
-                with open(file_path, "wb") as f, progressbar.ProgressBar(
-                max_value=total_size,
-                widgets=[
-                    "Downloading: ",
-                    progressbar.Percentage(),
-                    " ",
-                    progressbar.Bar(),
-                    " ",
-                    progressbar.ETA(),
-                ],
-                ) as bar:
+                with open(file_path, "wb") as f:
+                    bar = progressbar.ProgressBar(
+                    max_value=total_size,
+                    widgets=["Downloading: ",progressbar.Percentage()," [",progressbar.Bar()," ]",progressbar.ETA()])
                     downloaded = 0
                     for chunk in r.iter_content(chunk_size=8192):
                         f.write(chunk)
                         downloaded += len(chunk)
                         bar.update(downloaded)
+                    bar.finish()
                 
             if filename.endswith(".zip"):
                 os.makedirs(packages_dir, exist_ok=True)

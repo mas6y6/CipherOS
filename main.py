@@ -238,7 +238,8 @@ def scannet(args):
     pbar = progressbar.ProgressBar(widgets=[colorama.Fore.LIGHTBLUE_EX,"Progress:",progressbar.Percentage()," [",progressbar.Bar(),"] ",progressbar.AdaptiveETA()," ",progressbar.AnimatedMarker(),colorama.Fore.RESET])
     pbar.start()
     
-    max_workers = min(30, os.cpu_count() * 5)
+    max_workers = min(60, os.cpu_count() * 5)
+    print("MAX WORKERS PER CHUNK:",max_workers)
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_ip = {executor.submit(cipher.network.cipher_ping, str(ip)): str(ip) for ip in network}
         for future in as_completed(future_to_ip):

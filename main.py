@@ -20,6 +20,7 @@ import psutil
 import struct, json
 from ipaddress import IPv4Network, IPv4Address
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import signal
 import nmap3,nmap
 
 colorama.init()
@@ -149,10 +150,23 @@ def exit(args):
 
 @api.command(alias=["pscn"])
 def portscan(args):
+    global sigIntPscn
+    sigIntPscn = False
     ip = args[0]
-    print(colorama.Fore.LIGHTBLUE_EX+"CipherOS Port Scanner"+colorama.Fore.RESET)
-    print(colorama.Fore.LIGHTBLUE_EX+"Scanning..."+colorama.Fore.RESET)
-    def scan_port(ip, port):
+
+    print(colorama.Fore.LIGHTBLUE_EX + "CipherOS Port Scanner" + colorama.Fore.RESET)
+    print(colorama.Fore.LIGHTBLUE_EX + "Scanning..." + colorama.Fore.RESET)
+
+    def sig_handler(sig, frame):
+        global sigIntPscn
+        sigIntPscn = True
+
+    signal.signal(signal.SIGINT, sig_handler)
+
+    def scan_ports(ip, port):
+        if sigIntPscn:
+            return None
+        print(f"Checking port {port}")
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.settimeout(0.5)
@@ -162,27 +176,32 @@ def portscan(args):
         except Exception:
             pass
         return None
-    
+
     open_ports = []
-    port_ranges = [f"{i}-{i+999}" for i in range(1, 65536, 1000)]
-    open_ports = []
-    
+    # Generate a list of individual ports instead of ranges
+    port_ranges = range(1, 1000)  # Check all ports from 1 to 65535
+
     with ThreadPoolExecutor(max_workers=30) as executor:
-        futures = {executor.submit(cipher.network.scan_ports, ip, port_range): port_range for port_range in port_ranges}
-        
+        futures = {executor.submit(scan_ports, ip, port): port for port in port_ranges}
+
         for future in as_completed(futures):
             try:
+                if sigIntPscn:
+                    print("Cancelled")
+                    future.cancel()
+                    break
                 result = future.result()
                 if result:
-                    open_ports.extend(result)
+                    open_ports.append(result)
             except Exception as e:
-                print(f"Error scanning port range {futures[future]}: {e}")
-    
+                print(f"Error scanning port {futures[future]}: {e}")
+
     print(colorama.Fore.LIGHTGREEN_EX + "\nOpen Ports Found:" + colorama.Fore.RESET)
     print(colorama.Style.BRIGHT + "PORT" + colorama.Style.NORMAL)
     print("-" * 10)
     for port in open_ports:
         print(f"{colorama.Fore.YELLOW}{port}{colorama.Fore.RESET}")
+
 
 @api.command(alias=["scn","netscan"])
 def scannet(args):

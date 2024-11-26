@@ -166,7 +166,6 @@ def portscan(args):
     def scan_ports(ip, port):
         if sigIntPscn:
             return None
-        print(f"Checking port {port}")
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.settimeout(0.5)
@@ -178,6 +177,8 @@ def portscan(args):
         return None
 
     open_ports = []
+    completed = 0
+    errors = []
     max_workers = min(3000, os.cpu_count() * 5)
     print("MAX WORKERS PER CHUNK:",max_workers)
     pbar = progressbar.ProgressBar(widgets=[f"{colorama.Fore.LIGHTBLUE_EX}Progress: ",f" [SCANNED: N/A,OPEN: N/A]",progressbar.Percentage()," [",progressbar.Bar(),"] ",progressbar.AdaptiveETA()," ",progressbar.AnimatedMarker(),colorama.Fore.RESET])
@@ -209,6 +210,7 @@ def portscan(args):
     print(colorama.Fore.LIGHTGREEN_EX + "\nOpen Ports Found:" + colorama.Fore.RESET)
     print(colorama.Style.BRIGHT + "PORT" + colorama.Style.NORMAL)
     print("-" * 10)
+    open_ports.sort()
     for port in open_ports:
         print(f"{colorama.Fore.YELLOW}{port}{colorama.Fore.RESET}")
 

@@ -23,6 +23,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import signal
 import nmap3,nmap
 from rich.console import Console
+from rich.table import Table
 
 colorama.init()
 running_on_mac = False # Meant as the cipher library is not installed (for macOS)
@@ -83,7 +84,7 @@ def showc():
     print("\033[?25h", end="", flush=True) #show cursor
 
 def printerror(msg):
-    print(colorama.Style.BRIGHT+colorama.Fore.RED+msg+colorama.Fore.RESET+colorama.Style.NORMAL)
+    console.print(msg,style="bold bright_red")
 
 if not os.path.exists(os.path.join(api.starterdir,"data","cache","networkmap.json")):
     json.dump({},open(os.path.join(api.starterdir,"data","cache","networkmap.json"),"w"))
@@ -142,8 +143,8 @@ def portscan(args):
     sigIntPscn = False
     ip = args[0]
 
-    print(colorama.Fore.LIGHTBLUE_EX + "CipherOS Port Scanner" + colorama.Fore.RESET)
-    print(colorama.Fore.LIGHTBLUE_EX + "Scanning..." + colorama.Fore.RESET)
+    console.print("CipherOS Port Scanner",style="bold bright_blue")
+    console.print("Scanning...",style="bright_blue")
 
     def sig_handler(sig, frame):
         global sigIntPscn
@@ -168,7 +169,7 @@ def portscan(args):
     completed = 0
     errors = []
     max_workers = min(3000, os.cpu_count() * 5)
-    print("MAX WORKERS PER CHUNK:",max_workers)
+    console.print("MAX WORKERS PER CHUNK:",max_workers)
     pbar = progressbar.ProgressBar(widgets=[f"{colorama.Fore.LIGHTBLUE_EX}Progress: ",f" [SCANNED: N/A,OPEN: N/A]",progressbar.Percentage()," [",progressbar.Bar(),"] ",progressbar.AdaptiveETA()," ",progressbar.AnimatedMarker(),colorama.Fore.RESET])
     pbar.maxval=65536
     pbar.start()
@@ -192,59 +193,62 @@ def portscan(args):
             except Exception as e:
                 error_msg = f"Error scanning port {port}: {e}"
                 errors.append(error_msg)
-                print(colorama.Fore.RED + error_msg + colorama.Fore.RESET)
+                printerror(error_msg)
     
     pbar.finish()
-    print(colorama.Fore.LIGHTGREEN_EX + "\nOpen Ports Found:" + colorama.Fore.RESET)
-    print(colorama.Style.BRIGHT + "PORT" + colorama.Style.NORMAL)
-    print("-" * 10)
+    console.print("Scan Complete\n",style="bold bright_green")
     open_ports.sort()
-    for port in open_ports:
-        print(f"{colorama.Fore.YELLOW}{port}{colorama.Fore.RESET}")
 
+    table = Table(title="Ports open",min_width=15)
+    table.add_column("Port",justify="left",style="yellow")
+    for port in open_ports:
+        table.add_row(str(port))
+    console.print(table)
 
 @api.command(alias=["scn","netscan"])
 def scannet(args):
-    print(colorama.Fore.LIGHTBLUE_EX+"CipherOS Network Device Scanner"+colorama.Fore.RESET)
-    print(colorama.Fore.LIGHTBLUE_EX+"Getting Network Range... "+colorama.Fore.RESET)
-    print(colorama.Fore.LIGHTBLUE_EX+"\tGetting localip... "+colorama.Fore.RESET,end="")
+    console.print("CipherOS Network Device Scanner",style="bright_blue")
+    console.print("Getting Network Range... ",style="bright_blue")
+    console.print("\tGetting localip... ",end="",style="bright_blue")
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(("8.8.8.8", 80))
         localip = s.getsockname()[0]
         s.close()
     except Exception as e:
+        console.print("Failed. Cannot continue",style="bright_red")
         raise ConnectionError(e)
     else:
-        print(colorama.Fore.LIGHTGREEN_EX+"Success"+colorama.Fore.RESET)
-    print(colorama.Fore.LIGHTBLUE_EX+"\tTesting Network connectivity... "+colorama.Fore.RESET,end="")
+        console.print("Success",style="bright_green")
+    
+    console.print("\tTesting Network connectivity... ",end="",style="bright_blue")
     try:
         onlineip = requests.get("https://ifconfig.me/").text
     except:
-        print(colorama.Fore.LIGHTRED_EX+"Failed"+colorama.Fore.RESET)
+        console.print("Failed",style="bright_red")
         onlineip = ""
     else:
-        print(colorama.Fore.LIGHTGREEN_EX+"Success"+colorama.Fore.RESET)
+        console.print("Success",style="bright_green")
     
-    print(colorama.Fore.LIGHTBLUE_EX+"\tGetting Submask... "+colorama.Fore.RESET,end="")
+    console.print("\tGetting Submask... ",end="",style="bright_blue")
     try:
         interface, subnet_mask = cipher.network.get_active_interface_and_netmask()
         if subnet_mask == 0:
             raise ConnectionAbortedError()
     except Exception:
-        print(colorama.Fore.LIGHTRED_EX+"Failed. using \"255.255.255.0\" as submask"+colorama.Fore.RESET)
+        console.print("Failed. using \"255.255.255.0\" as submask",style="bright_red")
         subnet_mask = "255.255.255.0"
     else:
-        print(colorama.Fore.LIGHTGREEN_EX+"Success"+colorama.Fore.RESET)
+        console.print("Success",style="bright_green")
     
     cidr = sum(bin(int(x)).count("1") for x in subnet_mask.split("."))
     network_range = f"{localip}/{cidr}"
-    print(colorama.Fore.GREEN+"Using Interface:",interface+colorama.Fore.RESET)
-    print(colorama.Fore.GREEN+"OnlineIP:",onlineip+colorama.Fore.RESET)
-    print(colorama.Fore.GREEN+"LocalIP:",localip+colorama.Fore.RESET)
-    print(colorama.Fore.GREEN+"Submask:",subnet_mask+colorama.Fore.RESET)
-    print(colorama.Fore.GREEN+"NetworkRange:",network_range+colorama.Fore.RESET)
-    print(colorama.Fore.LIGHTGREEN_EX+"Ready. Scanning for devices..."+colorama.Fore.RESET)
+    console.print("Using Interface:",interface,style="green")
+    console.print("OnlineIP:",onlineip,style="green")
+    console.print("LocalIP:",localip,style="green")
+    console.print("Submask:",subnet_mask,style="green")
+    console.print("NetworkRange:",network_range,style="green")
+    console.print("Ready. Scanning for devices...",style="bold bright_green")
     print("")
     network = IPv4Network(network_range,strict=False)
     devices = []
@@ -253,11 +257,10 @@ def scannet(args):
     for i in network:
         devicerange += 1
     
+    max_workers = min(60, os.cpu_count() * 5)
+    console.print("MAX WORKERS PER CHUNK:",max_workers)
     pbar = progressbar.ProgressBar(widgets=[colorama.Fore.LIGHTBLUE_EX,"Progress:",progressbar.Percentage()," [",progressbar.Bar(),"] ",progressbar.AdaptiveETA()," ",progressbar.AnimatedMarker(),colorama.Fore.RESET])
     pbar.start()
-    
-    max_workers = min(60, os.cpu_count() * 5)
-    print("MAX WORKERS PER CHUNK:",max_workers)
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_ip = {executor.submit(cipher.network.cipher_ping, str(ip)): str(ip) for ip in network}
         for future in as_completed(future_to_ip):
@@ -285,27 +288,23 @@ def scannet(args):
     pbar.finish()
     
     print()
-    print(colorama.Style.BRIGHT+colorama.Fore.LIGHTGREEN_EX+"Scan Complete"+colorama.Style.NORMAL+colorama.Fore.RESET)
+    console.print("Scan Complete",style="bold bright_green")
     networkmap[onlineip] = {"devices":{}}
     sorted_devices = sorted(devices, key=lambda d: (len(d['ip']), tuple(map(int, d['ip'].split(".")))))
-    print("\nDevices Found:")
-    print(f"{'IP Address':<20}{'Hostname':<30}{'MAC Address':<20}")
-    print("-" * 70)
+    table = Table(title="Devices Found",show_header=True)
+    table.add_column("IP Address", style="yellow",justify="left",header_style="bold yellow")
+    table.add_column("Hostname", style="blue",justify="left",header_style="bold blue")
+    table.add_column("MAC Address", style="magenta",justify="left",header_style="bold magenta")
 
     networkmap[onlineip] = {"devices": {}}
     sorted_devices = sorted(devices, key=lambda d: (len(d['ip']), tuple(map(int, d['ip'].split(".")))))
-
     for device in sorted_devices:
         ip = device['ip']
         hostname = device['hostname']
         mac = device['mac']
-        print(
-            f"{colorama.Fore.LIGHTYELLOW_EX}{ip:<20}"
-            f"{colorama.Fore.LIGHTBLUE_EX}{hostname:<30}"
-            f"{colorama.Fore.LIGHTMAGENTA_EX}{mac:<20}"
-            f"{colorama.Fore.RESET}"
-        )
+        table.add_row(ip, hostname, mac)
         networkmap[onlineip]['devices'][ip] = {"mac": mac, "hostname": hostname}
+    console.print(table)
     networkmap_save()
 
 @api.command(alias=["cd"])

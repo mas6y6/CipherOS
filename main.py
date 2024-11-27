@@ -4,7 +4,7 @@ import sys
 sys.path.append(os.getcwd())
 import argparse
 import traceback
-import colorama, websockets, math, shutil, paramiko, progressbar, time, requests, platform, pyinputplus, urllib3, subprocess
+import colorama, websockets, math, shutil, paramiko, progressbar, time, requests, platform, pyinputplus, urllib3, subprocess, markdown
 import tarfile
 import importlib.util
 import tempfile
@@ -22,31 +22,19 @@ from ipaddress import IPv4Network, IPv4Address
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import signal
 import nmap3,nmap
+from rich.console import Console
 
 colorama.init()
 running_on_mac = False # Meant as the cipher library is not installed (for macOS)
 macpwd = None
 macapistarter = None
+console = Console()
 
 pbar = None
 
 #! README
 # The api.pwd class is the current path where CipherOS is in right now
 # The api.starterdir is where the plugins and data folder is located in the this variable is to not change and if it changes then its going to break a lot of problems.
-
-def show_progress(block_num, block_size, total_size):
-    global pbar
-    if pbar is None:
-        pbar = progressbar.ProgressBar(widgets=[progressbar.Percentage()," ",progressbar.Bar(left="[",right="]")," ",progressbar.AbsoluteETA()],maxval=total_size)
-        pbar.start()
-
-    downloaded = block_num * block_size
-    if downloaded < total_size:
-        pbar.update(downloaded)
-    else:
-        pbar.finish()
-        pbar = None
-
 if os.name == "posix":
     if os.getcwd() == os.path.expanduser("~"):
         macpwd = os.path.expanduser("~")
@@ -362,6 +350,17 @@ def plugins(args):
     elif args[0] == "info":
         pass
 
+    elif args[0] == "help":
+        print("""Usage:
+
+reloadall: Reloads all plugins
+disable <plugin name>: Disables a specified plugin
+enable <plugin name>: Enables a specified plugin
+info <plugin name>: Provides a description of the specified plugin
+list: Lists all enabled plugins
+help: Opens this menu
+""")
+
 @api.command(alias=["list","l"])
 def ls(args):
     import os
@@ -423,9 +422,9 @@ if not len(os.listdir(os.path.join(api.pwd,"plugins"))) == 0:
 else:
     print("No plugins found")
 
-print(colorama.Fore.MAGENTA+"Made by @mas6y6, @malachi196, and @overo3 (on github)")
+console.print("[bold bright_magenta]Made by @mas6y6, @malachi196, and @overo3 (on github)[/bold bright_magenta]")
 
-print(r"""   _______       __              ____  _____
+print(colorama.Fore.MAGENTA+r"""   _______       __              ____  _____
   / ____(_)___  / /_  ___  _____/ __ \/ ___/
  / /   / / __ \/ __ \/ _ \/ ___/ / / /\__ \ 
 / /___/ / /_/ / / / /  __/ /  / /_/ /___/ / 
@@ -433,6 +432,7 @@ print(r"""   _______       __              ____  _____
       /_/                                   
 
 Project Codename: Paradox"""+colorama.Fore.RESET)
+console.print("")
 
 history = InMemoryHistory()
 api.updatecompletions()

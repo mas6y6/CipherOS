@@ -167,7 +167,6 @@ def portscan(args):
 
     open_ports = []
     completed = 0
-    errors = []
     max_workers = min(3000, os.cpu_count() * 5)
     console.print("MAX WORKERS PER CHUNK:",max_workers)
     pbar = progressbar.ProgressBar(widgets=[f"{colorama.Fore.LIGHTBLUE_EX}Progress: ",f" [SCANNED: N/A,OPEN: N/A]",progressbar.Percentage()," [",progressbar.Bar(),"] ",progressbar.AdaptiveETA()," ",progressbar.AnimatedMarker(),colorama.Fore.RESET])
@@ -192,7 +191,6 @@ def portscan(args):
                 pbar.update(completed)
             except Exception as e:
                 error_msg = f"Error scanning port {port}: {e}"
-                errors.append(error_msg)
                 printerror(error_msg)
     
     pbar.finish()

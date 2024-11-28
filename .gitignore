@@ -10,3 +10,4 @@ dist/data
 visualstudio
 macos/cipher/.DS_Store
 netmaptest.py
+test.py

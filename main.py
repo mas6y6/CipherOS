@@ -27,6 +27,7 @@ from threading import Lock
 from rich.console import Console
 from rich.table import Table
 
+
 colorama.init()
 running_on_mac = False # Meant as the cipher library is not installed (for macOS)
 macpwd = None
@@ -218,6 +219,7 @@ def scannet(args):
     console.print("Getting Network Range... ",style="bright_blue")
     console.print("\tGetting localip... ",end="",style="bright_blue")
     def cipher_ping(host):
+        print(f"ch {host}")
         # if host.split(".")[3] == "0":
         #     print(f"Checking {host}/8")
         if sigIntScn:
@@ -261,76 +263,85 @@ def scannet(args):
             raise ConnectionAbortedError()
     except Exception:
         console.print("Failed. using \"255.255.255.0\" as submask",style="bright_red")
-        subnet_mask = "255.255.255.0"
+        for i in range(len(interfaces)):
+            netmasks[i] = "255.255.255.0"
     else:
         console.print("Success",style="bright_green")
+    for i in range(len(interfaces)):
+        cidr = sum(bin(int(x)).count("1") for x in netmasks[i].split("."))
+        network_range = f"{localip}/{cidr}"
+        console.print("Using Interface:",interfaces[i],style="green")
+        console.print("OnlineIP:",onlineip,style="green")
+        console.print("LocalIP:",localip,style="green")
+        console.print("Submask:",netmasks[i],style="green")
+        console.print("NetworkRange:",network_range,style="green")
+        console.print("Ready. Scanning for devices...",style="bold light_green")
+        print("")
+        network = IPv4Network(network_range,strict=False)
+        devices = []
+        devicerange = 0
+        completed = 0
+        for i in network:
+            devicerange += 1
     
-    cidr = sum(bin(int(x)).count("1") for x in subnet_mask.split("."))
-    network_range = f"{localip}/{cidr}"
-    console.print("Using Interface:",interface,style="green")
-    console.print("OnlineIP:",onlineip,style="green")
-    console.print("LocalIP:",localip,style="green")
-    console.print("Submask:",subnet_mask,style="green")
-    console.print("NetworkRange:",network_range,style="green")
-    console.print("Ready. Scanning for devices...",style="bold light_green")
-    print("")
-    network = IPv4Network(network_range,strict=False)
-    devices = []
-    devicerange = 0
-    completed = 0
-    for i in network:
-        devicerange += 1
-    
-    pbar = progressbar.ProgressBar(widgets=[colorama.Fore.LIGHTBLUE_EX,"Progress:",progressbar.Percentage()," [",progressbar.Bar(),"] ",progressbar.AdaptiveETA()," ",progressbar.AnimatedMarker(),colorama.Fore.RESET])
-    pbar.start()
-    
-    max_workers = min(60, os.cpu_count() * 5)
-    print("MAX WORKERS PER CHUNK:",max_workers)
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        future_to_ip = {executor.submit(cipher.network.cipher_ping, str(ip)): str(ip) for ip in network}
-        for future in as_completed(future_to_ip):
-            ip = future_to_ip[future]
-            try:
-                if future.result():
-                    mac_address = cipher.network.get_mac(ip)
-                    try:
-                        if IPv4Address(ip).is_multicast or IPv4Address(ip).is_reserved or IPv4Address(ip).is_loopback:
-                            hostname = "Skipped"
-                        else:
-                            hostname = socket.gethostbyaddr(ip)[0]
-                    except socket.herror:
-                        hostname = "Unknown"
-                    except ValueError:
-                        hostname = "Unknown"
-                    
-                    devices.append({"ip": ip, "mac": mac_address,"hostname":hostname})
-                    completed += 1
-                    pbar.widgets[2] = f" [SCANNED: {completed}/{devicerange}, FOUND: {len(devices)}]"
-                    pbar.update(completed)
-            except Exception as e:
-                pass
-                #print(f"Error scanning {ip}: {e}")
-    
-    pbar.finish()
-    
-    print()
-    console.print("Scan Complete",style="bold bright_green")
-    networkmap[onlineip] = {"devices":{}}
-    sorted_devices = sorted(devices, key=lambda d: (len(d['ip']), tuple(map(int, d['ip'].split(".")))))
-    table = Table(title="Devices Found",show_header=True)
-    table.add_column("IP Address", style="yellow",justify="left",header_style="bold yellow")
-    table.add_column("Hostname", style="blue",justify="left",header_style="bold blue")
-    table.add_column("MAC Address", style="magenta",justify="left",header_style="bold magenta")
+        
+        max_workers = devicerange
+        print("MAX WORKERS PER CHUNK:",max_workers)
+        print("")
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            pbar = progressbar.ProgressBar(widgets=[colorama.Fore.LIGHTBLUE_EX,"Progress:",progressbar.Percentage()," [",progressbar.Bar(),"] ",progressbar.AdaptiveETA()," ",progressbar.AnimatedMarker(),colorama.Fore.RESET])
+            pbar.maxval = devicerange
+            pbar.start()
+        
+            future_to_ip = {executor.submit(cipher_ping, str(ip)): str(ip) for ip in network}
+            for future in as_completed(future_to_ip):
+                ip = future_to_ip[future]
+                try:
+                    if sigIntScn:
+                        future.cancel()
+                    if future.result(timeout=2.1):
+                        mac_address = cipher.network.get_mac(ip)
+                        try:
+                            if IPv4Address(ip).is_multicast or IPv4Address(ip).is_reserved or IPv4Address(ip).is_loopback:
+                                hostname = "Skipped"
+                                continue
+                            else:
+                                hostname = socket.gethostbyaddr(ip)[0]
+                        except socket.herror:
+                            hostname = "Unknown"
+                            continue
+                        except ValueError:
+                            hostname = "Unknown"
+                            continue
+                        
+                        devices.append({"ip": ip, "mac": mac_address,"hostname":hostname})
+                except Exception as e:
+                    pass
+                    #print(f"Error scanning {ip}: {e}")
+                completed += 1
+                pbar.widgets[2] = f" [SCANNED: {completed}/{devicerange}, FOUND: {len(devices)}]"
+                pbar.update(completed)
+            
+        pbar.finish()
+        
+        print()
+        console.print("Scan Complete",style="bold bright_green")
+        networkmap[onlineip] = {"devices":{}}
+        sorted_devices = sorted(devices, key=lambda d: (len(d['ip']), tuple(map(int, d['ip'].split(".")))))
+        table = Table(title="Devices Found",show_header=True)
+        table.add_column("IP Address", style="yellow",justify="left",header_style="bold yellow")
+        table.add_column("Hostname", style="blue",justify="left",header_style="bold blue")
+        table.add_column("MAC Address", style="magenta",justify="left",header_style="bold magenta")
 
-    networkmap[onlineip] = {"devices": {}}
-    sorted_devices = sorted(devices, key=lambda d: (len(d['ip']), tuple(map(int, d['ip'].split(".")))))
-    for device in sorted_devices:
-        ip = device['ip']
-        hostname = device['hostname']
-        mac = device['mac']
-        table.add_row(ip, hostname, mac)
-        networkmap[onlineip]['devices'][ip] = {"mac": mac, "hostname": hostname}
-    console.print(table)
+        networkmap[onlineip] = {"devices": {}}
+        sorted_devices = sorted(devices, key=lambda d: (len(d['ip']), tuple(map(int, d['ip'].split(".")))))
+        for device in sorted_devices:
+            ip = device['ip']
+            hostname = device['hostname']
+            mac = device['mac']
+            table.add_row(ip, hostname, mac)
+            networkmap[onlineip]['devices'][ip] = {"mac": mac, "hostname": hostname}
+        console.print(table)
     networkmap_save()
 
 @api.command(alias=["cd"])

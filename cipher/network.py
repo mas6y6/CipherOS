@@ -9,12 +9,16 @@ from ping3 import ping, verbose_ping
 
 def get_active_interface_and_netmask():
     interfaces = psutil.net_if_addrs()
+    ifaces = []
+    nms = []
     for iface, addrs in interfaces.items():
         for addr in addrs:
             if addr.family == socket.AF_INET:  # IPv4 address
                 if addr.address != "127.0.0.1":  # Exclude loopback
-                    return iface, addr.netmask
-    return None, None
+                    if iface in {name for name, net in psutil.net_if_stats().items() if net.isup} and iface != "Loopback Pseudo-Interface 1": # Make sure given interface is running
+                        ifaces.append(iface)
+                        nms.append(addr.netmask)
+    return ifaces, nms
 
 def get_mac(ip):
     try:

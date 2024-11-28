@@ -302,12 +302,12 @@ def scannet(args):
                                 hostname = "Skipped"
                             else:
                                 hostname = socket.gethostbyaddr(ip)[0]
+                                devices.append({"ip": ip, "mac": mac_address,"hostname":hostname})
                         except socket.herror:
                             hostname = "Unknown"
                         except ValueError:
                             hostname = "Unknown"
                         
-                        devices.append({"ip": ip, "mac": mac_address,"hostname":hostname})
                     
                     completed += 1
                     scanned += 1

@@ -13,3 +13,5 @@ wheel==0.45.1
 python3-nmap
 ping3
 netifaces
+markdown
+rich

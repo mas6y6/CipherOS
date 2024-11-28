@@ -4,7 +4,7 @@ import sys
 sys.path.append(os.getcwd())
 import argparse
 import traceback
-import colorama, websockets, math, shutil, paramiko, progressbar, time, requests, platform, pyinputplus, urllib3, subprocess
+import colorama, websockets, math, shutil, paramiko, progressbar, time, requests, platform, pyinputplus, urllib3, subprocess, markdown
 import tarfile
 import importlib.util
 import tempfile
@@ -24,31 +24,20 @@ import signal
 import nmap3,nmap
 from ping3 import ping, verbose_ping
 from threading import Lock
+from rich.console import Console
+from rich.table import Table
 
 colorama.init()
 running_on_mac = False # Meant as the cipher library is not installed (for macOS)
 macpwd = None
 macapistarter = None
+console = Console()
 
 pbar = None
 
 #! README
 # The api.pwd class is the current path where CipherOS is in right now
 # The api.starterdir is where the plugins and data folder is located in the this variable is to not change and if it changes then its going to break a lot of problems.
-
-def show_progress(block_num, block_size, total_size):
-    global pbar
-    if pbar is None:
-        pbar = progressbar.ProgressBar(widgets=[progressbar.Percentage()," ",progressbar.Bar(left="[",right="]")," ",progressbar.AbsoluteETA()],maxval=total_size)
-        pbar.start()
-
-    downloaded = block_num * block_size
-    if downloaded < total_size:
-        pbar.update(downloaded)
-    else:
-        pbar.finish()
-        pbar = None
-
 if os.name == "posix":
     if os.getcwd() == os.path.expanduser("~"):
         macpwd = os.path.expanduser("~")
@@ -97,7 +86,7 @@ def showc():
     print("\033[?25h", end="", flush=True) #show cursor
 
 def printerror(msg):
-    print(colorama.Style.BRIGHT+colorama.Fore.RED+msg+colorama.Fore.RESET+colorama.Style.NORMAL)
+    console.print(msg,style="bold bright_red")
 
 if not os.path.exists(os.path.join(api.starterdir,"data","cache","networkmap.json")):
     json.dump({},open(os.path.join(api.starterdir,"data","cache","networkmap.json"),"w"))
@@ -156,8 +145,8 @@ def portscan(args):
     sigIntPscn = False
     ip = args[0]
 
-    print(colorama.Fore.LIGHTBLUE_EX + "CipherOS Port Scanner" + colorama.Fore.RESET)
-    print(colorama.Fore.LIGHTBLUE_EX + "Scanning..." + colorama.Fore.RESET)
+    console.print("CipherOS Port Scanner",style="bold bright_blue")
+    console.print("Scanning...",style="bright_blue")
 
     def sig_handler_pscn(sig, frame):
         global sigIntPscn
@@ -180,9 +169,8 @@ def portscan(args):
 
     open_ports = []
     completed = 0
-    errors = []
     max_workers = min(3000, os.cpu_count() * 100)
-    print("MAX WORKERS PER CHUNK:",max_workers)
+    console.print("MAX WORKERS PER CHUNK:",max_workers)
     pbar = progressbar.ProgressBar(widgets=[f"{colorama.Fore.LIGHTBLUE_EX}Progress: ",f" [SCANNED: N/A,OPEN: N/A]",progressbar.Percentage()," [",progressbar.Bar(),"] ",progressbar.AdaptiveETA()," ",progressbar.AnimatedMarker(),colorama.Fore.RESET])
     pbar.maxval=65536
     pbar.start()
@@ -205,17 +193,17 @@ def portscan(args):
                 pbar.update(completed)
             except Exception as e:
                 error_msg = f"Error scanning port {port}: {e}"
-                errors.append(error_msg)
-                print(colorama.Fore.RED + error_msg + colorama.Fore.RESET)
+                printerror(error_msg)
     
     pbar.finish()
-    print(colorama.Fore.LIGHTGREEN_EX + "\nOpen Ports Found:" + colorama.Fore.RESET)
-    print(colorama.Style.BRIGHT + "PORT" + colorama.Style.NORMAL)
-    print("-" * 10)
+    console.print("Scan Complete\n",style="bold bright_green")
     open_ports.sort()
-    for port in open_ports:
-        print(f"{colorama.Fore.YELLOW}{port}{colorama.Fore.RESET}")
 
+    table = Table(title="Ports open",min_width=15)
+    table.add_column("Port",justify="left",style="yellow")
+    for port in open_ports:
+        table.add_row(str(port))
+    console.print(table)
 
 @api.command(alias=["scn","netscan"])
 def scannet(args):
@@ -226,9 +214,9 @@ def scannet(args):
         sigIntScn = True
 
     signal.signal(signal.SIGINT, sig_handler_scn)
-    print(colorama.Fore.LIGHTBLUE_EX+"CipherOS Network Device Scanner"+colorama.Fore.RESET)
-    print(colorama.Fore.LIGHTBLUE_EX+"Getting Network Range... "+colorama.Fore.RESET)
-    print(colorama.Fore.LIGHTBLUE_EX+"\tGetting localip... "+colorama.Fore.RESET,end="")
+    console.print("CipherOS Network Device Scanner",style="bright_blue")
+    console.print("Getting Network Range... ",style="bright_blue")
+    console.print("\tGetting localip... ",end="",style="bright_blue")
     def cipher_ping(host):
         # if host.split(".")[3] == "0":
         #     print(f"Checking {host}/8")
@@ -252,114 +240,97 @@ def scannet(args):
         localip = s.getsockname()[0]
         s.close()
     except Exception as e:
+        console.print("Failed. Cannot continue",style="bright_red")
         raise ConnectionError(e)
     else:
-        print(colorama.Fore.LIGHTGREEN_EX+"Success"+colorama.Fore.RESET)
-    print(colorama.Fore.LIGHTBLUE_EX+"\tTesting Network connectivity... "+colorama.Fore.RESET,end="")
+        console.print("Success",style="bright_green")
+    
+    console.print("\tTesting Network connectivity... ",end="",style="bright_blue")
     try:
         onlineip = requests.get("https://ifconfig.me/").text
     except:
-        print(colorama.Fore.LIGHTRED_EX+"Failed"+colorama.Fore.RESET)
+        console.print("Failed",style="bright_red")
         onlineip = ""
     else:
-        print(colorama.Fore.LIGHTGREEN_EX+"Success"+colorama.Fore.RESET)
+        console.print("Success",style="bright_green")
     
-    print(colorama.Fore.LIGHTBLUE_EX+"\tGetting Submask... "+colorama.Fore.RESET,end="")
+    console.print("\tGetting Submask... ",end="",style="bright_blue")
     try:
         interfaces, netmasks = cipher.network.get_active_interface_and_netmask()
         if netmasks == None:
             raise ConnectionAbortedError()
     except Exception:
-        print(colorama.Fore.LIGHTRED_EX+"Failed. using \"255.255.255.0\" as submask"+colorama.Fore.RESET)
+        console.print("Failed. using \"255.255.255.0\" as submask",style="bright_red")
         subnet_mask = "255.255.255.0"
     else:
-        print(colorama.Fore.LIGHTGREEN_EX+"Success"+colorama.Fore.RESET)
+        console.print("Success",style="bright_green")
     
-    for i in range(len(interfaces)):
-        cidr = sum(bin(int(x)).count("1") for x in netmasks[i].split("."))
-        network_range = f"{localip}/{cidr}"
-        print(colorama.Fore.GREEN+"Using Interface:",interfaces[i]+colorama.Fore.RESET)
-        print(colorama.Fore.GREEN+"OnlineIP:",onlineip+colorama.Fore.RESET)
-        print(colorama.Fore.GREEN+"LocalIP:",localip+colorama.Fore.RESET)
-        print(colorama.Fore.GREEN+"Submask:",netmasks[i]+colorama.Fore.RESET)
-        print(colorama.Fore.GREEN+"NetworkRange:",network_range+colorama.Fore.RESET)
-        print(colorama.Fore.LIGHTGREEN_EX+"Ready. Scanning for devices..."+colorama.Fore.RESET)
-        print("")
-        network = IPv4Network(network_range,strict=False)
-        devices = []
-        devicerange = sum(1 for _ in network)
-        completed = 0
-        
-        pbar = progressbar.ProgressBar(widgets=[colorama.Fore.LIGHTBLUE_EX,"Progress:",f" [SCANNED: {completed}/{devicerange}, FOUND: {len(devices)}]"," [",progressbar.Bar(),"] ",progressbar.AdaptiveETA()," ",progressbar.AnimatedMarker(),colorama.Fore.RESET])
-        pbar.maxval = devicerange
-        
-        max_workers = devicerange
-        # max_workers = 200
-        print("MAX WORKERS PER CHUNK:",max_workers,"\n")
-        pbar.start()
-
-        lock = Lock()
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            future_to_ip = {executor.submit(cipher_ping, str(ip)): str(ip) for ip in network}
-            for future in as_completed(future_to_ip):
-                ip = future_to_ip[future]
-                try:
-                    if sigIntScn:
-                        print("Cancelled")
-                        future.cancel()
-                        break
-                    if future.result(timeout=2.1):
-                        mac_address = cipher.network.get_mac(ip)
-                        try:
-                            if IPv4Address(ip).is_multicast or IPv4Address(ip).is_reserved or IPv4Address(ip).is_loopback:
-                                hostname = "Skipped"
-                                continue
-                            else:
-                                hostname = socket.gethostbyaddr(ip)[0]
-                        except socket.herror:
-                            hostname = "Unknown"
-                            continue
-                        except ValueError:
-                            hostname = "Unknown"
-                            continue
-                        
-                        devices.append({"ip": ip, "mac": mac_address,"hostname":hostname})
-                except TimeoutError:
-                    future.cancel() 
-                except Exception as e:
-                    pass
-                    print(f"Error scanning {ip}: {e}")
-
-                with lock:
+    cidr = sum(bin(int(x)).count("1") for x in subnet_mask.split("."))
+    network_range = f"{localip}/{cidr}"
+    console.print("Using Interface:",interface,style="green")
+    console.print("OnlineIP:",onlineip,style="green")
+    console.print("LocalIP:",localip,style="green")
+    console.print("Submask:",subnet_mask,style="green")
+    console.print("NetworkRange:",network_range,style="green")
+    console.print("Ready. Scanning for devices...",style="bold light_green")
+    print("")
+    network = IPv4Network(network_range,strict=False)
+    devices = []
+    devicerange = 0
+    completed = 0
+    for i in network:
+        devicerange += 1
+    
+    pbar = progressbar.ProgressBar(widgets=[colorama.Fore.LIGHTBLUE_EX,"Progress:",progressbar.Percentage()," [",progressbar.Bar(),"] ",progressbar.AdaptiveETA()," ",progressbar.AnimatedMarker(),colorama.Fore.RESET])
+    pbar.start()
+    
+    max_workers = min(60, os.cpu_count() * 5)
+    print("MAX WORKERS PER CHUNK:",max_workers)
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_ip = {executor.submit(cipher.network.cipher_ping, str(ip)): str(ip) for ip in network}
+        for future in as_completed(future_to_ip):
+            ip = future_to_ip[future]
+            try:
+                if future.result():
+                    mac_address = cipher.network.get_mac(ip)
+                    try:
+                        if IPv4Address(ip).is_multicast or IPv4Address(ip).is_reserved or IPv4Address(ip).is_loopback:
+                            hostname = "Skipped"
+                        else:
+                            hostname = socket.gethostbyaddr(ip)[0]
+                    except socket.herror:
+                        hostname = "Unknown"
+                    except ValueError:
+                        hostname = "Unknown"
+                    
+                    devices.append({"ip": ip, "mac": mac_address,"hostname":hostname})
                     completed += 1
                     pbar.widgets[2] = f" [SCANNED: {completed}/{devicerange}, FOUND: {len(devices)}]"
                     pbar.update(completed)
-            
-        print("Finished")
-        pbar.finish()
-        
-        print()
-        print(colorama.Style.BRIGHT+colorama.Fore.LIGHTGREEN_EX+"Scan Complete"+colorama.Style.NORMAL+colorama.Fore.RESET)
-        networkmap[onlineip] = {"devices":{}}
-        sorted_devices = sorted(devices, key=lambda d: (len(d['ip']), tuple(map(int, d['ip'].split(".")))))
-        print("\nDevices Found:")
-        print(f"{'IP Address':<20}{'Hostname':<30}{'MAC Address':<20}")
-        print("-" * 70)
+            except Exception as e:
+                pass
+                #print(f"Error scanning {ip}: {e}")
+    
+    pbar.finish()
+    
+    print()
+    console.print("Scan Complete",style="bold bright_green")
+    networkmap[onlineip] = {"devices":{}}
+    sorted_devices = sorted(devices, key=lambda d: (len(d['ip']), tuple(map(int, d['ip'].split(".")))))
+    table = Table(title="Devices Found",show_header=True)
+    table.add_column("IP Address", style="yellow",justify="left",header_style="bold yellow")
+    table.add_column("Hostname", style="blue",justify="left",header_style="bold blue")
+    table.add_column("MAC Address", style="magenta",justify="left",header_style="bold magenta")
 
-        networkmap[onlineip] = {"devices": {}}
-        sorted_devices = sorted(devices, key=lambda d: (len(d['ip']), tuple(map(int, d['ip'].split(".")))))
-
-        for device in sorted_devices:
-            ip = device['ip']
-            hostname = device['hostname']
-            mac = device['mac']
-            print(
-                f"{colorama.Fore.LIGHTYELLOW_EX}{ip:<20}"
-                f"{colorama.Fore.LIGHTBLUE_EX}{hostname:<30}"
-                f"{colorama.Fore.LIGHTMAGENTA_EX}{mac:<20}"
-                f"{colorama.Fore.RESET}"
-            )
-            networkmap[onlineip]['devices'][ip] = {"mac": mac, "hostname": hostname}
+    networkmap[onlineip] = {"devices": {}}
+    sorted_devices = sorted(devices, key=lambda d: (len(d['ip']), tuple(map(int, d['ip'].split(".")))))
+    for device in sorted_devices:
+        ip = device['ip']
+        hostname = device['hostname']
+        mac = device['mac']
+        table.add_row(ip, hostname, mac)
+        networkmap[onlineip]['devices'][ip] = {"mac": mac, "hostname": hostname}
+    console.print(table)
     networkmap_save()
 
 @api.command(alias=["cd"])
@@ -403,6 +374,17 @@ def plugins(args):
     
     elif args[0] == "info":
         pass
+
+    elif args[0] == "help":
+        print("""Usage:
+
+reloadall: Reloads all plugins
+disable <plugin name>: Disables a specified plugin
+enable <plugin name>: Enables a specified plugin
+info <plugin name>: Provides a description of the specified plugin
+list: Lists all enabled plugins
+help: Opens this menu
+""")
 
 @api.command(alias=["list","l"])
 def ls(args):
@@ -465,9 +447,9 @@ if not len(os.listdir(os.path.join(api.pwd,"plugins"))) == 0:
 else:
     print("No plugins found")
 
-print(colorama.Fore.MAGENTA+"Made by @mas6y6, @malachi196, and @overo3 (on github)")
+console.print("[bold bright_magenta]Made by @mas6y6, @malachi196, and @overo3 (on github)[/bold bright_magenta]")
 
-print(r"""   _______       __              ____  _____
+print(colorama.Fore.MAGENTA+r"""   _______       __              ____  _____
   / ____(_)___  / /_  ___  _____/ __ \/ ___/
  / /   / / __ \/ __ \/ _ \/ ___/ / / /\__ \ 
 / /___/ / /_/ / / / /  __/ /  / /_/ /___/ / 
@@ -475,6 +457,7 @@ print(r"""   _______       __              ____  _____
       /_/                                   
 
 Project Codename: Paradox"""+colorama.Fore.RESET)
+console.print("")
 
 history = InMemoryHistory()
 api.updatecompletions()

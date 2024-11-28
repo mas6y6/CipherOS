@@ -19,7 +19,7 @@ If you are on macOS go to [macos](https://github.com/mas6y6/CipherOS/tree/main/m
 All of these can be downloaded in [releases](https://github.com/mas6y6/CipherOS/releases)
 
 ## Discord
-[Click me](https://discord.gg/hFxyTqGshN) to join the CipherOS discord server
+[Click me](https://discord.gg/hFxyTqGshN) to join the Cipher HackSquad discord server
 
 # Contributors
 + [@mas6y6](https://github.com/mas6y6) (Owner)

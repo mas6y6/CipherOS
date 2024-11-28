@@ -1,4 +1,4 @@
-import socket,platform, subprocess
+import socket,platform, subprocess, time
 import traceback
 import nmap, nmap3
 import struct, re, psutil
@@ -6,6 +6,8 @@ from ipaddress import IPv4Network
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from .exceptions import ExitCodeError
 from ping3 import ping, verbose_ping
+from scapy.all import sr1, IP, TCP, UDP, ICMP, conf
+from socket import getservbyport
 
 def get_active_interface_and_netmask():
     interfaces = psutil.net_if_addrs()
@@ -57,12 +59,3 @@ def cipher_ping(host):
 
 def chunk_ports(start, end, chunk_size):
     return [(i, min(i + chunk_size - 1, end)) for i in range(start, end + 1, chunk_size)]
-
-def scan_port(ip, port):
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(0.5)
-            result = s.connect_ex((ip, port))
-            return result == 0
-    except:
-        return False

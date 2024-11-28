@@ -1,4 +1,5 @@
 from cipher.api import CipherAPI
+from yaml import YAMLObject
 
 class CipherPlugin:
     api = None

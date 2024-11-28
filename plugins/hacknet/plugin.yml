@@ -1,0 +1,7 @@
+configversion: 1
+version: 30
+name: hacknet
+displayname: "Hacknet Addons"
+class: HacknetPlugin
+dependencies:
+  - pygame

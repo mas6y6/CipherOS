@@ -1,7 +1,19 @@
 import os, socket, tarfile, yaml, sys, socket, argparse, traceback, importlib.util, shutil, requests, zipfile, progressbar, re, colorama
-from cipher.exceptions import ExitCodes, ExitCodeError, PluginError, PluginInitializationError
-from prompt_toolkit.completion import Completer, Completion, PathCompleter, WordCompleter
+from cipher.exceptions import (
+    ExitCodes,
+    ExitCodeError,
+    PluginError,
+    PluginInitializationError,
+)
+from prompt_toolkit.completion import (
+    Completer,
+    Completion,
+    PathCompleter,
+    WordCompleter,
+)
 from wheel.wheelfile import WheelFile
+from rich.console import Console
+
 
 class CipherAPI:
     def __init__(self):
@@ -16,7 +28,8 @@ class CipherAPI:
         self.plugincommands = {}
         self.threads = {}
         self.completions = []
-        
+        self.console = Console()
+
     def command(self, name=None, doc=None, desc=None, extradata={}, alias=[]):
         def decorator(func):
             funcname = name if name is not None else func.__name__
@@ -34,12 +47,13 @@ class CipherAPI:
                     "extradata": extradata,
                 }
             return func
+
         return decorator
-    
-    def rm_command(self,name):
+
+    def rm_command(self, name):
         self.commands.pop(name)
-    
-    def run(self,args):
+
+    def run(self, args):
         exc = None
         try:
             exc = self.commands[args[0]]["func"](args[1:])
@@ -53,7 +67,7 @@ class CipherAPI:
             return ExitCodes.FATALERROR, traceback.format_exc()
         else:
             return ExitCodes.SUCCESS, None
-    
+
     def load_plugin(self, filepath, api):
         yml_path = os.path.join(filepath, "plugin.yml")
         if not os.path.exists(yml_path):
@@ -67,9 +81,11 @@ class CipherAPI:
         print(f"Loading {plugin_displayname}")
         if not plugin_dependencies == None:
             for i in plugin_dependencies:
-                if not os.path.exists(os.path.join(self.starterdir,"data","cache","packages",i)):
+                if not os.path.exists(
+                    os.path.join(self.starterdir, "data", "cache", "packages", i)
+                ):
                     self.download_package(i)
-        
+
         if not plugin_name:
             raise PluginInitializationError(f"'name' is missing in {yml_path}")
         init_file = os.path.join(filepath, "__init__.py")
@@ -78,33 +94,41 @@ class CipherAPI:
         spec = importlib.util.spec_from_file_location(plugin_name, init_file)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        
-        plugin_class = getattr(module, plugin_class_name, None)
-        if plugin_class is None:
-            raise PluginInitializationError(f"Class '{plugin_class_name}' not found in {init_file}")
 
         plugin_class = getattr(module, plugin_class_name, None)
         if plugin_class is None:
-            raise PluginInitializationError(f"Class '{plugin_class_name}' not found in {init_file}")
+            raise PluginInitializationError(
+                f"Class '{plugin_class_name}' not found in {init_file}"
+            )
 
-        plugin_instance = plugin_class(self,yml)
-        if hasattr(plugin_instance, 'on_enable') and callable(plugin_instance.on_enable):
+        plugin_class = getattr(module, plugin_class_name, None)
+        if plugin_class is None:
+            raise PluginInitializationError(
+                f"Class '{plugin_class_name}' not found in {init_file}"
+            )
+
+        plugin_instance = plugin_class(self, yml)
+        if hasattr(plugin_instance, "on_enable") and callable(
+            plugin_instance.on_enable
+        ):
             plugin_instance.on_enable()
         self.updatecompletions()
-    
-    def disable_plugin(self,plugin):
+
+    def disable_plugin(self, plugin):
         print(f"Disabling {plugin.__class__.__name__}")
         plugin_instance = self.plugins[plugin.__class__.__name__]
-        if hasattr(plugin_instance, 'on_disable') and callable(plugin_instance.on_disable):
+        if hasattr(plugin_instance, "on_disable") and callable(
+            plugin_instance.on_disable
+        ):
             plugin_instance.on_disable()
         else:
             pass
-        
+
         for i in self.plugincommands[plugin.__class__.__name__]:
             self.commands.pop(i)
         self.plugins.pop(plugin.__class__.__name__)
         self.updatecompletions()
-    
+
     def download_package(self, package_name, version=None):
         """
         Downloads the specified package from PyPI, resolving dependencies recursively.
@@ -127,10 +151,20 @@ class CipherAPI:
             # Resolve dependencies
             dependencies = data.get("info", {}).get("requires_dist", [])
             if dependencies:
-                print(f"Resolving dependencies for "+colorama.Fore.YELLOW+package_name+": "+colorama.Fore.LIGHTBLUE_EX+f"{dependencies}"+colorama.Fore.RESET)
+                print(
+                    f"Resolving dependencies for "
+                    + colorama.Fore.YELLOW
+                    + package_name
+                    + ": "
+                    + colorama.Fore.LIGHTBLUE_EX
+                    + f"{dependencies}"
+                    + colorama.Fore.RESET
+                )
                 for dep in dependencies:
                     dep_name, dep_version = self._parse_dependency(dep)
-                    if dep_name and not self.is_package_installed(dep_name, dep_version):
+                    if dep_name and not self.is_package_installed(
+                        dep_name, dep_version
+                    ):
                         self.download_package(dep_name, dep_version)  # Recursive call
             releases = data.get("releases", {})
             if version:
@@ -140,7 +174,13 @@ class CipherAPI:
                 files = releases.get(latest_version, [])
 
             if not files:
-                print(colorama.Fore.RED+colorama.Style.BRIGHT+f"No files found for package '{package_name}' version '{version}'."+colorama.Fore.RESET+colorama.Style.NORMAL)
+                print(
+                    colorama.Fore.RED
+                    + colorama.Style.BRIGHT
+                    + f"No files found for package '{package_name}' version '{version}'."
+                    + colorama.Fore.RESET
+                    + colorama.Style.NORMAL
+                )
                 return
             download_url = files[0]["url"]
             filename = download_url.split("/")[-1]
@@ -151,28 +191,43 @@ class CipherAPI:
             print(f"Downloading {package_name} from {download_url}...")
             with requests.get(download_url, stream=True) as r:
                 r.raise_for_status()
-                total_size = int(r.headers.get('Content-Length', 0))
+                total_size = int(r.headers.get("Content-Length", 0))
                 with open(file_path, "wb") as f:
                     bar = progressbar.ProgressBar(
-                    max_value=total_size,
-                    widgets=["Downloading: ",progressbar.Percentage()," [",progressbar.Bar()," ]",progressbar.ETA()])
+                        maxval=total_size,
+                        widgets=[
+                            "Downloading: ",
+                            progressbar.Percentage(),
+                            " [",
+                            progressbar.Bar(),
+                            " ]",
+                            progressbar.ETA(),
+                        ],
+                    )
+                    bar.start()
                     downloaded = 0
                     for chunk in r.iter_content(chunk_size=8192):
                         f.write(chunk)
                         downloaded += len(chunk)
                         bar.update(downloaded)
                     bar.finish()
-                
+
             if filename.endswith(".zip"):
                 os.makedirs(packages_dir, exist_ok=True)
-                with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                with zipfile.ZipFile(file_path, "r") as zip_ref:
                     zip_ref.extractall(packages_dir)
-            
+
             if filename.endswith(".whl"):
-                with WheelFile(file_path,"r") as whl_ref:
+                with WheelFile(file_path, "r") as whl_ref:
                     whl_ref.extractall(packages_dir)
         except requests.RequestException as e:
-            print(colorama.Fore.RED+colorama.Style.BRIGHT+f"Failed to download package '{package_name}': {e}"+colorama.Fore.RESET+colorama.Style.NORMAL)
+            print(
+                colorama.Fore.RED
+                + colorama.Style.BRIGHT
+                + f"Failed to download package '{package_name}': {e}"
+                + colorama.Fore.RESET
+                + colorama.Style.NORMAL
+            )
 
     def _parse_dependency(self, dependency_string):
         """
@@ -182,7 +237,10 @@ class CipherAPI:
         :return: A tuple of (name, version) or (name, None).
         """
         import re
-        match = re.match(r"([a-zA-Z0-9_\-\.]+)(?:\[.*\])?(?:\s+\((.+)\))?", dependency_string)
+
+        match = re.match(
+            r"([a-zA-Z0-9_\-\.]+)(?:\[.*\])?(?:\s+\((.+)\))?", dependency_string
+        )
         if match:
             dep_name = match.group(1).strip()
             dep_version = match.group(2)
@@ -212,6 +270,6 @@ class CipherAPI:
         self.completions = []
         for i in os.listdir(self.pwd):
             self.completions.append(i)
-        
+
         for i in self.commands:
             self.completions.append(i)

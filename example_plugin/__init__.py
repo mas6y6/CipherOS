@@ -1,4 +1,4 @@
-from cipher.plugins import CipherAPI, CipherPlugin
+from cipher.plugins import CipherPlugin, CipherAPI
 
 # This structure of building 
 

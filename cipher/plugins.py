@@ -19,7 +19,7 @@ class CipherPlugin:
         self.api.plugincommands[self.__class__.__name__] = []
     
     @classmethod
-    def command(cls, name=None, doc=None, desc=None, extradata=None, alias=None):
+    def command(cls, name=None, helpflag="--help", desc=None, extradata=None, alias=None):
         """
         A method to add commands through the plugin class using the API.
         This method is now a class method, so it can be used with `CipherPlugin.command()`.
@@ -34,7 +34,9 @@ class CipherPlugin:
             cls.api.commands[funcname] = {
                 "func": func,
                 "desc": desc,
-                "doc": doc,
+                "helpflag": helpflag,
+                "alias":alias,
+                "parentcommand":True,
                 "extradata": extradata,
             }
             cls.api.plugincommands[cls.name].append(funcname)
@@ -42,7 +44,9 @@ class CipherPlugin:
                 cls.api.commands[i] = {
                     "func": func,
                     "desc": desc,
-                    "doc": doc,
+                    "helpflag": helpflag,
+                    "alias":[],
+                    "parentcommand":False,
                     "extradata": extradata,
                 }
                 cls.api.plugincommands[cls.name].append(i)

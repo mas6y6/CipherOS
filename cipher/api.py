@@ -30,20 +30,24 @@ class CipherAPI:
         self.completions = []
         self.console = Console()
 
-    def command(self, name=None, doc=None, desc=None, extradata={}, alias=[]):
+    def command(self, name=None, helpflag="--help", desc=None, extradata={}, alias=[]):
         def decorator(func):
             funcname = name if name is not None else func.__name__
             self.commands[funcname] = {
                 "func": func,
                 "desc": desc,
-                "doc": doc,
+                "helpflag": helpflag,
+                "alias":alias,
+                "parentcommand":True,
                 "extradata": extradata,
             }
             for i in alias:
                 self.commands[i] = {
                     "func": func,
                     "desc": desc,
-                    "doc": doc,
+                    "helpflag": helpflag,
+                    "alias":[],
+                    "parentcommand":False,
                     "extradata": extradata,
                 }
             return func
@@ -221,17 +225,57 @@ class CipherAPI:
                 with zipfile.ZipFile(file_path, "r") as zip_ref:
                     zip_ref.extractall(packages_dir)
 
-            if filename.endswith(".whl"):
+            elif filename.endswith(".whl"):
                 with WheelFile(file_path, "r") as whl_ref:
                     whl_ref.extractall(packages_dir)
+            
+            elif filename.endswith(".tar.gz"):
+                try:
+                    temp_dir = os.path.join(download_dir, "temp_extract")
+                    os.makedirs(temp_dir, exist_ok=True)
+
+                    with tarfile.open(file_path, "r:gz") as tar_ref:
+                        tar_ref.extractall(temp_dir)
+
+                    setup_py = os.path.join(temp_dir, 'setup.py')
+                    package_dir = None
+
+                    if os.path.exists(setup_py):
+                        print(f"Found setup.py in {setup_py}. Attempting to find the main package...")
+                        from setuptools import find_packages
+                        found_packages = find_packages(where=temp_dir)
+                        if found_packages:
+                            package_dir = os.path.join(temp_dir, found_packages[0])
+
+                    if not package_dir:
+                        extracted_folders = [f for f in os.listdir(temp_dir) if os.path.isdir(os.path.join(temp_dir, f))]
+                        if extracted_folders:
+                            package_dir = os.path.join(temp_dir, extracted_folders[0])
+
+                    if package_dir:
+                        print(f"Found main package directory: {package_dir}")
+                        for item in os.listdir(package_dir):
+                            s = os.path.join(package_dir, item)
+                            d = os.path.join(packages_dir, item)
+                            if os.path.isdir(s):
+                                shutil.copytree(s, d, dirs_exist_ok=True)
+                            else:
+                                shutil.copy2(s, d)
+
+                        print(f"Package {package_name} extracted and moved to {packages_dir}")
+                except (tarfile.TarError, IOError) as e:
+                    RuntimeError(f"Error extracting {filename}: {e}")
+                finally:
+                    if os.path.exists(temp_dir):
+                        shutil.rmtree(temp_dir)
+
+            else:
+                raise TypeError("File format is invaild to the extracter")
         except requests.RequestException as e:
-            print(
-                colorama.Fore.RED
-                + colorama.Style.BRIGHT
-                + f"Failed to download package '{package_name}': {e}"
-                + colorama.Fore.RESET
-                + colorama.Style.NORMAL
-            )
+            self.console.print(f"Failed to download package '{package_name}':\n {e}",style="bold bright_red")
+        
+        except Exception as e:
+            self.console.print(f"An error occurred while extracting/downloading '{package_name}':\n {e}",style="bold bright_red")
 
     def _parse_dependency(self, dependency_string):
         """

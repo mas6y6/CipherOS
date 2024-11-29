@@ -1,3 +1,4 @@
+import argparse
 import os
 import socket
 import sys
@@ -97,6 +98,7 @@ from cipher.argumentparser import ArgumentParser
 version = 1
 api = CipherAPI()
 console = api.console
+debugmode = False
 
 if running_on_mac:
     # To fix the path plugins and data folders being created in the ~ folder
@@ -280,7 +282,6 @@ def portscan(argsraw):
     for port in open_ports:
         table.add_row(str(port))
     console.print(table)
-
 
 @api.command(alias=["scn", "netscan"])
 def scannet(argsraw):
@@ -513,6 +514,22 @@ def mkdir(argsraw):
 def clear(args):
     print("\033c", end="")
 
+@api.command(name="help",alias=["man"])
+def helpcommand(argsraw):
+    parser = ArgumentParser(api, description="Help command to get the help guide for other commands")
+    parser.add_argument("command",type=str,help_text="Command to get the help manual",required=True)
+    args = parser.parse_args(argsraw)
+    if parser.help_flag:
+        return None
+    
+    isparent = api.commands[args]["parentcommand"]
+    alias = api.commands[args]["alias"]
+    
+    console.print(f"Manual for {args.command}:\n")
+    console.print(f"Parent command: {isparent}")
+    console.print(f"Alias to command: {alias}\n")
+    api.run([args.command,api.commands[args.command]["helpflag"]])
+
 @api.command(alias=["pl"])
 def plugins(argsraw):
     parser = ArgumentParser(api, description="Manage plugins for the system.")
@@ -739,6 +756,9 @@ Project Codename: Paradox"""
 
     history = InMemoryHistory()
     api.updatecompletions()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--debug")
 
     while True:
         try:

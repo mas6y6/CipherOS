@@ -59,6 +59,7 @@ class ArgumentParser:
 
     def parse_args(self, args):
         """Parses the provided argument list."""
+        
         if "--help" in args or "-h" in args:
             self.print_help()
             self.help_flag = True

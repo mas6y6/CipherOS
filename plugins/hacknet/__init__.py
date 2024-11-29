@@ -42,7 +42,10 @@ YOUR Assigned IP: {self.ipAddress}
                 if os.name == "nt":
                     os.system("color 40")
                 elif os.name == "posix":
-                    os.system("setterm -background red -foreground black -store")
+                    if 'darwin' in os.uname().sysname.lower():
+                        os.system("tput setab 1")
+                    else:
+                        os.system("setterm -background red -foreground black -store")
                 self.traceactive = True
             pygame.mixer.init()
             pygame.mixer.music.load(os.path.join(self.api.starterdir,"plugins","hacknet","dark_drone_008.ogg"))
@@ -90,7 +93,7 @@ YOUR Assigned IP: {self.ipAddress}
                     os.system("color 40")
                 elif os.name == "posix":
                     if 'darwin' in os.uname().sysname.lower():
-                        print("\033[41m\033[30mThis is a test with a red background and black text\033[0m")
+                        os.system("tput setab 1")
                     else:
                         os.system("setterm -background red -foreground black -store")
                 e.console.print(Panel("INITIALIZING FAILSAFE", expand=True,style="white on red"))

@@ -5,3 +5,4 @@ displayname: "Hacknet Addons"
 class: HacknetPlugin
 dependencies:
   - pygame
+  - cursor

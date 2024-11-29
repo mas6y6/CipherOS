@@ -3,7 +3,7 @@ import shutil
 import string
 from cipher.plugins import CipherPlugin, CipherAPI
 from rich.panel import Panel
-import os, pygame, progressbar, time
+import os, pygame, progressbar, time, cursor
 
 class HacknetPlugin(CipherPlugin):
     def __init__(self, api: CipherAPI,config):
@@ -75,14 +75,14 @@ YOUR Assigned IP: (IP)
                 pygame.mixer.music.stop()
                 pygame.mixer.music.load(os.path.join(self.api.starterdir,"plugins","hacknet","traced.ogg"))
                 print("\033c", end="")
-                print("\033[?25l")
-                #if os.name == "nt":
-                #    os.system("color 40")
-                #elif os.name == "posix":
-                #    if 'darwin' in os.uname().sysname.lower():
-                #        print("\033[41m\033[30mThis is a test with a red background and black text\033[0m")
-                #    else:
-                #        os.system("setterm -background red -foreground black -store")
+                cursor.hide()
+                if os.name == "nt":
+                    os.system("color 40")
+                elif os.name == "posix":
+                    if 'darwin' in os.uname().sysname.lower():
+                        print("\033[41m\033[30mThis is a test with a red background and black text\033[0m")
+                    else:
+                        os.system("setterm -background red -foreground black -store")
                 e.console.print(Panel("INITIALIZING FAILSAFE", expand=True,style="white on red"))
                 time.sleep(1.5)
                 pygame.mixer.music.play()
@@ -97,12 +97,13 @@ YOUR Assigned IP: (IP)
                 #        bar[x].update(100-z)
                 columns, _ = shutil.get_terminal_size()
                 for z in range(110):
+                    cursor.hide()
                     time.sleep(0.13)
-                    random_string = ''.join(random.choices(string.ascii_letters + string.digits + "\"#$%&'()*+,-./:;<=>?@\\^_`{|}~", k=columns))
-                    print(random_string)
+                    random_string = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=columns))
+                    self.console.print(str(random_string),style="white on red",markup=False,highlight=False)
 
                 #time.sleep(14)
-
+                cursor.show()
             self.console.clear()
             self.console.print(Panel("""
 EMERGENCY TRACE AVERSION SEQUENCE

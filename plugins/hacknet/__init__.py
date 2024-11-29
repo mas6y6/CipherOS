@@ -1,3 +1,6 @@
+import random
+import shutil
+import string
 from cipher.plugins import CipherPlugin, CipherAPI
 from rich.panel import Panel
 import os, pygame, progressbar, time
@@ -73,23 +76,32 @@ YOUR Assigned IP: (IP)
                 pygame.mixer.music.load(os.path.join(self.api.starterdir,"plugins","hacknet","traced.ogg"))
                 print("\033c", end="")
                 print("\033[?25l")
-                if os.name == "nt":
-                    os.system("color 40")
-                elif os.name == "posix":
-                    os.system("setterm -background red -foreground black -store")
+                #if os.name == "nt":
+                #    os.system("color 40")
+                #elif os.name == "posix":
+                #    if 'darwin' in os.uname().sysname.lower():
+                #        print("\033[41m\033[30mThis is a test with a red background and black text\033[0m")
+                #    else:
+                #        os.system("setterm -background red -foreground black -store")
                 e.console.print(Panel("INITIALIZING FAILSAFE", expand=True,style="white on red"))
                 time.sleep(1.5)
                 pygame.mixer.music.play()
-                for i in range(5):
-                    bar[i] = progressbar.ProgressBar(widgets=[" [",progressbar.Bar(),"]"])
-                    bar[i].start()
-                    print("")
-                for z in range(100):
-                    time.sleep(0.14)
-                    for x in range(5):
-                        bar[x].update(100-i)
+                bar = {}
+                #for i in range(5):
+                #    bar[i] = progressbar.ProgressBar(widgets=[" [",progressbar.Bar(),"]"])
+                #    bar[i].start()
+                #    print("")
+                #for z in range(100):
+                #    time.sleep(0.14)
+                #    for x in range(5):
+                #        bar[x].update(100-z)
+                columns, _ = shutil.get_terminal_size()
+                for z in range(110):
+                    time.sleep(0.13)
+                    random_string = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=columns))
+                    self.console.print(random_string)
 
-                time.sleep(14)
+                #time.sleep(14)
 
             self.console.clear()
             self.console.print(Panel("""

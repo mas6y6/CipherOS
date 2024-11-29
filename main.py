@@ -203,7 +203,7 @@ def portscan(args):
 
     open_ports = []
     completed = 0
-    max_workers = min(30, os.cpu_count() * 100)
+    max_workers = min(80, os.cpu_count() * 100)
     console.print("MAX WORKERS PER CHUNK:", max_workers)
     pbar = progressbar.ProgressBar(
         widgets=[
@@ -235,7 +235,6 @@ def portscan(args):
                     future.cancel()
                     break
                 result = future.result()
-                print(result)
                 if result:
                     open_ports.append(port)
                 completed += 1

@@ -725,7 +725,16 @@ def remove(argsraw):
 
 
 if __name__ == "__main__":
-    console.print("Starting CipherOS")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--debug",action="store_true",help="Enables debug mode")
+
+    args = parser.parse_args()
+    debugmode = args.debug
+    
+    if debugmode:
+        console.print("Starting CipherOS in [purple]debug mode[/purple]")
+    else:
+        console.print("Starting CipherOS")
 
     if not len(os.listdir(os.path.join(api.pwd, "plugins"))) == 0:
         for i in os.listdir(os.path.join(api.pwd, "plugins")):
@@ -756,10 +765,6 @@ Project Codename: Paradox"""
 
     history = InMemoryHistory()
     api.updatecompletions()
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--debug")
-
     while True:
         try:
             if api.addressconnected == "":
@@ -779,7 +784,10 @@ Project Codename: Paradox"""
                 e = api.run(_argx)
 
                 if e[0] == 404:
-                    printerror(f'Error: Command "{cmd}" not found')
+                    if debugmode:
+                        printerror(f'Error: Command "{cmd}" not found\nFull traceback:\n,{e[1]}')
+                    else:
+                        printerror(f'Error: Command "{cmd}" not found')
                 elif e[0] == 232:
                     printerror(f'Error: "{cmd}" requires arguments:\n{e[1]}')
                 elif e[0] == 231:

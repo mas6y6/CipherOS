@@ -3,36 +3,50 @@ import socket
 import sys
 
 sys.path.append(os.getcwd())
-import argparse
-import traceback
-import colorama, websockets, math, shutil, paramiko, progressbar, time, requests, platform, pyinputplus, urllib3, subprocess, markdown
-import tarfile
-import importlib.util
-import tempfile
-import shutil
-from prompt_toolkit import prompt
-from prompt_toolkit.completion import (
-    Completer,
-    Completion,
-    PathCompleter,
-    WordCompleter,
-)
-from prompt_toolkit.history import InMemoryHistory
-import urllib.request
-import progressbar
+# Thats hella lot of libraries
+# And thats just the beginning there is more in the cipher/api.py file :)
+#
+# - @mas6y6
+import json
+import math
 import os
-import socket, platform, subprocess
-import psutil
-import struct, json
-from ipaddress import IPv4Network, IPv4Address
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import platform
+import shutil
 import signal
-import nmap3, nmap
-from ping3 import ping, verbose_ping
+import socket
+import struct
+import subprocess
+import tarfile
+import tempfile
+import time
+import traceback
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from ipaddress import IPv4Address, IPv4Network
 from threading import Lock
+import colorama
+import markdown
+import nmap
+import nmap3
+import paramiko
+import progressbar
+import psutil
+import pyinputplus
+import requests
+import urllib3
+import websockets
+from ping3 import ping, verbose_ping
+from prompt_toolkit import prompt
+from prompt_toolkit.completion import (Completer, Completion, PathCompleter,
+                                       WordCompleter)
+from prompt_toolkit.history import InMemoryHistory
 from rich.console import Console
+from rich.live import Live
+from rich.panel import Panel
 from rich.table import Table
-
+from rich.text import Text
+from rich.tree import Tree
+from rich.markdown import Markdown
 
 colorama.init()
 running_on_mac = False  # Meant as the cipher library is not installed (for macOS)
@@ -44,40 +58,40 @@ pbar = None
 #! README
 # The api.pwd class is the current path where CipherOS is in right now
 # The api.starterdir is where the plugins and data folder is located in the this variable is to not change and if it changes then its going to break a lot of problems.
-if os.name == "posix":
-    if os.getcwd() == os.path.expanduser("~"):
-        macpwd = os.path.expanduser("~")
-        os.chdir(macpwd)
-        if not os.path.exists(os.path.join(os.path.expanduser("~"), "CipherOS")):
-            os.mkdir(os.path.join(os.path.expanduser("~"), "CipherOS"))
-        macapistarter = os.path.join(os.path.expanduser("~"), "CipherOS")
-        if not os.path.exists(
-            os.path.join(os.path.expanduser("~"), "CipherOS", "cipher")
-        ):
-            print(
-                'Warning the "cipher" library is not installed and its required to run'
-            )
-            print('Do you want to download the "cipher" library?')
-            print()
-            print('You cannot install it using "pip" as its not available on pypi.org')
-            print()
-            q = pyinputplus.inputYesNo("Would you like to continue? (Y/n): ")
-            if q:
-                urllib.request.urlretrieve(
-                    "https://codeload.github.com/mas6y6/CipherOS/zip/refs/heads/main",
-                    os.path.join(os.path.expanduser("~"), "CipherOS", "cache.zip"),
-                    show_progress,
-                )
-            else:
-                print(
-                    'You can download the "cipher" folder from github https://github.com/mas6y6/CipherOS/archive'
-                )
-                sys.exit()
-
+#if os.name == "posix":
+#    if os.getcwd() == os.path.expanduser("~"):
+#        macpwd = os.path.expanduser("~")
+#        os.chdir(macpwd)
+#        if not os.path.exists(os.path.join(os.path.expanduser("~"), "CipherOS")):
+#            os.mkdir(os.path.join(os.path.expanduser("~"), "CipherOS"))
+#        macapistarter = os.path.join(os.path.expanduser("~"), "CipherOS")
+#        if not os.path.exists(
+#            os.path.join(os.path.expanduser("~"), "CipherOS", "cipher")
+#        ):
+#            print(
+#                'Warning the "cipher" library is not installed and its required to run'
+#            )
+#            print('Do you want to download the "cipher" library?')
+#            print()
+#            print('You cannot install it using "pip" as its not available on pypi.org')
+#            print()
+#            q = pyinputplus.inputYesNo("Would you like to continue? (Y/n): ")
+#            if q:
+#                urllib.request.urlretrieve(
+#                    "https://codeload.github.com/mas6y6/CipherOS/zip/refs/heads/main",
+#                    os.path.join(os.path.expanduser("~"), "CipherOS", "cache.zip"),
+#                    show_progress,
+#                )
+#           else:
+#               print(
+#                    'You can download the "cipher" folder from github https://github.com/mas6y6/CipherOS/archive'
+#                )
+#                sys.exit()
 
 from cipher.api import CipherAPI
 import cipher.exceptions as ex
 import cipher.network
+from cipher.argumentparser import ArgumentParser
 
 # variables
 version = 1
@@ -178,12 +192,21 @@ def exit(args):
 
 
 @api.command(alias=["pscn"])
-def portscan(args):
+def portscan(argsraw):
+    parser = ArgumentParser(api, description="Scan the specified device for open ports (This is will work in progress so it will not be reliable)")
+    parser.add_argument("ip",type=str,action="store",required=True,help_text="IP Address to device to scan")
+
+    args = parser.parse_args(argsraw)
+    
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
+    
     global sigIntPscn
     sigIntPscn = False
-    ip = args[0]
+    ip = args.ip
 
-    console.print("CipherOS Port Scanner", style="bold bright_blue")
+    console.print(Panel("CipherOS Port Scanner\n[red]Not fully accurate[/red]", style="bold bright_blue"))
     console.print("Scanning...", style="bright_blue")
 
     def sig_handler_pscn(sig, frame):
@@ -260,7 +283,15 @@ def portscan(args):
 
 
 @api.command(alias=["scn", "netscan"])
-def scannet(args):
+def scannet(argsraw):
+    parser = ArgumentParser(api, description="Scan your network for devices")
+
+    args = parser.parse_args(argsraw)
+    
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
+    
     global sigIntScn
     sigIntScn = False
 
@@ -269,26 +300,22 @@ def scannet(args):
         sigIntScn = True
 
     signal.signal(signal.SIGINT, sig_handler_scn)
-    console.print("CipherOS Network Device Scanner", style="bright_blue")
+    console.print(Panel("CipherOS Network Device Scanner", style="bright_blue",expand=True))
     console.print("Getting Network Range... ", style="bright_blue")
     console.print("\tGetting localip... ", end="", style="bright_blue")
 
     def cipher_ping(host):
-        print(f"ch {host}")
         # if host.split(".")[3] == "0":
         #     print(f"Checking {host}/8")
         if sigIntScn:
-            return
+            return None
         try:
-            response_time = ping(host, timeout=2)
-            if response_time is not None:
-                return True
-            return False
+            return cipher.network.cipher_ping(host)
         except TimeoutError:
-            print(f"Timeout while pinging {host}.")
+            #print(f"Timeout while pinging {host}.")
             return False
         except Exception as e:
-            print(f"An error occurred while pinging {host}: {e}")
+            #print(f"An error occurred while pinging {host}: {e}")
             return False
         return False
 
@@ -364,12 +391,16 @@ def scannet(args):
         bar.start()
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_ip = {
-                executor.submit(cipher.network.cipher_ping, str(ip)): str(ip)
+                executor.submit(cipher_ping, str(ip)): str(ip)
                 for ip in network
             }
             for future in as_completed(future_to_ip):
                 ip = future_to_ip[future]
                 try:
+                    if sigIntScn:
+                        console.print("Canceled")
+                        future.cancel()
+                        break
                     result = future.result()
                     if result:
                         mac_address = cipher.network.get_mac(ip)
@@ -444,71 +475,151 @@ def scannet(args):
 
 
 @api.command(alias=["cd"])
-def chdir(args):
-    if os.path.isdir(args[0]):
-        os.chdir(args[0])
+def chdir(argsraw):
+    parser = ArgumentParser(api, description="Change to a directory")
+    parser.add_argument("path",type=str,required=True,help_text="Directory to move to")
+
+    args = parser.parse_args(argsraw)
+    
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
+    
+    if os.path.isdir(args.path):
+        os.chdir(args.path)
     else:
-        printerror(f"Error: {args[0]} is a file")
+        printerror(f"Error: {args.path} is a file")
     api.pwd = os.getcwd()
     api.updatecompletions()
 
 
 @api.command()
-def mkdir(args):
-    if os.path.exists(args[0]):
-        os.mkdir(args[0])
-    else:
-        printerror(f"Error: {args[0]} exists")
+def mkdir(argsraw):
+    parser = ArgumentParser(api, description="Makes a directory")
+    parser.add_argument("path",type=str,required=True,help_text="Directory to create")
 
+    args = parser.parse_args(argsraw)
+    
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
+    
+    if os.path.exists(args.folder):
+        os.mkdir(args.folder)
+    else:
+        printerror(f"Error: {args.folder} exists")
 
 @api.command(alias=["cls"])
 def clear(args):
     print("\033c", end="")
 
-
 @api.command(alias=["pl"])
-def plugins(args):
-    if args[0] == "reloadall":
-        print("Reloading all plugins")
-        for i in list(api.plugins):
-            api.disable_plugin(api.plugins[i])
-        for i in os.listdir(os.path.join(api.starterdir, "plugins")):
-            api.load_plugin(os.path.join(api.starterdir, "plugins", i), api)
-        print("Reload complete")
+def plugins(argsraw):
+    parser = ArgumentParser(api, description="Manage plugins for the system.")
 
-    elif args[0] == "disable":
-        api.disable_plugin(args[1])
+    subparsers = {}
+    subparsers["reloadall"] = ArgumentParser(api, description="Reload all plugins.")
+    subparsers["disable"] = ArgumentParser(api, description="Disable a plugin.")
+    subparsers["disable"].add_argument("plugin", type=str, help_text="The name of the plugin to disable.")
+    subparsers["enable"] = ArgumentParser(api, description="Enable a plugin.")
+    subparsers["enable"].add_argument("plugin", type=str, help_text="The name of the plugin to enable.")
+    subparsers["list"] = ArgumentParser(api, description="List all available plugins.")
+    subparsers["info"] = ArgumentParser(api, description="Get detailed info about a plugin.")
+    subparsers["info"].add_argument("plugin", type=str, help_text="The name of the plugin to get info about.")
 
-    elif args[0] == "enable":
-        pass
+    if not argsraw or argsraw[0] not in subparsers:
+        print("Invalid subcommand. Use one of: reloadall, disable, enable, list, info.")
+        parser.print_help()
+        return
 
-    elif args[0] == "list":
-        pass
+    subcommand = argsraw[0]
+    subcommand_args = argsraw[1:]
 
-    elif args[0] == "info":
-        pass
+    subparser = subparsers[subcommand]
+    args = subparser.parse_args(subcommand_args)
 
-    elif args[0] == "help":
-        print(
-            """Usage:
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
 
-reloadall: Reloads all plugins
-disable <plugin name>: Disables a specified plugin
-enable <plugin name>: Enables a specified plugin
-info <plugin name>: Provides a description of the specified plugin
-list: Lists all enabled plugins
-help: Opens this menu
-"""
-        )
+    if subcommand == "reloadall":
+        print("Reloading all plugins...")
+        for plugin_name in list(api.plugins):
+            api.disable_plugin(plugin_name)
+        for plugin_file in os.listdir(os.path.join(api.starterdir, "plugins")):
+            api.load_plugin(os.path.join(api.starterdir, "plugins", plugin_file), api)
+        print("Reload complete.")
 
+    elif subcommand == "disable":
+        api.disable_plugin(args.plugin)
+        print(f"Plugin '{args.plugin}' disabled.")
+
+    elif subcommand == "enable":
+        print(f"Plugin '{args.plugin}' enabled (not yet implemented).")
+
+    elif subcommand == "list":
+        print("Listing plugins:")
+        for plugin in api.plugins:
+            print(f"  - {plugin}")
+
+    elif subcommand == "info":
+        if args.plugin in api.plugins:
+            print(f"Plugin '{args.plugin}' details:")
+            print(api.plugins[args.plugin])
+        else:
+            print(f"Plugin '{args.plugin}' not found.")
+
+    else:
+        print("Unknown subcommand.")
+
+@api.command()
+def tree(argsraw):
+    parser = ArgumentParser(api, description="List the contents of a path in a tree-like structure, making it easier to read.")
+    parser.add_argument("path", type=str, help_text="Folder or path to list", required=False)
+    
+    args = parser.parse_args(argsraw)
+    
+    # If the --help (-h) is passed, it kills the rest of the script
+    if parser.help_flag:
+        return None
+    
+    if args.path is None:
+        path = api.pwd
+    else:
+        path = args.path
+
+    console.print(Panel(path, expand=True))
+    
+    tree = Tree(".")
+    
+    for dirpath, dirnames, filenames in os.walk(path):
+        relative_path = os.path.relpath(dirpath, path)
+        parts = relative_path.split(os.sep) if relative_path != "." else []
+        
+        branch = tree
+        for part in parts:
+            branch = next((child for child in branch.children if child.label == f"[bold]{part}[/bold]"), branch)
+        
+        # Add directories and files to the tree
+        for dirname in dirnames:
+            branch.add(f"[bold]{dirname}[/bold]")
+        for filename in filenames:
+            branch.add(filename)
+    console.print(tree)
 
 @api.command(alias=["list", "l"])
-def ls(args):
-    import os
-    import colorama
-
-    if len(args) > 0:
-        path = args[0]
+def ls(argsraw):
+    parser = ArgumentParser(api,description="List the contents of a path")
+    parser.add_argument("path",type=str,help_text="Folder or path to list",required=False)
+    
+    args = parser.parse_args(argsraw)
+    
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
+    
+    if not args.path is None:
+        path = args.path
     else:
         path = api.pwd
     try:
@@ -536,89 +647,130 @@ def ls(args):
 
 
 @api.command()
-def touch(args):
-    if not os.path.exists(args[0]):
-        open(args[0], "w")
-        print("Created file", args[0])
+def touch(argsraw):
+    parser = ArgumentParser(api,description="Creates a file")
+    parser.add_argument("file",type=str,help_text="File to create",required=True)
+    
+    args = parser.parse_args(argsraw)
+    
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
+    
+    if not os.path.exists(args.file):
+        open(args.file, "w")
+        print("Created file", args.file)
         api.updatecompletions()
     else:
         print(
             colorama.Style.BRIGHT + colorama.Fore.RED + f"Error:",
-            args[0],
+            args.file,
             "exists" + colorama.Fore.RESET + colorama.Style.NORMAL,
         )
 
+@api.command(alias=["cat"])
+def viewfile(argsraw):
+    parser = ArgumentParser(api,description="Echos a file's contents to the console")
+    parser.add_argument("file", type=str, help_text="The file to display", required=True)
+    parser.add_argument("--markdown",action="store_true",help_text="Enables markdown text processing",aliases=["-md"])
+    parser.add_argument("--color",action="store_true",help_text="Enables Color code texting (Uses rich as processer)",aliases=["-c"])
+    
+    args = parser.parse_args(argsraw)
+    
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
+    
+    with open(args.file) as f:
+        if args.markdown:
+            console.print(Markdown(f.read()))
+        elif args.color:
+            console.print(f.read())
+        else:
+            print(f.read())
 
 @api.command(alias=["rm"])
-def remove(args):
+def remove(argsraw):
+    parser = ArgumentParser(api,description="Removes a file")
+    parser.add_argument("file",type=str,help_text="File to delete",required=True)
+    
+    args = parser.parse_args(argsraw)
+    
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
     try:
-        os.remove(os.path.join(api.pwd, args[0]))
+        os.remove(os.path.join(api.pwd, args.file))
     except PermissionError:
-        printerror(f"Error: Permission to delete '{args[0]}' denied")
+        printerror(f"Error: Permission to delete '{args.file}' denied")
     except FileNotFoundError:
-        printerror(f"Error: '{args[0]}' does not exist.")
+        printerror(f"Error: '{args.file}' does not exist.")
 
 
-print("Starting CipherOS...")
+if __name__ == "__main__":
+    console.print("Starting CipherOS")
 
-if not len(os.listdir(os.path.join(api.pwd, "plugins"))) == 0:
-    for i in os.listdir(os.path.join(api.pwd, "plugins")):
-        try:
-            api.load_plugin(os.path.join(api.pwd, "plugins", i), api)
-        except:
-            printerror(f"Error: Plugin '{i}' failed to load\n" + traceback.format_exc())
-else:
-    print("No plugins found")
+    if not len(os.listdir(os.path.join(api.pwd, "plugins"))) == 0:
+        for i in os.listdir(os.path.join(api.pwd, "plugins")):
+            try:
+                api.load_plugin(os.path.join(api.pwd, "plugins", i), api)
+            except:
+                printerror(f"Error: Plugin '{i}' failed to load\n" + traceback.format_exc())
+    else:
+        console.print("No plugins found")
 
-console.print(
-    "[bold bright_magenta]Made by @mas6y6, @malachi196, and @overo3 (on github)[/bold bright_magenta]"
-)
+    console.print(
+        "[bold bright_magenta]Made by @mas6y6, @malachi196, and @overo3 (on github)[/bold bright_magenta]"
+    )
 
-print(
+    print(
     colorama.Fore.MAGENTA
     + r"""   _______       __              ____  _____
   / ____(_)___  / /_  ___  _____/ __ \/ ___/
  / /   / / __ \/ __ \/ _ \/ ___/ / / /\__ \ 
 / /___/ / /_/ / / / /  __/ /  / /_/ /___/ / 
 \____/_/ .___/_/ /_/\___/_/   \____//____/  
-      /_/                                   
+    /_/                                   
 
 Project Codename: Paradox"""
     + colorama.Fore.RESET
 )
-console.print("")
+    console.print("")
 
-history = InMemoryHistory()
-api.updatecompletions()
+    history = InMemoryHistory()
+    api.updatecompletions()
 
-while True:
-    try:
-
-        if api.addressconnected == "":
-            commandlineinfo = f"{api.currentenvironment} {api.pwd}"
-        else:
-            commandlineinfo = (
-                f"{api.currentenvironment} {api.addressconnected} {api.pwd}"
+    while True:
+        try:
+            if api.addressconnected == "":
+                commandlineinfo = f"{api.currentenvironment} {api.pwd}"
+            else:
+                commandlineinfo = (
+                    f"{api.currentenvironment} {api.addressconnected} {api.pwd}"
+                )
+            command_completer = WordCompleter(api.completions, ignore_case=True)
+            user_input = prompt(
+                f"{commandlineinfo}> ", completer=command_completer, history=history
             )
-        command_completer = WordCompleter(api.completions, ignore_case=True)
-        user_input = prompt(
-            f"{commandlineinfo}> ", completer=command_completer, history=history
-        )
-        _argx = user_input.split(" ")
+            _argx = user_input.split(" ")
 
-        if not _argx[0] == "":
-            cmd = _argx[0]
-            e = api.run(_argx)
+            if not _argx[0] == "":
+                cmd = _argx[0]
+                e = api.run(_argx)
 
-            if e[0] == 404:
-                printerror(f'Error: Command "{cmd}" not found')
-            elif not e[0] == 0:
-                printerror(f'Error: Command "{cmd}" encountered an error\n{e[1]}')
+                if e[0] == 404:
+                    printerror(f'Error: Command "{cmd}" not found')
+                elif e[0] == 232:
+                    printerror(f'Error: "{cmd}" requires arguments:\n{e[1]}')
+                elif e[0] == 231:
+                    printerror(f'Error: {e[1]}')
+                elif not e[0] == 0:
+                    printerror(f'Error: Command "{cmd}" encountered an error\n{e[1]}')
+                else:
+                    pass
             else:
                 pass
-        else:
-            pass
-    except (EOFError, KeyboardInterrupt):
-        print()
-        exit(None)
-        break
+        except (EOFError, KeyboardInterrupt):
+            print()
+            exit(None)
+            break

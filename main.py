@@ -785,7 +785,7 @@ Project Codename: Paradox"""
 
                 if e[0] == 404:
                     if debugmode:
-                        printerror(f'Error: Command "{cmd}" not found\nFull traceback:\n,{e[1]}')
+                        printerror(f'Error: Command "{cmd}" not found\nFull traceback:\n{e[1]}')
                     else:
                         printerror(f'Error: Command "{cmd}" not found')
                 elif e[0] == 232:

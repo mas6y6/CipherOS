@@ -99,7 +99,7 @@ YOUR Assigned IP: (IP)
                 for z in range(110):
                     time.sleep(0.13)
                     random_string = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=columns))
-                    self.console.print(str(random_string))
+                    self.console.print(str(random_string),style="white on red",markup=False)
 
                 #time.sleep(14)
 

@@ -203,7 +203,7 @@ def portscan(args):
 
     open_ports = []
     completed = 0
-    max_workers = min(3000, os.cpu_count() * 100)
+    max_workers = min(30, os.cpu_count() * 100)
     console.print("MAX WORKERS PER CHUNK:", max_workers)
     pbar = progressbar.ProgressBar(
         widgets=[
@@ -235,6 +235,7 @@ def portscan(args):
                     future.cancel()
                     break
                 result = future.result()
+                print(result)
                 if result:
                     open_ports.append(port)
                 completed += 1
@@ -335,10 +336,10 @@ def scannet(args):
         devices = []
         devicerange = 0
         scanned = 0
-        completed = 0
         for i in network:
             devicerange += 1
 
+        console.print(f"Scanning {devicerange} potential devices on your network")
         max_workers = min(60, os.cpu_count() * 5)
         console.print("MAX WORKERS PER CHUNK:", max_workers)
         bar = progressbar.ProgressBar(
@@ -356,6 +357,7 @@ def scannet(args):
                 colorama.Fore.RESET,
             ]
         )
+        bar.maxval = devicerange
         bar.start()
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_ip = {
@@ -386,15 +388,23 @@ def scannet(args):
                                     {"ip": ip, "mac": mac_address, "hostname": hostname}
                                 )
 
-                    completed += 1
+                        scanned += 1
+                        bar.widgets[2] = (
+                            f" [SCANNED: {scanned}/{devicerange}, ONLINE: {len(devices)}] "
+                        )
+                        bar.update(scanned)
+                    else:
+                        scanned += 1
+                        bar.widgets[2] = (
+                            f" [SCANNED: {scanned}/{devicerange}, ONLINE: {len(devices)}] "
+                        )
+                        bar.update(scanned)
+                except Exception:
                     scanned += 1
                     bar.widgets[2] = (
                         f" [SCANNED: {scanned}/{devicerange}, ONLINE: {len(devices)}] "
                     )
-                    bar.update(completed)
-                except Exception:
-                    pass
-                    # print(f"Error scanning {ip}: {e}")
+                    bar.update(scanned)
 
         s += 1
         bar.finish()

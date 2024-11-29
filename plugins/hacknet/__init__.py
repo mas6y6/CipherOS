@@ -17,7 +17,7 @@ class HacknetPlugin(CipherPlugin):
             self.ispAddress = tracert[int(tracert.rfind(b"["))+1:int(tracert.rfind(b"]"))].decode("UTF-8")
         if os.name == "posix":
             tracert = subprocess.run(["traceroute","-m","2","8.8.8.8"],capture_output=True).stdout
-            self.ispAddress = tracert[int(tracert.rfind[b"("])+1:int(tracert.rfind(b")"))].decode("UTF-8")
+            self.ispAddress = tracert[int(tracert.rfind(b"("))+1:int(tracert.rfind(b")"))].decode("UTF-8")
 
     
     def register_commands(self):

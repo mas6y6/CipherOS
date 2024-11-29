@@ -98,8 +98,8 @@ YOUR Assigned IP: (IP)
                 columns, _ = shutil.get_terminal_size()
                 for z in range(110):
                     time.sleep(0.13)
-                    random_string = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=columns))
-                    self.console.print(random_string)
+                    random_string = ''.join(random.choices(string.ascii_letters + string.digits + "\"#$%&'()*+,-./:;<=>?@\\^_`{|}~", k=columns))
+                    print(random_string)
 
                 #time.sleep(14)
 

@@ -3,7 +3,7 @@ import shutil
 import string
 from cipher.plugins import CipherPlugin, CipherAPI
 from rich.panel import Panel
-import os, pygame, progressbar, time, cursor
+import os, pygame, progressbar, time, cursor, subprocess, requests
 
 class HacknetPlugin(CipherPlugin):
     def __init__(self, api: CipherAPI,config):
@@ -11,6 +11,14 @@ class HacknetPlugin(CipherPlugin):
         self.register_commands()
         self.console = self.api.console
         self.traceactive = False
+        self.ipAddress = requests.get("https://ifconfig.me/").text
+        if os.name == "nt":
+            tracert = subprocess.run(["tracert","-h","2","8.8.8.8"],capture_output=True).stdout
+            self.ispAddress = tracert[int(tracert.rfind(b"["))+1:int(tracert.rfind(b"]"))].decode("UTF-8")
+        if os.name == "posix":
+            tracert = subprocess.run(["traceroute","-m","2","8.8.8.8"],capture_output=True).stdout
+            self.ispAddress = tracert[int(tracert.rfind[b"("])+1:int(tracert.rfind(b")"))].decode("UTF-8")
+
     
     def register_commands(self):
         """Method to register all commands for this plugin"""
@@ -22,12 +30,12 @@ class HacknetPlugin(CipherPlugin):
             if self.traceactive:
                 self.console.bell()
                 self.console.print(Panel("COMPLETED TRACE DETECTED ETAS PROTOCAL ALREADY ACTIVE\nCOMPLETE INTRUCTIONS NOW", expand=True,style="white on red"))
-                self.console.print(Panel("""
+                self.console.print(Panel(f"""
 EMERGENCY TRACE AVERSION SEQUENCE
 
 Reset Assigned IP Address on ISP Mainframe
-ISP Mainframe IP: (IP)
-YOUR Assigned IP: (IP)
+ISP Mainframe IP: {self.ispAddress}
+YOUR Assigned IP: {self.ipAddress}
 """, expand=True,style="white on red"))
                 return
             else:
@@ -57,7 +65,7 @@ YOUR Assigned IP: (IP)
  ███ ███  ██   ██ ██   ██ ██   ████ ██ ██   ████  ██████  """,expand=True,style="black on red"))
                 e.console.print(Panel("COMPLETE TRACE DETECTED : EMERGENCY RECOVERY MODE ACTIVE", expand=True,style="black on red"))
                 
-                e.console.print("""\n Unsyndicated foreign connection detected during active trace
+                e.console.print(f"""\n Unsyndicated foreign connection detected during active trace
   :: Emergency recovery mode activated
  --------------------------------------------------------------
 
@@ -65,8 +73,8 @@ YOUR Assigned IP: (IP)
  This window is a final opportunity to regain anonymity.
  As your current IP Address is known, it must be changed -
  This can only be done on your currently active ISP's routing server
- Reverse tracerouting has located this ISP server's IP address as : (ISP address)
- Your local IP: (User address) must be tracked here and changed.
+ Reverse tracerouting has located this ISP server's IP address as : {self.ispAddress}
+ Your local IP: {self.ipAddress} must be tracked here and changed.
 
  Failure to complete this while active diversion holds will result in complete and permanent loss of all account data -
  THIS IS NOT REPEATABLE AND CANNOT BE DELAYED\n""",style="bold white on red")
@@ -107,12 +115,12 @@ YOUR Assigned IP: (IP)
                 #time.sleep(14)
                 cursor.show()
             self.console.clear()
-            self.console.print(Panel("""
+            self.console.print(Panel(f"""
 EMERGENCY TRACE AVERSION SEQUENCE
 
 Reset Assigned IP Address on ISP Mainframe
-ISP Mainframe IP: (IP)
-YOUR Assigned IP: (IP)
+ISP Mainframe IP: {self.ispAddress}
+YOUR Assigned IP: {self.ipAddress}
 """, expand=True,style="white on red"))
             time.sleep(1)
         

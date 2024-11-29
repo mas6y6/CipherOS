@@ -110,6 +110,10 @@ def printerror(msg):
 
 
 if not os.path.exists(os.path.join(api.starterdir, "data", "cache", "networkmap.json")):
+    if not os.path.exists(os.path.join(api.starterdir, "data")):
+        os.mkdir(os.path.join(api.starterdir,"data"))
+    if not os.path.exists(os.path.join(api.starterdir, "data", "cache")):
+        os.mkdir(os.path.join(api.starterdir, "data","cache"))
     json.dump(
         {}, open(os.path.join(api.starterdir, "data", "cache", "networkmap.json"), "w")
     )

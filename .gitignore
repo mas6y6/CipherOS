@@ -11,3 +11,4 @@ visualstudio
 macos/cipher/.DS_Store
 netmaptest.py
 test.py
+plugins/hacknet/__pycache__

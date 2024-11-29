@@ -61,8 +61,8 @@ class CipherAPI:
             return ExitCodes.COMMANDNOTFOUND, traceback.format_exc()
         except ExitCodeError:
             return exc, traceback.format_exc()
-        except IndexError:
-            return ExitCodes.OTHERERROR, "This command requires arguments"
+        # except IndexError:
+        #     return ExitCodes.OTHERERROR, "This command requires arguments"
         except Exception:
             return ExitCodes.FATALERROR, traceback.format_exc()
         else:

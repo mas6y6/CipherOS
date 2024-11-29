@@ -51,10 +51,10 @@ def cipher_ping(host):
             return True
         return False
     except TimeoutError:
-        print(f"Timeout while pinging {host}.")
+        #print(f"Timeout while pinging {host}.")
         return False
     except Exception as e:
-        print(f"An error occurred while pinging {host}: {e}")
+        #print(f"An error occurred while pinging {host}: {e}")
         return False
 
 def chunk_ports(start, end, chunk_size):

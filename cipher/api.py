@@ -13,7 +13,7 @@ from prompt_toolkit.completion import (
 )
 from wheel.wheelfile import WheelFile
 from rich.console import Console
-
+from cipher.argumentparser import ArgumentParser, ArgumentRequiredError, ParserError
 
 class CipherAPI:
     def __init__(self):
@@ -61,8 +61,12 @@ class CipherAPI:
             return ExitCodes.COMMANDNOTFOUND, traceback.format_exc()
         except ExitCodeError:
             return exc, traceback.format_exc()
-        # except IndexError:
-        #     return ExitCodes.OTHERERROR, "This command requires arguments"
+        except ArgumentRequiredError as e:
+            return ExitCodes.ARGUMENTSREQUIRED, e
+        except ParserError as e:
+            return ExitCodes.ARGUMENTPARSERERROR, e
+        except IndexError as e:
+            return ExitCodes.OTHERERROR, f"This command requires arguments: {e}"
         except Exception:
             return ExitCodes.FATALERROR, traceback.format_exc()
         else:

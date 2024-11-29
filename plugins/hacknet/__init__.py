@@ -15,6 +15,8 @@ class HacknetPlugin(CipherPlugin):
     def register_commands(self):
         """Method to register all commands for this plugin"""
         
+        
+        
         @CipherPlugin.command()
         def traced(args):
             if self.traceactive:

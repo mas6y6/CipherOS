@@ -10,9 +10,28 @@
 An hacknet inspired hacking program
 
 ## How to install
-You can install using the installer if you are using windows or you can download everything from the [dist](https://github.com/mas6y6/CipherOS/tree/main/dist) folder
 
-All of these can be downloaded in the [releases](https://github.com/mas6y6/CipherOS/releases)
+### Windows
+You can install using the installer from the [releases](https://github.com/mas6y6/CipherOS/releases), or you can download everything from the [dist](https://github.com/mas6y6/CipherOS/tree/main/dist) folder if you want to do that thats your choice.
+
+### macOS
+The macOS downloads are coming soon you can just use the [compile.sh](https://github.com/mas6y6/CipherOS/blob/main/compile.sh) the directory structure should cipher should something like this:
+```tree
+.
+├── cipher
+│   ├── plugins.py
+│   ├── argumentparser.py
+│   ├── icon.ico
+│   ├── api.py
+│   ├── network.py
+│   └── exceptions.py
+└── main.py
+```
+**The `cipher` folder must be in the SAME folder as the executeable!**
+
+### Linux
+For linux users you can just compile it yourself because not all linux executeables work the same as others.
+The instructions are the same as the macOS but I am still going to write it for you lazy people XD
 
 ## Discord
 [Click me](https://discord.gg/4HJrhKhWgj) to join the Cipher HackSquad discord server

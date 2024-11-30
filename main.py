@@ -38,8 +38,7 @@ import urllib3
 import websockets
 from ping3 import ping, verbose_ping
 from prompt_toolkit import prompt
-from prompt_toolkit.completion import (Completer, Completion, PathCompleter,
-                                       WordCompleter)
+from prompt_toolkit.completion import (Completer, Completion, PathCompleter,WordCompleter)
 from prompt_toolkit.history import InMemoryHistory
 from rich.console import Console
 from rich.live import Live
@@ -514,22 +513,6 @@ def mkdir(argsraw):
 def clear(args):
     print("\033c", end="")
 
-@api.command(name="help",alias=["man"])
-def helpcommand(argsraw):
-    parser = ArgumentParser(api, description="Help command to get the help guide for other commands")
-    parser.add_argument("command",type=str,help_text="Command to get the help manual",required=True)
-    args = parser.parse_args(argsraw)
-    if parser.help_flag:
-        return None
-    
-    isparent = api.commands[args]["parentcommand"]
-    alias = api.commands[args]["alias"]
-    
-    console.print(f"Manual for {args.command}:\n")
-    console.print(f"Parent command: {isparent}")
-    console.print(f"Alias to command: {alias}\n")
-    api.run([args.command,api.commands[args.command]["helpflag"]])
-
 @api.command(alias=["pl"])
 def plugins(argsraw):
     parser = ArgumentParser(api, description="Manage plugins for the system.")
@@ -787,7 +770,7 @@ Project Codename: Paradox"""
                     if debugmode:
                         printerror(f'Error: Command "{cmd}" not found\nFull traceback:\n{e[1]}')
                     else:
-                        printerror(f'Error: Command "{cmd}" not found')
+                        printerror(f'Error: Command "{cmd}" not found\nFull traceback:\n{e[1]}')
                 elif e[0] == 232:
                     printerror(f'Error: "{cmd}" requires arguments:\n{e[1]}')
                 elif e[0] == 231:

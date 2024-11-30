@@ -14,7 +14,7 @@ class Namespace:
 
 
 class ArgumentParser:
-    def __init__(self,api, description=None):
+    def __init__(self,api, description=None, include_help=True):
         self.description = description
         self._arguments = []
         self._flags = {}
@@ -22,6 +22,13 @@ class ArgumentParser:
         self._console = api.console
         self._subcommands = {}
         self.help_flag = False
+        self.include_help = include_help
+
+    def add_subcommand(self, name, parser):
+        """Adds a subcommand with its own ArgumentParser."""
+        if name in self._subcommands:
+            raise ParserError(f"Subcommand '{name}' already exists.")
+        self._subcommands[name] = parser
 
     def add_argument(self, name, type=str, default=None, required=False, help_text=None, action=None, aliases=None):
         """Adds an argument or flag."""
@@ -50,12 +57,6 @@ class ArgumentParser:
                     "required": required,
                     "help_text": help_text,
                 })
-    
-    def add_subcommand(self, name, parser):
-        """Adds a subcommand with its own ArgumentParser."""
-        if name in self._subcommands:
-            raise ParserError(f"Subcommand '{name}' already exists.")
-        self._subcommands[name] = parser
 
     def parse_args(self, args):
         """Parses the provided argument list."""
@@ -65,13 +66,17 @@ class ArgumentParser:
             self.help_flag = True
             return Namespace()
         
+        parsed = Namespace()
+        
         if args and args[0] in self._subcommands:
-            # Handle subcommands
             subcommand = args[0]
             subcommand_args = args[1:]
-            return self._subcommands[subcommand].parse_args(subcommand_args)
-        
-        parsed = Namespace()
+            setattr(parsed, "subcommand", subcommand)
+
+            subcommand_parser = self._subcommands[subcommand]
+            subcommand_parsed = subcommand_parser.parse_args(subcommand_args)
+            parsed.__dict__.update(vars(subcommand_parsed))
+            return parsed
         index = 0
         used_flags = set()
         
@@ -119,20 +124,42 @@ class ArgumentParser:
     def print_help(self):
         """Prints help message."""
         if self.description:
-            self._console.print(self.description,style="bold bright_green")
+            self._console.print(self.description, style="bold bright_green")
+        
         self._console.print("\nUsage:")
-        for arg in self._arguments:
-            self._console.print(f"  [bold bright_blue]{arg['name']}[/bold bright_blue]  {arg['help_text'] or ''} (required={arg['required']})")
+        
+        
+        if self._arguments:
+            for arg in self._arguments:
+                self._console.print(f"  [bold bright_blue]{arg['name']}[/bold bright_blue]  {arg['help_text'] or ''} (required={arg['required']})")
+        
         seen_flags = set()
-        for flag, details in self._flags.items():
-            if flag in seen_flags:
-                continue
-            aliases = [alias for alias, info in self._flags.items() if info["name"] == details["name"]]
-            flag_aliases = ", ".join(aliases)
-            self._console.print(f"  [bold bright_yellow]{flag_aliases}[/bold bright_yellow]  {details['help_text'] or ''} (default={details['default']})")
-            
-            seen_flags.update(aliases)
+        if self.include_help:
+            self._console.print(f"  [bold bright_yellow]--help, -h[/bold bright_yellow]  Opens this message")
+        if self._flags:
+            for flag, details in self._flags.items():
+                if flag in seen_flags:
+                    continue
+                aliases = [alias for alias, info in self._flags.items() if info["name"] == details["name"]]
+                flag_aliases = ", ".join(aliases)
+                self._console.print(f"  [bold bright_yellow]{flag_aliases}[/bold bright_yellow]  {details['help_text'] or ''} (default={details['default']})")
+                seen_flags.update(aliases)
+
         if self._subcommands:
             self._console.print("\nSubcommands:")
-            for subcommand in self._subcommands:
-                self._console.print(f"  [bold bright_magenta]{subcommand}[/bold bright_magenta]")
+            for subcommand_name, subcommand_parser in self._subcommands.items():
+                self._console.print(f"\n  [bold bright_magenta]{subcommand_name}[/bold bright_magenta]  {subcommand_parser.description or ''}")
+                
+                if subcommand_parser._arguments:
+                    for arg in subcommand_parser._arguments:
+                        self._console.print(f"    [bold bright_blue]{arg['name']}[/bold bright_blue]  {arg['help_text'] or ''} (required={arg['required']})")
+                
+                seen_flags = set()
+                if subcommand_parser._flags:
+                    for flag, details in subcommand_parser._flags.items():
+                        if flag in seen_flags:
+                            continue
+                        aliases = [alias for alias, info in subcommand_parser._flags.items() if info["name"] == details["name"]]
+                        flag_aliases = ", ".join(aliases)
+                        self._console.print(f"    [bold bright_yellow]{flag_aliases}[/bold bright_yellow]  {details['help_text'] or ''} (default={details['default']})")
+                        seen_flags.update(aliases)

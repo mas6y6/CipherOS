@@ -516,61 +516,69 @@ def clear(args):
 @api.command(alias=["pl"])
 def plugins(argsraw):
     parser = ArgumentParser(api, description="Manage plugins for the system.")
+    
+    reloadall_parser = ArgumentParser(api, description="Reload all plugins.")
+    parser.add_subcommand("reloadall", reloadall_parser)
 
-    subparsers = {}
-    subparsers["reloadall"] = ArgumentParser(api, description="Reload all plugins.")
-    subparsers["disable"] = ArgumentParser(api, description="Disable a plugin.")
-    subparsers["disable"].add_argument("plugin", type=str, help_text="The name of the plugin to disable.")
-    subparsers["enable"] = ArgumentParser(api, description="Enable a plugin.")
-    subparsers["enable"].add_argument("plugin", type=str, help_text="The name of the plugin to enable.")
-    subparsers["list"] = ArgumentParser(api, description="List all available plugins.")
-    subparsers["info"] = ArgumentParser(api, description="Get detailed info about a plugin.")
-    subparsers["info"].add_argument("plugin", type=str, help_text="The name of the plugin to get info about.")
+    disable_parser = ArgumentParser(api, description="Disable a plugin.")
+    disable_parser.add_argument("plugin", type=str, help_text="The name of the plugin to disable.",required=True)
+    parser.add_subcommand("disable", disable_parser)
 
-    if not argsraw or argsraw[0] not in subparsers:
-        print("Invalid subcommand. Use one of: reloadall, disable, enable, list, info.")
-        parser.print_help()
-        return
+    enable_parser = ArgumentParser(api, description="Enable a plugin.")
+    enable_parser.add_argument("plugin", type=str, help_text="The name of the plugin to enable.",required=True)
+    parser.add_subcommand("enable", enable_parser)
 
-    subcommand = argsraw[0]
-    subcommand_args = argsraw[1:]
+    list_parser = ArgumentParser(api, description="List all available plugins.")
+    parser.add_subcommand("list", list_parser)
 
-    subparser = subparsers[subcommand]
-    args = subparser.parse_args(subcommand_args)
+    info_parser = ArgumentParser(api, description="Get detailed info about a plugin.")
+    info_parser.add_argument("plugin", type=str, help_text="The name of the plugin to get info about.",required=True)
+    parser.add_subcommand("info", info_parser)
+
+    reload_action_parser = ArgumentParser(api, description="Action for reloading plugins.")
+    reloadall_parser.add_subcommand("action", reload_action_parser)
+    args = parser.parse_args(argsraw)
 
     #If the --help (-h) is passes it kills the rest of the script
     if parser.help_flag:
         return None
 
-    if subcommand == "reloadall":
+    if args.subcommand == "reloadall":
         print("Reloading all plugins...")
-        for plugin_name in list(api.plugins):
+        for plugin_name in api.plugins.keys():
             api.disable_plugin(plugin_name)
         for plugin_file in os.listdir(os.path.join(api.starterdir, "plugins")):
             api.load_plugin(os.path.join(api.starterdir, "plugins", plugin_file), api)
         print("Reload complete.")
 
-    elif subcommand == "disable":
-        api.disable_plugin(args.plugin)
-        print(f"Plugin '{args.plugin}' disabled.")
+    elif args.subcommand == "disable":
+        if args.plugin:  # Access the plugin argument directly
+            api.disable_plugin(args.plugin)
+            print(f"Plugin '{args.plugin}' disabled.")
+        else:
+            print("No plugin specified to disable.")
 
-    elif subcommand == "enable":
-        print(f"Plugin '{args.plugin}' enabled (not yet implemented).")
+    elif args.subcommand == "enable":
+        if args.plugin:  # Access the plugin argument directly
+            print(f"Plugin '{args.plugin}' enabled (not yet implemented).")
+        else:
+            print("No plugin specified to enable.")
 
-    elif subcommand == "list":
+    elif args.subcommand == "list":
         print("Listing plugins:")
         for plugin in api.plugins:
             print(f"  - {plugin}")
 
-    elif subcommand == "info":
-        if args.plugin in api.plugins:
+    elif args.subcommand == "info":
+        if args.plugin and args.plugin in api.plugins:  # Ensure plugin is passed and exists
             print(f"Plugin '{args.plugin}' details:")
             print(api.plugins[args.plugin])
         else:
-            print(f"Plugin '{args.plugin}' not found.")
+            print(f"Plugin '{args.plugin}' not found or not specified.")
 
     else:
         print("Unknown subcommand.")
+
 
 @api.command()
 def tree(argsraw):

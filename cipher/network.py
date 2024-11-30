@@ -6,7 +6,6 @@ from ipaddress import IPv4Network
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from .exceptions import ExitCodeError
 from ping3 import ping, verbose_ping
-from scapy.all import sr1, IP, TCP, UDP, ICMP, conf
 from socket import getservbyport
 
 def get_active_interface_and_netmask():

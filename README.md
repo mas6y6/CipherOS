@@ -12,7 +12,9 @@ An hacknet inspired hacking program
 ## How to install
 
 ### Windows
-You can install using the installer from the [releases](https://github.com/mas6y6/CipherOS/releases), or you can download everything from the [dist](https://github.com/mas6y6/CipherOS/tree/main/dist) folder if you want to do that thats your choice.
+You can use the standalone .exe from [releases](https://github.com/mas6y6/CipherOS/releases), or you can clone the repository locally and use [pyinstaller](https://pyinstaller.org/en/stable/)
+
+Note: the standalone .exe will generate the `plugins` and `data` folder in the directory that the executable is run in, so it is recommended to drop the .exe in a dedicated folder before running.
 
 ### macOS
 The macOS downloads are coming soon you can just use the [compile.sh](https://github.com/mas6y6/CipherOS/blob/main/compile.sh) the directory structure should cipher should something like this:

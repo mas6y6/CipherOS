@@ -534,9 +534,6 @@ def plugins(argsraw):
     info_parser = ArgumentParser(api, description="Get detailed info about a plugin.")
     info_parser.add_argument("plugin", type=str, help_text="The name of the plugin to get info about.",required=True)
     parser.add_subcommand("info", info_parser)
-
-    reload_action_parser = ArgumentParser(api, description="Action for reloading plugins.")
-    reloadall_parser.add_subcommand("action", reload_action_parser)
     args = parser.parse_args(argsraw)
 
     #If the --help (-h) is passes it kills the rest of the script
@@ -544,37 +541,41 @@ def plugins(argsraw):
         return None
 
     if args.subcommand == "reloadall":
-        print("Reloading all plugins...")
-        for plugin_name in api.plugins.keys():
-            api.disable_plugin(plugin_name)
+        console.print("Reloading all plugins...")
+        for plugin_name in list(api.plugins):
+            api.disable_plugin(api.plugins[plugin_name])
         for plugin_file in os.listdir(os.path.join(api.starterdir, "plugins")):
             api.load_plugin(os.path.join(api.starterdir, "plugins", plugin_file), api)
-        print("Reload complete.")
+            pass
+        console.print("Reload complete.")
 
     elif args.subcommand == "disable":
-        if args.plugin:  # Access the plugin argument directly
-            api.disable_plugin(args.plugin)
-            print(f"Plugin '{args.plugin}' disabled.")
+        if args.plugin:
+            console.print(f'Disabling \"{args.plugin}\"...')
+            api.disable_plugin(api.plugins[args.plugin])
+            console.print(f'Plugin \"{args.plugin}\" disabled.')
         else:
-            print("No plugin specified to disable.")
+            console.print("No plugin specified to disable.")
 
     elif args.subcommand == "enable":
-        if args.plugin:  # Access the plugin argument directly
-            print(f"Plugin '{args.plugin}' enabled (not yet implemented).")
+        if args.plugin:
+            console.print(f'Enabling \"{args.plugin}\"...')
+            api.load_plugin(os.path.exists(api.starterdir,"plugins",args.plugin))
+            console.print(f"Plugin \"{args.plugin}\" enabled (not yet implemented).")
         else:
-            print("No plugin specified to enable.")
+            console.print("No plugin specified to enable.")
 
     elif args.subcommand == "list":
         print("Listing plugins:")
         for plugin in api.plugins:
-            print(f"  - {plugin}")
+            console.print(f"  - {plugin}")
 
     elif args.subcommand == "info":
-        if args.plugin and args.plugin in api.plugins:  # Ensure plugin is passed and exists
-            print(f"Plugin '{args.plugin}' details:")
-            print(api.plugins[args.plugin])
+        if args.plugin and args.plugin in api.plugins:
+            console.print(f"Plugin '{args.plugin}' details:")
+            console.print(api.plugins[args.plugin])
         else:
-            print(f"Plugin '{args.plugin}' not found or not specified.")
+            console.print(f"Plugin '{args.plugin}' not found or not specified.")
 
     else:
         print("Unknown subcommand.")

@@ -8,15 +8,11 @@
 
 
 An hacknet inspired hacking program
-## Warning
-**This program is very early in development so not everything will work.**
 
 ## How to install
 You can install using the installer if you are using windows or you can download everything from the [dist](https://github.com/mas6y6/CipherOS/tree/main/dist) folder
 
-If you are on macOS go to [macos](https://github.com/mas6y6/CipherOS/tree/main/macos) where the zip is containing the .app of cipheros and the [cipher](https://github.com/mas6y6/CipherOS/tree/main/cipher) library
-
-All of these can be downloaded in [releases](https://github.com/mas6y6/CipherOS/releases)
+All of these can be downloaded in the [releases](https://github.com/mas6y6/CipherOS/releases)
 
 ## Discord
 [Click me](https://discord.gg/4HJrhKhWgj) to join the Cipher HackSquad discord server

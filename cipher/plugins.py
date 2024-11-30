@@ -13,10 +13,10 @@ class CipherPlugin:
             CipherPlugin.config = config
         
         if CipherPlugin.name is None:
-            CipherPlugin.name = self.__class__.__name__
+            CipherPlugin.name = config.name
         
-        self.api.plugins[self.__class__.__name__] = self
-        self.api.plugincommands[self.__class__.__name__] = []
+        self.api.plugins[config.name] = self
+        self.api.plugincommands[config.name] = []
     
     @classmethod
     def command(cls, name=None, helpflag="--help", desc=None, extradata=None, alias=None):

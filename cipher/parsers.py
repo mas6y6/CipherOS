@@ -28,11 +28,13 @@ class ArgumentParser:
         self.help_flag = False
         self.include_help = include_help
 
-    def add_subcommand(self, name, parser):
+    def add_subcommand(self, name, description=None):
         """Adds a subcommand with its own ArgumentParser."""
         if name in self._subcommands:
             raise ParserError(f"Subcommand '{name}' already exists.")
-        self._subcommands[name] = parser
+        subparser = ArgumentParser(self._api, description=description)
+        self._subcommands[name] = subparser
+        return subparser
 
     def add_argument(self, name, type=str, default=None, required=False, help_text=None, action=None, aliases=None):
         """Adds an argument or flag."""
@@ -64,26 +66,28 @@ class ArgumentParser:
 
     def parse_args(self, args):
         """Parses the provided argument list."""
+        parsed = Namespace()
         
         if "--help" in args or "-h" in args:
             self.print_help()
             self.help_flag = True
-            return Namespace()
-        
-        parsed = Namespace()
-        
+            return parsed
+
         if args and args[0] in self._subcommands:
             subcommand = args[0]
             subcommand_args = args[1:]
-            setattr(parsed, "subcommand", subcommand)
+            parsed.subcommand = subcommand
+            subparser = self._subcommands[subcommand]
+            subcommand_namespace = subparser.parse_args(subcommand_args)
 
-            subcommand_parser = self._subcommands[subcommand]
-            subcommand_parsed = subcommand_parser.parse_args(subcommand_args)
-            parsed.__dict__.update(vars(subcommand_parsed))
+            for key, value in vars(subcommand_namespace).items():
+                setattr(parsed, key, value)
             return parsed
+        elif self._subcommands:
+            raise ParserError("A subcommand is required. Use --help for usage information.")
+
         index = 0
         used_flags = set()
-        
         for arg in self._arguments:
             if index < len(args):
                 setattr(parsed, arg["name"], arg["type"](args[index]))
@@ -108,10 +112,6 @@ class ArgumentParser:
                         setattr(parsed, canonical_name, flag["type"](args[index]))
                     else:
                         raise ArgumentRequiredError(f"Flag {arg} requires a value")
-            elif arg in ("--help", "-h"):
-                self.print_help()
-                self.help_flag = True
-                return Namespace()
             else:
                 raise ParserError(f"Unrecognized argument: {arg}")
             index += 1
@@ -124,6 +124,7 @@ class ArgumentParser:
                     setattr(parsed, details["name"], details["default"])
 
         return parsed
+
 
     def print_help(self):
         """Prints help message."""
@@ -181,7 +182,7 @@ class ConfigParser:
         
         self.configversion = self.dict["configversion"]
         if self.configversion == 1:
-            self.name = self.dict["displayname"]
+            self.name = self.dict["name"]
             self.displayname = self.dict["displayname"]
             self.version = self.dict["version"]
             self.authors = self.dict["authors"]
@@ -189,7 +190,7 @@ class ConfigParser:
             self.classname = self.dict["class"]
             self.dependencies = self.dict["dependencies"]
         elif self.configversion == 2:
-            self.name = self.dict["displayname"]
+            self.name = self.dict["name"]
             self.displayname = self.dict["displayname"]
             self.version = self.dict["version"]
             self.authors = self.dict["authors"]

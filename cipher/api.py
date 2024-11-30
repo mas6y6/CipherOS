@@ -123,8 +123,8 @@ class CipherAPI:
         self.updatecompletions()
 
     def disable_plugin(self, plugin):
-        print(f"Disabling {plugin.__class__.__name__}")
-        plugin_instance = self.plugins[plugin.__class__.__name__]
+        print(f"Disabling {plugin.__class__.name}")
+        plugin_instance = self.plugins[plugin.__class__.name]
         if hasattr(plugin_instance, "on_disable") and callable(
             plugin_instance.on_disable
         ):
@@ -132,9 +132,9 @@ class CipherAPI:
         else:
             pass
 
-        for i in self.plugincommands[plugin.__class__.__name__]:
+        for i in self.plugincommands[plugin.__class__.name]:
             self.commands.pop(i)
-        self.plugins.pop(plugin.__class__.__name__)
+        self.plugins.pop(plugin.__class__.name)
         self.updatecompletions()
 
     def download_package(self, package_name, version=None):

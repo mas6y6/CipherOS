@@ -91,7 +91,7 @@ pbar = None
 from cipher.api import CipherAPI
 import cipher.exceptions as ex
 import cipher.network
-from cipher.parsers import ArgumentParser
+from cipher.parsers import ArgumentParser, ConfigParser
 
 # variables
 version = 1
@@ -517,23 +517,19 @@ def clear(args):
 def plugins(argsraw):
     parser = ArgumentParser(api, description="Manage plugins for the system.")
     
-    reloadall_parser = ArgumentParser(api, description="Reload all plugins.")
-    parser.add_subcommand("reloadall", reloadall_parser)
-
-    disable_parser = ArgumentParser(api, description="Disable a plugin.")
+    reloadall_parser = parser.add_subcommand("reloadall", description="Reload all plugins.")
+    
+    disable_parser = parser.add_subcommand("disable", description="Disable a plugin.")
     disable_parser.add_argument("plugin", type=str, help_text="The name of the plugin to disable.",required=True)
-    parser.add_subcommand("disable", disable_parser)
 
-    enable_parser = ArgumentParser(api, description="Enable a plugin.")
+    enable_parser = parser.add_subcommand("enable", description="Enable a plugin.")
     enable_parser.add_argument("plugin", type=str, help_text="The name of the plugin to enable.",required=True)
-    parser.add_subcommand("enable", enable_parser)
 
-    list_parser = ArgumentParser(api, description="List all available plugins.")
-    parser.add_subcommand("list", list_parser)
-
-    info_parser = ArgumentParser(api, description="Get detailed info about a plugin.")
+    list_parser = parser.add_subcommand("list", description="List all available plugins.")
+    
+    info_parser = parser.add_subcommand("info", description="Get detailed info about a plugin.")
     info_parser.add_argument("plugin", type=str, help_text="The name of the plugin to get info about.",required=True)
-    parser.add_subcommand("info", info_parser)
+
     args = parser.parse_args(argsraw)
 
     #If the --help (-h) is passes it kills the rest of the script
@@ -550,19 +546,25 @@ def plugins(argsraw):
 
     elif args.subcommand == "disable":
         if args.plugin:
-            console.print(f'Disabling \"{args.plugin}\"...')
-            api.disable_plugin(api.plugins[args.plugin])
-            console.print(f'Plugin \"{args.plugin}\" disabled.')
+            if args.plugin in api.plugins:
+                console.print(f'Disabling \"{args.plugin}\"...')
+                api.disable_plugin(api.plugins[args.plugin])
+                console.print(f'Plugin \"{args.plugin}\" disabled.')
+            else:
+                printerror(f"Error: Plugin \"{args.plugin}\" enabled (not yet implemented).")
         else:
-            console.print("No plugin specified to disable.")
+            printerror("Error: No plugin specified to disable.")
 
     elif args.subcommand == "enable":
         if args.plugin:
-            console.print(f'Enabling \"{args.plugin}\"...')
-            api.load_plugin(os.path.exists(api.starterdir,"plugins",args.plugin))
-            console.print(f"Plugin \"{args.plugin}\" enabled (not yet implemented).")
+            if not args.plugin in api.plugins:
+                console.print(f'Enabling \"{args.plugin}\"...')
+                api.load_plugin(os.path.join(api.starterdir,"plugins",args.plugin))
+                console.print(f"Error: Plugin \"{args.plugin}\" enabled.")
+            else:
+                printerror(f"Error: \"{args.plugin}\" is already enabled")
         else:
-            console.print("No plugin specified to enable.")
+            printerror("Error: No plugin specified to enable.")
 
     elif args.subcommand == "list":
         print("Listing plugins:")
@@ -571,14 +573,20 @@ def plugins(argsraw):
 
     elif args.subcommand == "info":
         if args.plugin in api.plugins:
-            console.print(f"Plugin '{args.plugin}' details:\n")
-            yml = api.plugins[args.plugin].config
-            console.print("Version:",yml.get("version"))
+            config = api.plugins[args.plugin].config
+            console.print(f"Plugin '{config.displayname}' details:\n")
+            console.print("Version:",config.version)
+            console.print("Organization/Team:",config.team)
             console.print("Authors of plugin")
-            for i in yml.get("authors"):
-                console.print("  -",i)
+            for i in config.authors:
+                console.print(f"  - [bold green]{i}[/bold green]")
+            console.print("\nPluginclass:",config.classname)
+            if config.dependencies:
+                console.print("Dependencies (Downloaded by PyPI):",config.classname)
+                for i in config.dependencies:
+                    console.print(f"  - [bold bright_magenta]{i}[/bold bright_magenta]")
         else:
-            console.print(f"Plugin '{args.plugin}' not found or enabled.")
+            printerror(f"Plugin '{args.plugin}' not found or enabled.")
 
     else:
         print("Unknown subcommand.")
@@ -776,21 +784,19 @@ Project Codename: Paradox"""
 
             if not _argx[0] == "":
                 cmd = _argx[0]
-                e = api.run(_argx)
+                if cmd in api.commands:
+                    e = api.run(_argx)
 
-                if e[0] == 404:
-                    if debugmode:
-                        printerror(f'Error: Command "{cmd}" not found\nFull traceback:\n{e[1]}')
+                    if e[0] == 232:
+                        printerror(f'Error: "{cmd}" requires arguments:\n{e[1]}')
+                    elif e[0] == 231:
+                        printerror(f'Error: {e[1]}')
+                    elif not e[0] == 0 or e[0] == 404:
+                        printerror(f'Error: Command "{cmd}" encountered an error\n{e[1]}')
                     else:
-                        printerror(f'Error: Command "{cmd}" not found\nFull traceback:\n{e[1]}')
-                elif e[0] == 232:
-                    printerror(f'Error: "{cmd}" requires arguments:\n{e[1]}')
-                elif e[0] == 231:
-                    printerror(f'Error: {e[1]}')
-                elif not e[0] == 0:
-                    printerror(f'Error: Command "{cmd}" encountered an error\n{e[1]}')
+                        pass
                 else:
-                    pass
+                    printerror(f"Error: Command \"{cmd}\" not found")
             else:
                 pass
         except (EOFError, KeyboardInterrupt):

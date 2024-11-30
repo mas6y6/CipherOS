@@ -1,3 +1,7 @@
+import json
+from yaml import YAMLObject, safe_load
+import io
+
 class ParserError(Exception):
     pass
 
@@ -163,3 +167,46 @@ class ArgumentParser:
                         flag_aliases = ", ".join(aliases)
                         self._console.print(f"    [bold bright_yellow]{flag_aliases}[/bold bright_yellow]  {details['help_text'] or ''} (default={details['default']})")
                         seen_flags.update(aliases)
+
+class ConfigParser:
+    def __init__(self,file: io.TextIOWrapper):
+        """Parser to parse for all versions of "plugin.yml"
+
+        Args:
+            file (io.TextIOWrapper): TextIOWrapper to parse
+        """
+        self._rawconfig = file
+        self.yml = safe_load(file)
+        self.dict = json.loads(json.dumps(self.yml))
+        
+        self.configversion = self.dict["configversion"]
+        if self.configversion == 1:
+            self.name = self.dict["displayname"]
+            self.displayname = self.dict["displayname"]
+            self.version = self.dict["version"]
+            self.authors = self.dict["authors"]
+            self.team = None
+            self.classname = self.dict["class"]
+            self.dependencies = self.dict["dependencies"]
+        elif self.configversion == 2:
+            self.name = self.dict["displayname"]
+            self.displayname = self.dict["displayname"]
+            self.version = self.dict["version"]
+            self.authors = self.dict["authors"]
+            self.team = self.dict["team"]
+            self.classname = self.dict["class"]
+            self.dependencies = self.dict["dependencies"]
+        else:
+            raise ParserError(f"The specified configversion \"{self.configversion}\" defined in the \"plugin.yml\" is not supported.\nPlease check the \"plugin.yml\" file or update to the latest version of CipherOS")
+        
+    def get(self,key: str) -> str:
+        """Returns a value of the specified key
+        To provide support for older code of CipherOS that still use YAMLObject
+
+        Args:
+            key (str): Specified key
+
+        Returns:
+            str: Return of requested value
+        """
+        return self.dict[key]

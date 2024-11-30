@@ -1,5 +1,5 @@
 from cipher.plugins import CipherPlugin, CipherAPI
-from cipher.argumentparser import ArgumentParser
+from cipher.parsers import ArgumentParser
 import os, platform
 
 class neofetch(CipherPlugin):

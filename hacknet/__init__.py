@@ -2,7 +2,7 @@ import random
 import shutil
 import string
 from cipher.plugins import CipherPlugin, CipherAPI
-from cipher.argumentparser import ArgumentParser
+from cipher.parsers import ArgumentParser
 from rich.panel import Panel
 import os, pygame, progressbar, time, cursor, subprocess, requests
 

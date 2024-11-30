@@ -13,7 +13,7 @@ from prompt_toolkit.completion import (
 )
 from wheel.wheelfile import WheelFile
 from rich.console import Console
-from cipher.argumentparser import ArgumentParser, ArgumentRequiredError, ParserError
+from cipher.parsers import ArgumentParser, ArgumentRequiredError, ParserError, ConfigParser
 
 class CipherAPI:
     def __init__(self):
@@ -81,7 +81,7 @@ class CipherAPI:
         if not os.path.exists(yml_path):
             raise PluginInitializationError(f"'plugin.yml' not found in {filepath}")
         with open(yml_path, "r") as yml_file:
-            yml = yaml.safe_load(yml_file)
+            yml = ConfigParser(yml_file)
         plugin_name = yml.get("name")
         plugin_class_name = yml.get("class")
         plugin_displayname = yml.get("displayname")

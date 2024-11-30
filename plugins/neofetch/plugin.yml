@@ -1,8 +1,9 @@
 configversion: 1
 version: 30
-# The name must match the folder of the plugin
+cipherversion: 1
 name: neofetch
+authors: 
+  - vox_eternal
 displayname: "neofetch"
 class: neofetch
-dependencies: #Put your dependencies here cipheros will install them so your plugin can use them
-# - requests
+dependencies:

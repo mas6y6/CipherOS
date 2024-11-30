@@ -91,7 +91,7 @@ pbar = None
 from cipher.api import CipherAPI
 import cipher.exceptions as ex
 import cipher.network
-from cipher.argumentparser import ArgumentParser
+from cipher.parsers import ArgumentParser
 
 # variables
 version = 1
@@ -545,8 +545,7 @@ def plugins(argsraw):
         for plugin_name in list(api.plugins):
             api.disable_plugin(api.plugins[plugin_name])
         for plugin_file in os.listdir(os.path.join(api.starterdir, "plugins")):
-            api.load_plugin(os.path.join(api.starterdir, "plugins", plugin_file), api)
-            pass
+            api.load_plugin(os.path.join(api.starterdir, "plugins", plugin_file))
         console.print("Reload complete.")
 
     elif args.subcommand == "disable":
@@ -571,11 +570,15 @@ def plugins(argsraw):
             console.print(f"  - {plugin}")
 
     elif args.subcommand == "info":
-        if args.plugin and args.plugin in api.plugins:
-            console.print(f"Plugin '{args.plugin}' details:")
-            console.print(api.plugins[args.plugin])
+        if args.plugin in api.plugins:
+            console.print(f"Plugin '{args.plugin}' details:\n")
+            yml = api.plugins[args.plugin].config
+            console.print("Version:",yml.get("version"))
+            console.print("Authors of plugin")
+            for i in yml.get("authors"):
+                console.print("  -",i)
         else:
-            console.print(f"Plugin '{args.plugin}' not found or not specified.")
+            console.print(f"Plugin '{args.plugin}' not found or enabled.")
 
     else:
         print("Unknown subcommand.")
@@ -731,7 +734,7 @@ if __name__ == "__main__":
     if not len(os.listdir(os.path.join(api.pwd, "plugins"))) == 0:
         for i in os.listdir(os.path.join(api.pwd, "plugins")):
             try:
-                api.load_plugin(os.path.join(api.pwd, "plugins", i), api)
+                api.load_plugin(os.path.join(api.pwd, "plugins", i))
             except:
                 printerror(f"Error: Plugin '{i}' failed to load\n" + traceback.format_exc())
     else:

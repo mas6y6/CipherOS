@@ -83,10 +83,10 @@ class CipherAPI:
             print(filepath)
         if not os.path.exists(yml_path):
             raise PluginInitializationError(f"'plugin.yml' not found in {filepath}")
-        yml_file = open(yml_path, "r")
-        yml = ConfigParser(yml_file)
+        yml = ConfigParser(yml_path)
         if self.debug:
             print("PARSERINIT",yml.dict)
+            
         plugin_name = yml.get("name")
         plugin_class_name = yml.get("class")
         plugin_displayname = yml.get("displayname")

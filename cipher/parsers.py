@@ -170,19 +170,16 @@ class ArgumentParser:
                         seen_flags.update(aliases)
 
 class ConfigParser:
-    def __init__(self,file: io.TextIOWrapper):
+    def __init__(self, file_path: str):
         """Parser to parse for all versions of "plugin.yml"
 
         Args:
-            file (io.TextIOWrapper): TextIOWrapper to parse
+            file_path (str): Path to the plugin.yml file
         """
-        self._rawconfig = file
-        print("PARSER",file)
-        self.yml = safe_load(file)
-        print("PARSER",self.yml)
-        self.dict = json.loads(json.dumps(self.yml))
-        print("PARSER",self.dict)
-        
+        with open(file_path, "r", encoding="utf-8") as file:
+            self.yml = safe_load(file)
+            self.dict = json.loads(json.dumps(self.yml))
+
         self.configversion = self.dict["configversion"]
         if self.configversion == 1:
             self.name = self.dict["name"]
@@ -201,9 +198,12 @@ class ConfigParser:
             self.classname = self.dict["class"]
             self.dependencies = self.dict["dependencies"]
         else:
-            raise ParserError(f"The specified configversion \"{self.configversion}\" defined in the \"plugin.yml\" is not supported.\nPlease check the \"plugin.yml\" file or update to the latest version of CipherOS")
-        
-    def get(self,key: str) -> str:
+            raise ParserError(
+                f"The specified configversion \"{self.configversion}\" defined in the \"plugin.yml\" is not supported.\n"
+                f"Please check the \"plugin.yml\" file or update to the latest version of CipherOS"
+            )
+
+    def get(self, key: str) -> str:
         """Returns a value of the specified key
         To provide support for older code of CipherOS that still use YAMLObject
 

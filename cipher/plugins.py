@@ -5,21 +5,20 @@ class CipherPlugin:
     api = None
     config = None
     name = None
+
     def __init__(self, api: CipherAPI, config):
         if CipherPlugin.api is None:
             CipherPlugin.api = api
         
-        if CipherPlugin.config is None:
-            CipherPlugin.config = config
-        
-        if CipherPlugin.name is None:
-            CipherPlugin.name = config.name
+        self.config = config
+        self.name = config.name
 
         if api.debug:
-            print("PARSERPLUGIN",config.dict)
+            print("PARSER", config.dict)
+
         self.api.plugins[config.name] = self
         self.api.plugincommands[config.name] = []
-    
+
     @classmethod
     def command(cls, name=None, helpflag="--help", desc=None, extradata=None, alias=None):
         """
@@ -33,24 +32,31 @@ class CipherPlugin:
 
         def decorator(func):
             funcname = name if name is not None else func.__name__
+            
             cls.api.commands[funcname] = {
                 "func": func,
                 "desc": desc,
                 "helpflag": helpflag,
-                "alias":alias,
-                "parentcommand":True,
+                "alias": alias,
+                "parentcommand": True,
                 "extradata": extradata,
             }
+
+            if cls.name not in cls.api.plugincommands:
+                cls.api.plugincommands[cls.name] = []
+            
             cls.api.plugincommands[cls.name].append(funcname)
+
             for i in alias:
                 cls.api.commands[i] = {
                     "func": func,
                     "desc": desc,
                     "helpflag": helpflag,
-                    "alias":[],
-                    "parentcommand":False,
+                    "alias": [],
+                    "parentcommand": False,
                     "extradata": extradata,
                 }
                 cls.api.plugincommands[cls.name].append(i)
+
             return func
         return decorator

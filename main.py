@@ -560,7 +560,7 @@ def plugins(argsraw):
             if not args.plugin in api.plugins:
                 console.print(f'Enabling \"{args.plugin}\"...')
                 api.load_plugin(os.path.join(api.starterdir,"plugins",args.plugin))
-                console.print(f"Error: Plugin \"{args.plugin}\" enabled.")
+                console.print(f"Plugin \"{args.plugin}\" enabled.")
             else:
                 printerror(f"Error: \"{args.plugin}\" is already enabled")
         else:

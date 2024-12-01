@@ -516,6 +516,9 @@ def clear(args):
 @api.command(alias=["pl"])
 def plugins(argsraw):
     parser = ArgumentParser(api, description="Manage plugins for the system.")
+
+    reload_parser = parser.add_subcommand("reload", description="Reloads a given plugin.")
+    reload_parser.add_argument("plugin",type=str, help_text="The name of the plugin to reload.",required=True)
     
     reloadall_parser = parser.add_subcommand("reloadall", description="Reload all plugins.")
     
@@ -536,7 +539,17 @@ def plugins(argsraw):
     if parser.help_flag:
         return None
 
-    if args.subcommand == "reloadall":
+    if args.subcommand == "reload":
+        if args.plugin in api.plugins:
+            console.print(f"Reloading \"{args.plugin}\"")
+            api.disable_plugin(api.plugins[args.plugin])
+            api.load_plugin(os.path.join(api.starterdir, "plugins", args.plugin))
+            console.print("Reload complete.")
+        else:
+            console.print(f"Error: plugin {args.plugin} does not exist.")
+        
+
+    elif args.subcommand == "reloadall":
         console.print("Reloading all plugins...")
         for plugin_name in list(api.plugins):
             api.disable_plugin(api.plugins[plugin_name])

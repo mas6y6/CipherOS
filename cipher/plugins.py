@@ -14,7 +14,9 @@ class CipherPlugin:
         
         if CipherPlugin.name is None:
             CipherPlugin.name = config.name
-        
+
+        if api.debug:
+            print(config.dict)
         self.api.plugins[config.name] = self
         self.api.plugincommands[config.name] = []
     

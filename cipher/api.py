@@ -27,6 +27,7 @@ class CipherAPI:
         self.plugins = {}
         self.plugincommands = {}
         self.threads = {}
+        self.debug = False
         self.completions = []
         self.console = Console()
 
@@ -78,10 +79,14 @@ class CipherAPI:
 
     def load_plugin(self, filepath):
         yml_path = os.path.join(filepath, "plugin.yml")
+        if self.debug:
+            print(filepath)
         if not os.path.exists(yml_path):
             raise PluginInitializationError(f"'plugin.yml' not found in {filepath}")
         with open(yml_path, "r") as yml_file:
             yml = ConfigParser(yml_file)
+        if self.debug:
+            print(yml.dict)
         plugin_name = yml.get("name")
         plugin_class_name = yml.get("class")
         plugin_displayname = yml.get("displayname")
@@ -102,6 +107,8 @@ class CipherAPI:
         spec = importlib.util.spec_from_file_location(plugin_name, init_file)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
+        if self.debug:
+            print(module)
 
         plugin_class = getattr(module, plugin_class_name, None)
         if plugin_class is None:
@@ -115,12 +122,18 @@ class CipherAPI:
                 f"Class '{plugin_class_name}' not found in {init_file}"
             )
 
+        if self.debug:
+            print(plugin_class)
         plugin_instance = plugin_class(self, yml)
         if hasattr(plugin_instance, "on_enable") and callable(
             plugin_instance.on_enable
         ):
             plugin_instance.on_enable()
+        if self.debug:
+            print(self.plugins)
         self.updatecompletions()
+        if self.debug:
+            print("\n\n")
 
     def disable_plugin(self, plugin):
         print(f"Disabling {plugin.__class__.name}")

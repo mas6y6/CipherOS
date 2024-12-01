@@ -736,6 +736,7 @@ if __name__ == "__main__":
     
     if debugmode:
         console.print("Starting CipherOS in [purple]debug mode[/purple]")
+        api.debug = True
         @api.command()
         def arbc(argsraw):
             parser = ArgumentParser(api,description="Executes arbitrary code")

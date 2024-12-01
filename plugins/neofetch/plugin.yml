@@ -1,7 +1,7 @@
 configversion: 1
 version: 30
 cipherversion: 1
-name: neofetch
+name: "neofetch"
 authors: 
   - vox_eternal
 displayname: "neofetch"

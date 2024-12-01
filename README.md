@@ -16,8 +16,11 @@ You can use the standalone .exe from [releases](https://github.com/mas6y6/Cipher
 
 Note: the standalone .exe will generate the `plugins` and `data` folder in the directory that the executable is run in, so it is recommended to drop the .exe in a dedicated folder before running.
 
-### macOS
-The macOS downloads are coming soon you can just use the [compile.sh](https://github.com/mas6y6/CipherOS/blob/main/compile.sh) the directory structure should cipher should something like this:
+### macOS / Linux
+The downloads are coming soon.
+For now you can just use the [compile.sh](https://github.com/mas6y6/CipherOS/blob/main/compile.sh) to compile the `main.py` file to `cipher`.
+
+And download the cipher folder and put it in the same directory as `cipher`
 ```tree
 .
 ├── cipher
@@ -27,13 +30,9 @@ The macOS downloads are coming soon you can just use the [compile.sh](https://gi
 │   ├── api.py
 │   ├── network.py
 │   └── exceptions.py
-└── main.py
+└── cipher (This is an executeable)
 ```
 **The `cipher` folder must be in the SAME folder as the executeable!**
-
-### Linux
-For linux users you can just compile it yourself because not all linux executeables work the same as others.
-The instructions are the same as the macOS but I am still going to write it for you lazy people XD
 
 ## Discord
 [Click me](https://discord.gg/4HJrhKhWgj) to join the Cipher HackSquad discord server

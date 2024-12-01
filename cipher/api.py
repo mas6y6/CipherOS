@@ -1,4 +1,4 @@
-import os, socket, tarfile, yaml, sys, socket, argparse, traceback, importlib.util, shutil, requests, zipfile, progressbar, re, colorama
+import os, socket, tarfile, yaml, sys, socket, traceback, importlib.util, shutil, requests, zipfile, progressbar, re, colorama, platform
 from cipher.exceptions import (
     ExitCodes,
     ExitCodeError,
@@ -77,6 +77,11 @@ class CipherAPI:
         else:
             return ExitCodes.SUCCESS, None
 
+    def _version_hash(self,version: str) -> int:
+        sanitized_version = re.sub(r'[^0-9.]', '', version)
+        version_digits = ''.join(c for c in sanitized_version if c.isdigit())
+        return int(version_digits * 1000)
+
     def load_plugin(self, filepath):
         yml_path = os.path.join(filepath, "plugin.yml")
         if self.debug:
@@ -86,6 +91,23 @@ class CipherAPI:
         yml = ConfigParser(yml_path)
         if self.debug:
             print("PARSERINIT",yml.dict)
+        
+        # To handle if dupilcates are found
+        if yml.name in self.plugins:
+            self.console.print(f"Duplicate \"{yml.name}\" plugins found.\nResolving...",style="bold bright_yellow")
+            newv = self._version_hash(str(yml.version))
+            enabledv = self._version_hash(str(self.plugins[yml.name].config.version))
+            if newv == enabledv:
+                self.console.print("Failed duplicate has the same version hash as the one already enabled.",style="bold bright_yellow")
+                return None
+            else:
+                if newv > enabledv:
+                    self.console.print("Duplicate is newer then already enabled.\nDisabling and continuing enabling process...",style="bold bright_yellow")
+                    self.disable_plugin(self.plugins[yml.name])
+                    self.console.print("Continuing...")
+                else:
+                    self.console.print("Failed duplicate is older then already enabled.",style="bold bright_yellow")
+                    return None
             
         plugin_name = yml.get("name")
         plugin_class_name = yml.get("class")
@@ -94,9 +116,7 @@ class CipherAPI:
         print(f"Loading {plugin_displayname}")
         if not plugin_dependencies == None:
             for i in plugin_dependencies:
-                if not os.path.exists(
-                    os.path.join(self.starterdir, "data", "cache", "packages", i)
-                ):
+                if not os.path.exists(os.path.join(self.starterdir, "data", "cache", "packages", i)):
                     self.download_package(i)
 
         if not plugin_name:
@@ -152,6 +172,37 @@ class CipherAPI:
         self.plugins.pop(plugin.__class__.name)
         self.updatecompletions()
 
+    def _is_compatible_whl(self, filename):
+        """
+        Check if a .whl file is compatible with the current system and Python version.
+        """
+        import sysconfig
+
+        python_version = sysconfig.get_python_version()
+        python_tag = f"cp{python_version.replace('.', '')}"
+        platform_tag = sysconfig.get_platform().replace("-", "_").replace(".", "_")
+
+        parts = filename.split("-")
+        if len(parts) < 4 or not filename.endswith(".whl"):
+            return False
+
+        wheel_python_tag, wheel_platform_tag = parts[-3], parts[-1].replace(".whl", "")
+
+        python_compatible = (
+            python_tag in wheel_python_tag or
+            "py3" in wheel_python_tag or
+            "any" in wheel_python_tag
+        )
+
+        platform_compatible = (
+            platform_tag in wheel_platform_tag or
+            "any" in wheel_platform_tag
+        )
+
+        return python_compatible and platform_compatible
+
+
+
     def download_package(self, package_name, version=None):
         """
         Downloads the specified package from PyPI, resolving dependencies recursively.
@@ -166,29 +217,19 @@ class CipherAPI:
         packages_dir = os.path.join(self.starterdir, "data", "cache", "packages")
 
         try:
-            # Fetch package metadata
             response = requests.get(url)
             response.raise_for_status()
             data = response.json()
 
-            # Resolve dependencies
             dependencies = data.get("info", {}).get("requires_dist", [])
             if dependencies:
-                print(
-                    f"Resolving dependencies for "
-                    + colorama.Fore.YELLOW
-                    + package_name
-                    + ": "
-                    + colorama.Fore.LIGHTBLUE_EX
-                    + f"{dependencies}"
-                    + colorama.Fore.RESET
-                )
+                self.console.print(f"Resolving dependencies for "+ package_name+ ": "+ f"{dependencies}",style="bold bright_yellow")
                 for dep in dependencies:
                     dep_name, dep_version = self._parse_dependency(dep)
                     if dep_name and not self.is_package_installed(
                         dep_name, dep_version
                     ):
-                        self.download_package(dep_name, dep_version)  # Recursive call
+                        self.download_package(dep_name, dep_version)
             releases = data.get("releases", {})
             if version:
                 files = releases.get(version, [])
@@ -196,16 +237,42 @@ class CipherAPI:
                 latest_version = data.get("info", {}).get("version")
                 files = releases.get(latest_version, [])
 
-            if not files:
-                print(
-                    colorama.Fore.RED
-                    + colorama.Style.BRIGHT
-                    + f"No files found for package '{package_name}' version '{version}'."
-                    + colorama.Fore.RESET
-                    + colorama.Style.NORMAL
-                )
-                return
-            download_url = files[0]["url"]
+            compatible_files = sorted(
+                [
+                    file_info["url"]
+                    for file_info in files
+                    if (
+                        file_info["url"].endswith(".whl") and self._is_compatible_whl(file_info["filename"])
+                    ) or file_info["url"].endswith(".tar.gz")
+                ],
+                key=lambda url: (
+                    "win" in url,
+                    "macosx" in url,
+                    "manylinux" in url,
+                    "any" in url
+                ),
+                reverse=True
+            )
+
+            if self.debug:
+                self.console.print(f"Available files for {package_name}: {[file_info['filename'] for file_info in files]}")
+            
+            if self.debug:
+                self.console.print(f"Available files for {package_name} that works on this system: {compatible_files}")
+            if not compatible_files:
+                self.console.print("No compatible .whl files. Falling back to .tar.gz.")
+                tar_gz_files = [
+                    file_info["url"]
+                    for file_info in files
+                    if file_info["url"].endswith(".tar.gz")
+                ]
+                if tar_gz_files:
+                    download_url = tar_gz_files[0]
+                else:
+                    self.console.print("No valid files found.")
+                    return
+            
+            download_url = compatible_files[0]
             filename = download_url.split("/")[-1]
 
             os.makedirs(download_dir, exist_ok=True)
@@ -285,7 +352,7 @@ class CipherAPI:
                         shutil.rmtree(temp_dir)
 
             else:
-                raise TypeError("File format is invaild to the extracter")
+                raise TypeError("File format is invalid to the extractor")
         except requests.RequestException as e:
             self.console.print(f"Failed to download package '{package_name}':\n {e}",style="bold bright_red")
         

@@ -1,6 +1,5 @@
 import socket,platform, subprocess, time
 import traceback
-import nmap, nmap3
 import struct, re, psutil
 from ipaddress import IPv4Network
 from concurrent.futures import ThreadPoolExecutor, as_completed

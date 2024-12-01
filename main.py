@@ -27,8 +27,6 @@ from ipaddress import IPv4Address, IPv4Network
 from threading import Lock
 import colorama
 import markdown
-import nmap
-import nmap3
 import paramiko
 import progressbar
 import psutil
@@ -58,6 +56,7 @@ pbar = None
 #! README
 # The api.pwd class is the current path where CipherOS is in right now
 # The api.starterdir is where the plugins and data folder is located in the this variable is to not change and if it changes then its going to break a lot of problems.
+
 #if os.name == "posix":
 #    if os.getcwd() == os.path.expanduser("~"):
 #        macpwd = os.path.expanduser("~")
@@ -570,12 +569,15 @@ def plugins(argsraw):
 
     elif args.subcommand == "enable":
         if args.plugin:
-            if not args.plugin in api.plugins:
-                console.print(f'Enabling \"{args.plugin}\"...')
-                api.load_plugin(os.path.join(api.starterdir,"plugins",args.plugin))
-                console.print(f"Plugin \"{args.plugin}\" enabled.")
+            if args.plugin in os.listdir(os.path.join(api.starterdir,"plugins")):
+                if not args.plugin in api.plugins:
+                    console.print(f'Enabling \"{args.plugin}\"...')
+                    api.load_plugin(os.path.join(api.starterdir,"plugins",args.plugin))
+                    console.print(f"Plugin \"{args.plugin}\" enabled.")
+                else:
+                    printerror(f"Error: \"{args.plugin}\" is already enabled")
             else:
-                printerror(f"Error: \"{args.plugin}\" is already enabled")
+                printerror(f"Error: \"{args.plugin}\" is not found in the plugins folder.")
         else:
             printerror("Error: No plugin specified to enable.")
 

@@ -16,7 +16,7 @@ class CipherPlugin:
             CipherPlugin.name = config.name
 
         if api.debug:
-            print(config.dict)
+            print("PARSERPLUGIN",config.dict)
         self.api.plugins[config.name] = self
         self.api.plugincommands[config.name] = []
     

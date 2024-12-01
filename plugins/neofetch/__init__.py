@@ -14,7 +14,7 @@ class neofetch(CipherPlugin):
         print("neofetch disabled.")
         
     def register_commands(self):
-        @CipherPlugin.command(name="neofetch")
+        @CipherPlugin.command()
         def neofetch(argsraw):
             parser = ArgumentParser(self.api,"Fetches the system infomation and prints it to the console.")
             parser.parse_args(argsraw)

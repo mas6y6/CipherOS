@@ -763,6 +763,36 @@ if __name__ == "__main__":
                 eval(args.code)
             except Exception as e:
                 print(f"arbc encountered an error: {e}")
+        @api.command()
+        def vdump(argsraw):
+            parser = ArgumentParser(api,description="Dumps all variables to console")
+            parser.add_argument("scope",type=str,help_text="Scope (global/local)")
+            
+            args = parser.parse_args(argsraw)
+
+            if parser.help_flag:
+                return None
+            try:
+                if args.scope:
+                    if args.scope == "local":
+                        l = locals()
+                        locals()
+                        console.print(l)
+                    elif args.scope == "global":
+                        g = globals()
+                        globals()
+                        console.print(g)
+                    else:
+                        printerror(f"Invalid option {args.scope}")
+                else:
+                    l = locals()
+                    g = globals()
+                    locals()
+                    globals()
+                    console.print(l)
+                    console.print(g)
+            except Exception as e:
+                print(f"vdump encountered an error: {e}")
     else:
         console.print("Starting CipherOS")
 

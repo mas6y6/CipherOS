@@ -177,8 +177,11 @@ class ConfigParser:
             file (io.TextIOWrapper): TextIOWrapper to parse
         """
         self._rawconfig = file
+        print("PARSER",file)
         self.yml = safe_load(file)
+        print("PARSER",self.yml)
         self.dict = json.loads(json.dumps(self.yml))
+        print("PARSER",self.dict)
         
         self.configversion = self.dict["configversion"]
         if self.configversion == 1:

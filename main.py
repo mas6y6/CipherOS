@@ -788,10 +788,10 @@ if __name__ == "__main__":
                         printerror(f"Invalid option {args.scope}")
                 else:
                     l = locals()
-                    g = globals()
                     locals()
-                    globals()
                     console.print(l)
+                    g = globals()
+                    globals()
                     console.print(g)
             except Exception as e:
                 print(f"vdump encountered an error: {e}")

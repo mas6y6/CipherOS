@@ -491,7 +491,6 @@ def chdir(argsraw):
     api.pwd = os.getcwd()
     api.updatecompletions()
 
-
 @api.command()
 def mkdir(argsraw):
     parser = ArgumentParser(api, description="Makes a directory")

@@ -847,9 +847,15 @@ Project Codename: Paradox"""
                     f"{api.currentenvironment} {api.addressconnected} {api.pwd}"
                 )
             command_completer = WordCompleter(api.completions, ignore_case=True)
-            user_input = prompt(
+            try:
+                user_input = user_input = prompt(
                 f"{commandlineinfo}> ", completer=command_completer, history=history
             )
+            except NoConsoleScreenBufferError as e:
+                if debugmode:
+                    print("No console found. Which means testing is completed!")
+                    sys.exit(0)
+                raise NoConsoleScreenBufferError(e)
             _argx = user_input.split(" ")
 
             if not _argx[0] == "":

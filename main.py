@@ -3,7 +3,19 @@ import os
 import socket
 import sys
 
-sys.path.append(os.getcwd())
+# Check if the cipher folder exists and adds it to the sys.path.append
+if "cipher" in os.listdir() and os.path.isdir("cipher"):
+    sys.path.append(os.getcwd())
+else:
+    def get_resource_path(relative_path):
+        """Get the absolute path to a resource, works for development and PyInstaller."""
+        if hasattr(sys, "_MEIPASS"):
+            base_path = sys._MEIPASS
+        else:
+            base_path = os.path.abspath(".")
+        return os.path.join(base_path, relative_path)
+    sys.path.append(get_resource_path("resources/cipher"))
+    
 # Thats hella lot of libraries
 # And thats just the beginning there is more in the cipher/api.py file :)
 #

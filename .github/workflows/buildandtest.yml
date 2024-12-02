@@ -52,7 +52,7 @@ jobs:
       - name: Test Initialization
         run: |
             if ($env:RUNNER_OS -eq "Windows") {
-              $EXECUTABLE = ".\dist\windows\cipheros.exe"
+              $EXECUTABLE = ".\dist\windows-latest\cipheros.exe"
               if (-Not (Test-Path $EXECUTABLE)) {
                 Write-Error "Error: Compiled executable not found!"
                 exit 1

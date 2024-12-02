@@ -1,1 +1,1 @@
-pyinstaller main.py --hidden-import=yaml --hidden-import=yaml --exclude-module=pygame --exclude-module=PyQt5 --exclude-module=PySide6 --onefile --icon="./icon.ico" --name="cipher"
+pyinstaller main.py --hidden-import=yaml --hidden-import=yaml --exclude-module=pygame --exclude-module=PyQt5 --exclude-module=PySide6 --onefile --icon="./icon.ico" --name="cipheros_test"

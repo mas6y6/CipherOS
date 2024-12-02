@@ -35,6 +35,7 @@ jobs:
 
       # Step 5: Execute Compilation Script based on OS
       - name: Run Compilation Script
+        shell: bash
         run: |
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             echo "Compiling for Windows..."

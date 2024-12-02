@@ -38,19 +38,19 @@ jobs:
         run: |
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             echo "Compiling for Windows..."
-            pyinstaller main.py --distpath dist/windows --hidden-import=yaml --hidden-import=yaml --exclude-module=pygame --exclude-module=PyQt5 --exclude-module=PySide6 --onefile --icon="./icon.ico" --name="cipheros_test"
+            pyinstaller main.py --distpath dist/${{ matrix.os }}/ --hidden-import=yaml --hidden-import=yaml --exclude-module=pygame --exclude-module=PyQt5 --exclude-module=PySide6 --onefile --icon="./icon.ico" --name="cipheros"
           elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
             echo "Compiling for Linux..."
-            pyinstaller main.py --distpath dist/linux --hidden-import=yaml --hidden-import=yaml --exclude-module=pygame --exclude-module=PyQt5 --exclude-module=PySide6 --onefile --icon="./icon.ico" --name="cipheros_test"
+            pyinstaller main.py --distpath dist/${{ matrix.os }}/ --hidden-import=yaml --hidden-import=yaml --exclude-module=pygame --exclude-module=PyQt5 --exclude-module=PySide6 --onefile --icon="./icon.ico" --name="cipheros"
           elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
             echo "Compiling for macOS..."
-            pyinstaller main.py --distpath dist/macos --hidden-import=yaml --hidden-import=yaml --exclude-module=pygame --exclude-module=PyQt5 --exclude-module=PySide6 --onefile --icon="./icon.ico" --name="cipheros_test"
+            pyinstaller main.py --distpath dist/${{ matrix.os }}/ --hidden-import=yaml --hidden-import=yaml --exclude-module=pygame --exclude-module=PyQt5 --exclude-module=PySide6 --onefile --icon="./icon.ico" --name="cipheros"
           fi
 
       # Step 6: Test Initialization of Compiled Executable
       - name: Test Initialization
         run: |
-          EXECUTABLE="./dist/${{ matrix.os }}/your_script"
+          EXECUTABLE="./dist/${{ matrix.os }}/cipheros"
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             EXECUTABLE="${EXECUTABLE}.exe"
           fi

@@ -9,7 +9,8 @@ jobs:
   test-and-build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]  # Run on all platforms
+        os: [ubuntu-latest, windows-latest, macos-latest]  # Run on all 
+        arch: [x64, arm64]
     runs-on: ${{ matrix.os }}
 
     steps:

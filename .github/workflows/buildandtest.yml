@@ -50,33 +50,39 @@ jobs:
       # Step 6: Test Initialization of Compiled Executable
       - name: Test Initialization
         run: |
-          if ($env:RUNNER_OS -eq "Windows") {
-            $EXECUTABLE = ".\dist\windows\cipheros.exe"
-            if (-Not (Test-Path $EXECUTABLE)) {
-              Write-Error "Error: Compiled executable not found!"
-              exit 1
+            if ($env:RUNNER_OS -eq "Windows") {
+              $EXECUTABLE = ".\dist\windows\cipheros.exe"
+              if (-Not (Test-Path $EXECUTABLE)) {
+                Write-Error "Error: Compiled executable not found!"
+                exit 1
+              }
+              & $EXECUTABLE --debug
+              if ($LASTEXITCODE -ne 0) {
+                Write-Error "Error: Program failed during initialization!"
+                exit 1
+              }
             }
-            & $EXECUTABLE --debug
-            if ($LASTEXITCODE -ne 0) {
-              Write-Error "Error: Program failed during initialization!"
-              exit 1
-            }
-          } else {
-            EXECUTABLE="./dist/${{ matrix.os }}/cipheros"
-            if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-              EXECUTABLE="${EXECUTABLE}.exe"
-            fi
-      
-            # Check if executable exists
-            if [[ ! -f "$EXECUTABLE" ]]; then
-              echo "Error: Compiled executable not found!"
-              exit 1
-            fi
-      
-            # Run the executable with --debug to test initialization
-            $EXECUTABLE --debug || (echo "Error: Program failed during initialization!" && exit 1)
-          }
         shell: pwsh
+        if: runner.os == 'Windows'
+        
+      - name: Test Initialization
+        run: |
+          EXECUTABLE="./dist/${{ matrix.os }}/cipheros"
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            EXECUTABLE="${EXECUTABLE}.exe"
+          fi
+      
+          # Check if executable exists
+          if [[ ! -f "$EXECUTABLE" ]]; then
+            echo "Error: Compiled executable not found!"
+            exit 1
+          fi
+      
+          # Run the executable with --debug to test initialization
+          $EXECUTABLE --debug || (echo "Error: Program failed during initialization!" && exit 1)
+        shell: bash
+        if: runner.os != 'Windows'
+
 
       # Step 7: Upload Build Artifacts
       - name: Upload Build Artifacts

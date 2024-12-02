@@ -5,8 +5,7 @@ cipher.spec
 cipher/__pycache__
 example_plugin/__pycache__
 plugins/neofetch/__pycache__
-dist/plugins
-dist/data
+dist
 visualstudio
 macos/cipher/.DS_Store
 netmaptest.py

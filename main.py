@@ -851,7 +851,7 @@ Project Codename: Paradox"""
                 user_input = user_input = prompt(
                 f"{commandlineinfo}> ", completer=command_completer, history=history
             )
-            except NoConsoleScreenBufferError as e:
+            except Exception as e:
                 if debugmode:
                     print("No console found. Which means testing is completed!")
                     sys.exit(0)

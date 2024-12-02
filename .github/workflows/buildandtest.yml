@@ -38,13 +38,13 @@ jobs:
         run: |
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             echo "Compiling for Windows..."
-            pyinstaller --onefile your_script.py --distpath dist/windows
+            pyinstaller main.py --distpath dist/windows --hidden-import=yaml --hidden-import=yaml --exclude-module=pygame --exclude-module=PyQt5 --exclude-module=PySide6 --onefile --icon="./icon.ico" --name="cipheros_test"
           elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
             echo "Compiling for Linux..."
-            pyinstaller --onefile your_script.py --distpath dist/linux
+            pyinstaller main.py --distpath dist/linux --hidden-import=yaml --hidden-import=yaml --exclude-module=pygame --exclude-module=PyQt5 --exclude-module=PySide6 --onefile --icon="./icon.ico" --name="cipheros_test"
           elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
             echo "Compiling for macOS..."
-            pyinstaller --onefile your_script.py --distpath dist/macos
+            pyinstaller main.py --distpath dist/macos --hidden-import=yaml --hidden-import=yaml --exclude-module=pygame --exclude-module=PyQt5 --exclude-module=PySide6 --onefile --icon="./icon.ico" --name="cipheros_test"
           fi
 
       # Step 6: Test Initialization of Compiled Executable

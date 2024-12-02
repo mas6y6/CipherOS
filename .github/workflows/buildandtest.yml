@@ -1,0 +1,62 @@
+name: Test and Compile with Custom Scripts
+
+on:
+  push:
+    branches:
+      - main  # Trigger on pushes to the main branch
+
+jobs:
+  test-and-build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]  # Run on all platforms
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Setup Environment
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Step 3: Execute Compilation Script
+      - name: Run Compilation Script
+        run: |
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            compile.bat
+          else
+            bash compile.sh
+          fi
+
+      # Step 4: Test Initialization of Compiled Executable
+      - name: Test Initialization
+        run: |
+          EXECUTABLE="./dist/your_script"
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            EXECUTABLE="${EXECUTABLE}.exe"
+          fi
+
+          # Check if executable exists
+          if [[ ! -f "$EXECUTABLE" ]]; then
+            echo "Error: Compiled executable not found!"
+            exit 1
+          fi
+
+          # Run the executable with --debug to test initialization
+          $EXECUTABLE --debug || (echo "Error: Program failed during initialization!" && exit 1)
+
+      # Step 5: Upload Build Artifacts
+      - name: Upload Build
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }}-build
+          path: dist/

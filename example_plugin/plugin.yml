@@ -1,9 +1,19 @@
-configversion: 1
+#Don't change this
+configversion: 2
+
+#Version of your plugin
 version: 1
-cipherversion: 1
-# The name must match the folder of the plugin
-name: example_plugin
-displayname: "Example Plugin"
-class: ExamplePlugin
-dependencies: #Put your dependencies here cipheros will install them so your plugin can use them
+
+team: ExampleTeam #If you have like a whole team of people that are working on this plugin you can specify it here
+
+authors: # If you have a team of people that are working on this project
+- Example
+
+name: example_plugin # The name must match the folder of the plugin
+
+displayname: "Example Plugin" # This is just the displayname of your plugin
+
+class: ExamplePlugin #This must match the class in the __init__.py class
+
+dependencies: #Put your dependencies here cipheros will install them so your plugin can use them (This are installed from pypi)
 #  - requests

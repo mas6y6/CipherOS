@@ -1,0 +1,77 @@
+name: Test and Compile with Custom Scripts
+
+on:
+  push:
+    branches:
+      - main  # Trigger on pushes to the main branch
+
+jobs:
+  test-and-build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        arch: [x64, arm64]
+        exclude:
+          - os: windows-latest
+            arch: arm64
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Setup Python
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      # Step 3: Install Dependencies
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+
+      - name: Detect Architecture
+        run: echo "Running on $RUNNER_OS with architecture $RUNNER_ARCH"
+        shell: bash
+
+      - name: Run Compilation Script
+        shell: bash
+        run: |
+          OUTPUT_DIR="distworkflow/${{ matrix.os }}/${{ matrix.arch }}"
+          mkdir -p "$OUTPUT_DIR"
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            echo "Compiling for Windows (${RUNNER_ARCH})..."
+            pyinstaller main.py --distpath "$OUTPUT_DIR" --onefile --icon="./icon.ico" --name="cipheros"
+          elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            echo "Compiling for Linux (${RUNNER_ARCH})..."
+            pyinstaller main.py --distpath "$OUTPUT_DIR" --onefile --icon="./icon.ico" --name="cipheros"
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            echo "Compiling for macOS (${RUNNER_ARCH})..."
+            pyinstaller main.py --distpath "$OUTPUT_DIR" --onefile --icon="./icon.ico" --name="cipheros"
+          fi
+
+      - name: Test Initialization
+        shell: bash
+        run: |
+          EXECUTABLE="distworkflow/${{ matrix.os }}/${{ matrix.arch }}/cipheros"
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            EXECUTABLE="${EXECUTABLE}.exe"
+          fi
+
+          if [[ ! -f "$EXECUTABLE" ]]; then
+            echo "Error: Compiled executable not found!"
+            exit 1
+          fi
+
+          $EXECUTABLE --debug || (echo "Error: Program failed during initialization!" && exit 1)
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: "${{ matrix.os }}-${{ matrix.arch }}-build"
+          path: "distworkflow/${{ matrix.os }}/${{ matrix.arch }}"
+      
+

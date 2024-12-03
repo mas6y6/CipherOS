@@ -1,0 +1,12 @@
+configversion: 1
+version: 30
+cipherversion: 1
+name: "hacknet"
+authors:
+  - vox_eternal
+  - mas6y6
+displayname: "Hacknet Addons"
+class: HacknetPlugin
+dependencies:
+  - pygame
+  - cursor

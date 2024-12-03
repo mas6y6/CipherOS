@@ -1,4 +1,5 @@
-from cipher.plugins import CipherAPI, CipherPlugin
+from cipher.plugins import CipherPlugin, CipherAPI
+from cipher.parsers import ArgumentParser
 import os, platform
 
 class neofetch(CipherPlugin):
@@ -13,6 +14,11 @@ class neofetch(CipherPlugin):
         print("neofetch disabled.")
         
     def register_commands(self):
-        @CipherPlugin.command(name="neofetch")
-        def neofetch(args):
-            print(platform.system())
+        @CipherPlugin.command()
+        def neofetch(argsraw):
+            parser = ArgumentParser(self.api,"Fetches the system infomation and prints it to the console.")
+            parser.parse_args(argsraw)
+            
+            if parser.help_flag:
+                return None
+            print("OS: "+platform.system()+" "+platform.version()+" "+platform.machine())

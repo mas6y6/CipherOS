@@ -1,11 +1,14 @@
 data
-compileplugin.sh
 cipher/__pycache__
 build
 cipher.spec
-comple.bat
 cipher/__pycache__
 example_plugin/__pycache__
 plugins/neofetch/__pycache__
 dist
 visualstudio
+macos/cipher/.DS_Store
+netmaptest.py
+test.py
+plugins/hacknet/__pycache__
+tools

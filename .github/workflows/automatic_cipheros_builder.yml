@@ -14,8 +14,6 @@ jobs:
         exclude:
           - os: windows-latest
             arch: arm64
-          - os: macos-latest
-            arch: x32
     runs-on: ${{ matrix.os }}
 
     steps:

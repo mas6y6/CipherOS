@@ -1,4 +1,4 @@
-configversion: 1
+configversion: 2
 version: 30
 # The name must match the folder of the plugin
 name: hpt

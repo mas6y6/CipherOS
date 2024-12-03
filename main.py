@@ -827,7 +827,7 @@ if __name__ == "__main__":
     )
 
     print(
-    colorama.Fore.MAGENTA
+    colorama.Fore.LIGHTMAGENTA_EX
     + r"""   _______       __              ____  _____
   / ____(_)___  / /_  ___  _____/ __ \/ ___/
  / /   / / __ \/ __ \/ _ \/ ___/ / / /\__ \ 
@@ -838,7 +838,7 @@ if __name__ == "__main__":
 Project Codename: Paradox"""
     + colorama.Fore.RESET
 )
-    console.print("")
+    console.print("\n")
 
     history = InMemoryHistory()
     api.updatecompletions()

@@ -89,7 +89,7 @@ jobs:
       
       - name: Add and Commit Changes
         run: |
-          git add dist/
+          git add distworkflow/
           git commit -m "Add compiled binaries for ${{ matrix.os }}" || echo "No changes to commit."
       
       - name: Push Changes

@@ -7,9 +7,6 @@ import sys
 if "cipher" in os.listdir() and os.path.isdir("cipher"):
     sys.path.append(os.getcwd())
     sys.path.append(os.path.join(os.getcwd(),"cipher"))
-    sys.path.append(os.path.join(os.getcwd(),"cipher","tools"))
-    for i in os.listdir(os.path.join(os.getcwd(),"cipher","tools")):
-        sys.path.append(os.path.join(os.getcwd(),"cipher","tools",i))
 else:
     def get_resource_path(relative_path):
         """Get the absolute path to a resource, works for development and PyInstaller."""
@@ -20,8 +17,6 @@ else:
         return os.path.join(base_path, relative_path)
     sys.path.append(get_resource_path("resources/cipher"))
     sys.path.append(get_resource_path("resources/cipher/tools"))
-    for i in os.listdir(get_resource_path("resources/cipher/tools")):
-        sys.path.append(get_resource_path(f"resources/cipher/tools/{i}"))
     
 # Thats hella lot of libraries
 # And thats just the beginning there is more in the cipher/api.py file :)
@@ -64,7 +59,6 @@ from rich.table import Table
 from rich.text import Text
 from rich.tree import Tree
 from rich.markdown import Markdown
-from cipher.tools.nettacker.core.app import Nettacker
 
 colorama.init()
 running_on_mac = False  # Meant as the cipher library is not installed (for macOS)

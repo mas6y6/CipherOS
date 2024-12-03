@@ -16,9 +16,18 @@ class Namespace:
     def __repr__(self):
         return str(self.__dict__)
 
+class ArgumentGroup:
+    """Represents a group of arguments."""
+    def __init__(self, name, description=None):
+        self.name = name
+        self.description = description
+        self.arguments = []
+
+    def add_argument(self, *args, **kwargs):
+        self.arguments.append((args, kwargs))
 
 class ArgumentParser:
-    def __init__(self,api, description=None, include_help=True):
+    def __init__(self,api, description=None, include_help=True, **kwargs):
         self.description = description
         self._arguments = []
         self._flags = {}
@@ -27,6 +36,13 @@ class ArgumentParser:
         self._subcommands = {}
         self.help_flag = False
         self.include_help = include_help
+        self.argument_groups = []
+
+    def add_argument_group(self, name, description=None):
+        """Adds a new argument group."""
+        group = ArgumentGroup(name, description)
+        self.argument_groups.append(group)
+        return group
 
     def add_subcommand(self, name, description=None):
         """Adds a subcommand with its own ArgumentParser."""

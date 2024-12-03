@@ -41,3 +41,7 @@ And download the cipher folder and put it in the same directory as `cipher`
 + [@mas6y6](https://github.com/mas6y6) (Owner)
 + [@malachi196](https://github.com/malachi196)
 + [@overo3](https://github.com/Overo3)
+
+# Credits
+
+None yet..

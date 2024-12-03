@@ -1,0 +1,8 @@
+configversion: 1
+version: 30
+# The name must match the folder of the plugin
+name: hpt
+displayname: "hostprobe-terminal"
+class: hpt
+dependencies:
+  - hostprobe

@@ -3,6 +3,9 @@ import os
 import socket
 import sys
 
+import rich
+import rich.traceback
+
 # Check if the cipher folder exists and adds it to the sys.path.append
 if "cipher" in os.listdir() and os.path.isdir("cipher"):
     sys.path.append(os.getcwd())
@@ -859,9 +862,9 @@ Project Codename: Paradox"""
             )
             except Exception as e:
                 if debugmode:
-                    print("No console found. Which means testing is completed!")
+                    print("No console found Debugmode is enabled so this will exit the program. (Used for github workflows)")
                     sys.exit(0)
-                raise NoConsoleScreenBufferError(e)
+                raise RuntimeError(e)
             _argx = user_input.split(" ")
 
             if not _argx[0] == "":

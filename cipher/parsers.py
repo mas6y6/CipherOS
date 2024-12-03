@@ -1,6 +1,7 @@
 import json
 from yaml import YAMLObject, safe_load
 import io
+import cipher.api
 
 class ParserError(Exception):
     pass
@@ -27,7 +28,7 @@ class ArgumentGroup:
         self.arguments.append((args, kwargs))
 
 class ArgumentParser:
-    def __init__(self,api, description=None, include_help=True, **kwargs):
+    def __init__(self,api, description=None, include_help=True):
         self.description = description
         self._arguments = []
         self._flags = {}
@@ -199,18 +200,44 @@ class ConfigParser:
         self.configversion = self.dict["configversion"]
         if self.configversion == 1:
             self.name = self.dict["name"]
-            self.displayname = self.dict["displayname"]
+            
+            if not self.dict["displayname"]:
+                self.displayname = self.dict["displayname"]
+            else:
+                self.displayname = self.name
+            
             self.version = self.dict["version"]
             self.authors = None
             self.team = None
+            self.description = None
             self.classname = self.dict["class"]
             self.dependencies = self.dict["dependencies"]
         elif self.configversion == 2:
             self.name = self.dict["name"]
-            self.displayname = self.dict["displayname"]
+            
+            if not self.dict["displayname"]:
+                self.displayname = self.dict["displayname"]
+            else:
+                self.displayname = self.name
+            
             self.version = self.dict["version"]
             self.authors = self.dict["authors"]
             self.team = self.dict["team"]
+            self.description = None
+            self.classname = self.dict["class"]
+            self.dependencies = self.dict["dependencies"]
+        elif self.configversion == 3:
+            self.name = self.dict["name"]
+            
+            if not self.dict["displayname"]:
+                self.displayname = self.dict["displayname"]
+            else:
+                self.displayname = self.name
+            
+            self.version = self.dict["version"]
+            self.authors = self.dict["authors"]
+            self.team = self.dict["team"]
+            self.description = self.dict["description"]
             self.classname = self.dict["class"]
             self.dependencies = self.dict["dependencies"]
         else:
@@ -218,6 +245,9 @@ class ConfigParser:
                 f"The specified configversion \"{self.configversion}\" defined in the \"plugin.yml\" is not supported.\n"
                 f"Please check the \"plugin.yml\" file or update to the latest version of CipherOS"
             )
+
+        if not len(self.authors) >= 1:
+            raise ParserError("There must be one or more authors in the \"authors\" config")
 
     def get(self, key: str) -> str:
         """Returns a value of the specified key

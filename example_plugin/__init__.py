@@ -1,6 +1,6 @@
 from cipher.plugins import CipherPlugin, CipherAPI
 
-# This structure of building 
+# This structure of a plugin 
 
 class ExamplePlugin(CipherPlugin):
     def __init__(self, api: CipherAPI,config):
@@ -14,9 +14,6 @@ class ExamplePlugin(CipherPlugin):
         print("Example Plugin enabled")
     
     def register_commands(self):
-        """Method to register all commands for this plugin"""
-        
-        # Register a command called 'hello'
         @CipherPlugin.command()  # This can also be done with @CipherPlugin.command()
         def hello(args):
             """This command prints a friendly greeting"""

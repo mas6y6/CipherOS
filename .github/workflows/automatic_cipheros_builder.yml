@@ -1,19 +1,21 @@
-name: Test and Compile with Custom Scripts
+name: Automatic CipherOS Builder
 
 on:
   push:
     branches:
-      - main  # Trigger on pushes to the main branch
+      - main
 
 jobs:
   test-and-build:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        arch: [x64, arm64]
+        arch: [x64, arm64, x32]
         exclude:
           - os: windows-latest
             arch: arm64
+          - os: macos-latest
+            arch: x32
     runs-on: ${{ matrix.os }}
 
     steps:

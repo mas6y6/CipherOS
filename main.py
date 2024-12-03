@@ -105,10 +105,12 @@ from cipher.api import CipherAPI
 import cipher.exceptions as ex
 import cipher.network
 from cipher.parsers import ArgumentParser, ConfigParser
+import cipher.api
 
 # variables
 version = 1
 api = CipherAPI()
+cipher.api.initialized_api = api
 console = api.console
 debugmode = False
 

@@ -15,6 +15,8 @@ from wheel.wheelfile import WheelFile
 from rich.console import Console
 from cipher.parsers import ArgumentParser, ArgumentRequiredError, ParserError, ConfigParser
 
+initialized_api = None
+
 class CipherAPI:
     def __init__(self):
         self.commands = {}

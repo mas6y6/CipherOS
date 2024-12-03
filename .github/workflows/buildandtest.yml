@@ -75,24 +75,5 @@ jobs:
         with:
           name: "${{ matrix.os }}-${{ matrix.arch }}-build"
           path: "distworkflow/${{ matrix.os }}/${{ matrix.arch }}"
-
-      - name: Configure Git
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-
-      - name: Fetch Latest Changes
-        run: git fetch origin
-
-      - name: Merge Latest Changes
-        run: git merge origin/main || echo "Nothing to merge."
-      
-      - name: Add and Commit Changes
-        run: |
-          git add distworkflow/
-          git commit -m "Add compiled binaries for ${{ matrix.os }}" || echo "No changes to commit."
-      
-      - name: Push Changes
-        run: git push origin main
       
 

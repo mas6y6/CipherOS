@@ -246,8 +246,9 @@ class ConfigParser:
                 f"Please check the \"plugin.yml\" file or update to the latest version of CipherOS"
             )
 
-        if not len(self.authors) >= 1:
-            raise ParserError("There must be one or more authors in the \"authors\" config")
+        if isinstance(self.authors,list):
+            if not len(self.authors) >= 1:
+                raise ParserError("There must be one or more authors in the \"authors\" config")
 
     def get(self, key: str) -> str:
         """Returns a value of the specified key

@@ -787,32 +787,27 @@ if __name__ == "__main__":
                 print(f"arbc encountered an error: {e}")
         @api.command()
         def vdump(argsraw):
-            parser = ArgumentParser(api,description="Dumps all variables to console")
-            parser.add_argument("scope",type=str,help_text="Scope (global/local)")
-            
+            parser = ArgumentParser(api, description="Dumps all variables to console")
+            parser.add_argument("scope", type=str, help_text="Scope (global/local)")
+
             args = parser.parse_args(argsraw)
 
             if parser.help_flag:
                 return None
+
             try:
-                if args.scope:
-                    if args.scope == "local":
-                        l = locals()
-                        locals()
-                        console.print(l)
-                    elif args.scope == "global":
-                        g = globals()
-                        globals()
-                        console.print(g)
-                    else:
-                        printerror(f"Invalid option {args.scope}")
+                username = os.environ.get("USER", "unknown")
+
+                if args.scope == "local":
+                    local_vars = {k: v for k, v in locals().items() if k != "local_vars"}
+                    console.print(str(local_vars).replace(username, "###"))
+                elif args.scope == "global":
+                    global_vars = {k: v for k, v in globals().items() if k != "global_vars"}
+                    console.print(str(global_vars).replace(username, "###"))
                 else:
-                    l = locals()
-                    locals()
-                    console.print(str(l).replace(os.getlogin(),"###"))
-                    g = globals()
-                    globals()
-                    console.print(str(l).replace(os.getlogin(),"###"))
+                    console.print(f"[bold red]Invalid option: {args.scope}[/bold red]")
+            except Exception as e:
+                console.print(f"[bold red]vdump encountered an error: {e}[/bold red]")
             except Exception as e:
                 print(f"vdump encountered an error: {e}")
     else:

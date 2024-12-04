@@ -809,10 +809,10 @@ if __name__ == "__main__":
                 else:
                     l = locals()
                     locals()
-                    console.print(l)
+                    console.print(str(l).replace(os.getlogin(),"###"))
                     g = globals()
                     globals()
-                    console.print(g)
+                    console.print(str(l).replace(os.getlogin(),"###"))
             except Exception as e:
                 print(f"vdump encountered an error: {e}")
     else:

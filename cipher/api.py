@@ -180,6 +180,8 @@ class CipherAPI:
         """
         import sysconfig
 
+        print(sysconfig.get_platform())
+
         python_version = sysconfig.get_python_version()
         python_tag = f"cp{python_version.replace('.', '')}"
         platform_tag = sysconfig.get_platform().replace("-", "_").replace(".", "_")

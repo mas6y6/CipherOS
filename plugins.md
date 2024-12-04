@@ -9,10 +9,10 @@ You can use the [Example plugin](https://github.com/mas6y6/CipherOS/tree/main/ex
 So the directory structure of a plugin is very similar to modules it must look something like this.
 
 > [!IMPORTANT]
-> **Your plugin name must be the folder where your plugin is located this is used later in the config. The name must be lowercase ?and have underscores `_` as spaces**
+> **Your plugin name must be the folder where your plugin is located this is used later in the config. The name must be lowercase and have underscores `_` as spaces**
 
 > [!TIP]
-> **There is a `displayname` config to have displayname if you want that**
+> **There is a `displayname` argument in the config for `pl info`**
 
 ```py
 .
@@ -22,8 +22,8 @@ So the directory structure of a plugin is very similar to modules it must look s
 
 You must have the `plugin.yml` file to get the class of the plugin.
 
-# Setting up the configuation
-In the `plugin.yml` file this is where we are going to setup the plugin config like the name of the plugin, and the displayname but most importantly the class.
+# Setting up the configuration
+The `plugin.yml` file must be filled out in order for CipherOS to determine how to find & run your plugin.
 
 This is what your `plugin.yml` should look like
 ```yaml
@@ -44,9 +44,9 @@ displayname: "Example Plugin" # This is just the displayname of your plugin
 
 description: I am a example plugin! # Description of your plugin
 
-class: ExamplePlugin #This must match the class in the __init__.py class
+class: ExamplePlugin # This must match the class in the __init__.py file
 
-dependencies: #Put your dependencies here cipheros will install them so your plugin can use them (This are installed from pypi)
+dependencies: # Put your dependencies here, and CipherOS will download them from PyPi automatically
 #  - requests
 ```
 
@@ -59,13 +59,13 @@ Don't change the `configversion` setting this must be at latest configversion `3
 The version of your plugin
 
 ### `team`
-If you have a team or a orgination working on this plugin you can put it here
+If you have a team or organization working on this plugin you can put it here
 
-### `authors` *required (at least 1 or more)*
+### `authors` *required (at least 1)*
 If you want to list authors that helped you work on this plugin you can list it here. At least one is required.
 
 ### `name` *required*
-**Your plugin name must be the folder where your plugin is located this is used later in the config. The name must be lowercase and have underscores `_` as spaces**
+**Your plugin name must be the folder where your plugin is located. This is used later in the config. The name must be lowercase and have underscores `_` as spaces**
 
 This is the name of your plugin.
 *Used a lot in CipherOS*
@@ -87,18 +87,18 @@ The class of the plugin in the `__init__.py` file
 
 ### `dependencies`
 
-If your plugin has dependencies from pypi you can specify them here and CipherOS will download them for you. 
+If your plugin has dependencies from PyPi you can specify them here and CipherOS will download them for you. 
 
 # Setting up the code
 
-So you need to import the `CipherAPI` and the `CipherPlugin` to get the API.
+You need to import the `CipherAPI` and the `CipherPlugin` to be able to register commands and build a plugin.
 
 ```py
 from cipher.plugins import CipherPlugin, CipherAPI
 ```
 
-This will import the `CipherPlugin` class which directly talks to CipherOS and the `CipherAPI` for the hintting.
-For the actual class you would need to make a class on top of the parent class the `CipherPlugin` class like this:
+This will import the `CipherPlugin` class which directly talks to CipherOS and the `CipherAPI` for registering the plugin.
+For the actual class you would need to make a child class of `CipherPlugin` class like this:
 
 ```py
 class ExamplePlugin(CipherPlugin):
@@ -116,12 +116,12 @@ The init class is to pass the `config` and the `api` variables to the subclass `
 
 > [!WARNING]
 > **Warning: The `api` has a built-in command() decorator.**
-> **Please don't use this decorator as it causes issues once the disabled with `pl disable <pluginname>`**
+> **Please don't use this decorator as it is meant for default commands *only***
 
 > [!IMPORTANT]
 >
 > **Please keep your commands in `register_commands(self)`**
-> **If you put the commands in the main class it will not register.**
+> **If you put the commands as methods they will not be registered**
 >
 > ```py
 > def register_commands(self):
@@ -130,7 +130,7 @@ The init class is to pass the `config` and the `api` variables to the subclass `
 >            print("Example")
 > ```
 
-To register commands you can use the `@CipherPlugin.command()` decorator thats built-in to the `CipherPlugin` class
+To register commands you can use the `@CipherPlugin.command()` decorator.
 
 ```py
 # Register a command called 'hello'
@@ -139,32 +139,31 @@ def hello(self,args):
     print("Hello from ExamplePlugin!")
 ```
 
-The command decorator does have arguments also to customize your plugin:
+The command decorator does have arguments to customize your plugin:
 
 ### `name`
 
-If your command overrides a other command you can specify it here to rename the command.
-By default this is set to the name of your plugin.
+By default, your command will be accessible by typing the name of the class into the command line, but if your command overrides default commands set a name for it in the decorator.
 Example:
 ```py
-def myowncommand(self,args): # `myowncommand` will be used as the name
+CipherPlugin.command(name=["exampleName"])
 ```
 
 ### `helpflag` *deprecated*
 
-This argument is deprecated its just here to provide compatablity to older plugins.
+This argument is deprecated.
 
-### `description`
+### `desc`
 
-Description of your plugin.
+Description of your command.
 
 ### `extradata` *deprecated*
 
-This argument is deprecated its just here to provide compatablity to older plugins.
+This argument is deprecated.
 
 ### `alias`
 
-This if your command has aliases you can list them in a `list` for python.
+Adds additional aliases to access the command via CLI.
 Example: 
 ```py
 @CipherPlugin.command(alias=["myalias_1","and_2"])

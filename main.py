@@ -788,7 +788,7 @@ if __name__ == "__main__":
         @api.command()
         def vdump(argsraw):
             parser = ArgumentParser(api, description="Dumps all variables to console")
-            parser.add_argument("scope", type=str, help_text="Scope (global/local)")
+            parser.add_argument("scope", type=str, help_text="Scope (global/local)",required=True)
 
             args = parser.parse_args(argsraw)
 

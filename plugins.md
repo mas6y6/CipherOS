@@ -1,7 +1,5 @@
 # Making plugins for CipherOS
 
-I designed the plugin structure to be similar to the Bukkit plugins to make it easier to develop on.
-
 Making plugins for CipherOS is very easy if you know how to do object orianted programming for Python and if you know how to build modules with the `__init__.py` class.
 
 You can use the [Example plugin](https://github.com/mas6y6/CipherOS/tree/main/example_plugin) if you want.
@@ -207,7 +205,7 @@ These are tools for helping you make your plugin that is built into CipherOS.
 
 This is the custom built in `ArgumentParser` that CipherOS.
 
-> [!IMPORTENT]
+> [!IMPORTANT]
 > **Please include after the `parser.parse_args()` function**
 > ```py
 > if parser.help_flag

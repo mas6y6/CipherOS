@@ -13,3 +13,4 @@ plugins/hacknet/__pycache__
 tools
 downloads
 .vscode
+.vscode/launch.json

@@ -183,24 +183,22 @@ def create_directories(path_list):
         if not os.path.exists(path):
             os.makedirs(path)
 
-if platform.system() == "Windows":
-    if is_running_in_program_files():
+if not executeargs.startdir:
+    if platform.system() == "Windows":
         api.pwd = os.path.expanduser("~")
         roaming_folder = os.path.join(os.environ.get("APPDATA"), "cipheros")
         create_directories([roaming_folder])
         api.starterdir = roaming_folder
         os.chdir(api.pwd)
-    else:
-        pass
-elif platform.system() == "Linux":
-    if not debugmode:
-        api.starterdir = os.path.expanduser("~")
-elif platform.system() == "Darwin":
-    if not debugmode:
-        api.starterdir = os.path.expanduser("~")
+    elif platform.system() == "Linux":
+        if not debugmode:
+            api.starterdir = os.path.expanduser("~")
+    elif platform.system() == "Darwin":
+        if not debugmode:
+            api.starterdir = os.path.expanduser("~")
 
-if executeargs.startdir:
-    api.starterdir = executeargs.startdir
+    if executeargs.startdir:
+        api.starterdir = executeargs.startdir
 
 directories_to_create = [
     os.path.join(api.starterdir, "data"),

@@ -12,3 +12,4 @@ test.py
 plugins/hacknet/__pycache__
 tools
 downloads
+.vscode

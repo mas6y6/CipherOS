@@ -817,10 +817,10 @@ if __name__ == "__main__":
     else:
         console.print("Starting CipherOS")
 
-    if not len(os.listdir(os.path.join(api.pwd, "plugins"))) == 0:
-        for i in os.listdir(os.path.join(api.pwd, "plugins")):
+    if not len(os.listdir(os.path.join(api.starterdir, "plugins"))) == 0:
+        for i in os.listdir(os.path.join(api.starterdir, "plugins")):
             try:
-                api.load_plugin(os.path.join(api.pwd, "plugins", i))
+                api.load_plugin(os.path.join(api.starterdir, "plugins", i))
             except:
                 printerror(f"Error: Plugin '{i}' failed to load\n" + traceback.format_exc())
     else:

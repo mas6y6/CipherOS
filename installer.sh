@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 echo "\033[1;35m   _______       __              ____  _____\033[0m"
 echo "\033[1;35m  / ____(_)___  / /_  ___  _____/ __ \/ ___/\033[0m"
 echo "\033[1;35m / /   / / __ \/ __ \/ _ \/ ___/ / / /\__ \ \033[0m"
@@ -58,7 +60,14 @@ fi
 echo "\033[1;34mDownloading CipherOS executable...\033[0m"
 mkdir -p "$INSTALL_DIR"
 
-curl -L "$GITHUB_REPO_URL" -o "$INSTALL_DIR/$EXECUTABLE"
+HTTP_STATUS=$(curl -s -o "$INSTALL_DIR/$EXECUTABLE" -w "%{http_code}" "$GITHUB_REPO_URL")
+
+if [ "$HTTP_STATUS" -ne 200 ]; then
+    echo "\033[1;31mFailed to download CipherOS. HTTP Status: $HTTP_STATUS. Please check the URL or try again later.\033[0m"
+    rm -f "$INSTALL_DIR/$EXECUTABLE"
+    exit 1
+fi
+
 if [ $? -ne 0 ]; then
     echo "\033[1;31mFailed to download CipherOS. Please check your network or the URL.\033[0m"
     exit 1

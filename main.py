@@ -164,6 +164,11 @@ def networkmap_save():
         json.dump(networkmap, f, indent=4)
         f.close()
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--debug",action="store_true",help="Enables debug mode")
+parser.add_argument("--startdir",action="store",help="Overrides the cache directory")
+
+executeargs = parser.parse_args()
 
 def is_running_in_program_files():
     program_files = os.environ.get("ProgramFiles")  # C:\Program Files
@@ -173,35 +178,40 @@ def is_running_in_program_files():
         program_files_x86
     )
 
+def create_directories(path_list):
+    for path in path_list:
+        if not os.path.exists(path):
+            os.makedirs(path)
 
-if os.name == "nt":
+if platform.system() == "Windows":
     if is_running_in_program_files():
         api.pwd = os.path.expanduser("~")
         roaming_folder = os.path.join(os.environ.get("APPDATA"), "cipheros")
-        os.makedirs(roaming_folder, exist_ok=True)
+        create_directories([roaming_folder])
         api.starterdir = roaming_folder
         os.chdir(api.pwd)
     else:
         pass
+elif platform.system() == "Linux":
+    if not debugmode:
+        api.starterdir = os.path.expanduser("~")
+elif platform.system() == "Darwin":
+    if not debugmode:
+        api.starterdir = os.path.expanduser("~")
 
-if not os.path.exists(os.path.join(api.starterdir, "data")):
-    os.mkdir(os.path.join(api.starterdir, "data"))
+if executeargs.startdir:
+    api.starterdir = executeargs.startdir
 
-if not os.path.exists(os.path.join(api.starterdir, "plugins")):
-    os.mkdir(os.path.join(api.starterdir, "plugins"))
+directories_to_create = [
+    os.path.join(api.starterdir, "data"),
+    os.path.join(api.starterdir, "plugins"),
+    os.path.join(api.starterdir, "data", "cache"),
+    os.path.join(api.starterdir, "data", "config"),
+    os.path.join(api.starterdir, "data", "cache", "packages"),
+    os.path.join(api.starterdir, "data", "cache", "packageswhl")
+]
 
-if not os.path.exists(os.path.join(api.starterdir, "data", "cache")):
-    os.mkdir(os.path.join(api.starterdir, "data", "cache"))
-
-if not os.path.exists(os.path.join(api.starterdir, "data", "config")):
-    os.mkdir(os.path.join(api.starterdir, "data", "config"))
-
-if not os.path.exists(os.path.join(api.starterdir, "data", "cache", "packages")):
-    os.mkdir(os.path.join(api.starterdir, "data", "cache", "packages"))
-
-if not os.path.exists(os.path.join(api.starterdir, "data", "cache", "packageswhl")):
-    os.mkdir(os.path.join(api.starterdir, "data", "cache", "packageswhl"))
-# builtin functions
+create_directories(directories_to_create)
 
 
 @api.command()
@@ -763,11 +773,7 @@ def remove(argsraw):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--debug",action="store_true",help="Enables debug mode")
-
-    args = parser.parse_args()
-    debugmode = args.debug
+    debugmode = executeargs.debug
     
     if debugmode:
         console.print("Starting CipherOS in [purple]debug mode[/purple]")

@@ -17,8 +17,13 @@ You can use the standalone .exe from [releases](https://github.com/mas6y6/Cipher
 Note: the standalone .exe will generate the `plugins` and `data` folder in the directory that the executable is run in, so it is recommended to drop the .exe in a dedicated folder before running.
 
 ### macOS / Linux
-The downloads are coming soon.
-For now you can just use the [compile.sh](https://github.com/mas6y6/CipherOS/blob/main/compile.sh) to compile the `main.py` file to `cipher`.
+You can run:
+```
+curl -sSL https://raw.githubusercontent.com/mas6y6/CipherOS/refs/heads/main/installer.sh | bash
+```
+To use the automatic installer.
+
+But if your architecture isn't supported you can build your own CipherOS build can just use the [compile.sh](https://github.com/mas6y6/CipherOS/blob/main/compile.sh) to compile the `main.py` file to `cipher`.
 
 And download the cipher folder and put it in the same directory as `cipher`
 ```tree
@@ -32,8 +37,8 @@ And download the cipher folder and put it in the same directory as `cipher`
 │   └── exceptions.py
 └── cipher (This is an executeable)
 ```
-**The `cipher` folder must be in the SAME folder as the executeable!**
-
+> [!IMPORTANT]
+> **The `cipher` folder must be in the SAME folder as the executeable!**
 ## Discord
 [Click me](https://discord.gg/4HJrhKhWgj) to join the Cipher HackSquad discord server
 

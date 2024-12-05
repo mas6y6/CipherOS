@@ -39,18 +39,18 @@ fi
 
 if [ "$OS" = "Linux" ]; then
     if [ "$ARCHITECTURE" = "x64" ]; then
-        GITHUB_REPO_URL="https://github.com/username/CipherOS/releases/latest/download/linux-x64-executable"
+        GITHUB_REPO_URL="https://github.com/username/CipherOS/releases/latest/download/linux-x64-executeable"
     elif [ "$ARCHITECTURE" = "arm64" ]; then
-        GITHUB_REPO_URL="https://github.com/username/CipherOS/releases/latest/download/linux-arm64-executable"
+        GITHUB_REPO_URL="https://github.com/username/CipherOS/releases/latest/download/linux-arm64-executeable"
     elif [ "$ARCHITECTURE" = "x32" ]; then
-        GITHUB_REPO_URL="https://github.com/username/CipherOS/releases/latest/download/linux-x32-executable"
+        GITHUB_REPO_URL="https://github.com/username/CipherOS/releases/latest/download/linux-x32-executeable"
     fi
     INSTALL_DIR="/opt/cipheros"
 elif [ "$OS" = "Darwin" ]; then
     if [ "$ARCHITECTURE" = "x64" ]; then
-        GITHUB_REPO_URL="https://github.com/username/CipherOS/releases/latest/download/macos-x64-executable"
+        GITHUB_REPO_URL="https://github.com/username/CipherOS/releases/latest/download/macos-x64-executeable"
     elif [ "$ARCHITECTURE" = "arm64" ]; then
-        GITHUB_REPO_URL="https://github.com/username/CipherOS/releases/latest/download/macos-arm64-executable"
+        GITHUB_REPO_URL="https://github.com/username/CipherOS/releases/latest/download/macos-arm64-executeable"
     fi
     INSTALL_DIR="/usr/local/cipheros"
 else

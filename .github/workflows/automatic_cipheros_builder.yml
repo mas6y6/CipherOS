@@ -68,7 +68,7 @@ jobs:
             exit 1
           fi
 
-          $EXECUTABLE --debug || (echo "Error: Program failed during initialization!" && exit 1)
+          $EXECUTABLE --debug --startdir=. || (echo "Error: Program failed during initialization!" && exit 1)
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v3

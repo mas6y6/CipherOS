@@ -48,17 +48,17 @@ jobs:
           elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
             echo "Compiling for Linux (${RUNNER_ARCH})..."
             pyinstaller main.py --distpath "$OUTPUT_DIR" --onefile --icon="./icon.ico" --name="linux-${RUNNER_ARCH})-executeable"
-            chmod +x $OUTPUT_DIR/cipheros
+            chmod +x $OUTPUT_DIR/linux-${RUNNER_ARCH})-executeable
           elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
             echo "Compiling for macOS (${RUNNER_ARCH})..."
             pyinstaller main.py --distpath "$OUTPUT_DIR" --onefile --icon="./icon.ico" --name="macos-${RUNNER_ARCH})-executeable"
-            chmod +x $OUTPUT_DIR/cipheros
+            chmod +x $OUTPUT_DIR/macos-${RUNNER_ARCH})-executeable
           fi
 
       - name: Test Initialization
         shell: bash
         run: |
-          EXECUTABLE="distworkflow/${{ matrix.os }}/${{ matrix.arch }}/cipheros"
+          EXECUTABLE="distworkflow/${{ matrix.os }}/${{ matrix.arch }}/${{ matrix.os }}-${RUNNER_ARCH})-executeable"
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             EXECUTABLE="${EXECUTABLE}.exe"
           fi

@@ -23,6 +23,8 @@ if [ "$RAW_ARCHITECTURE" = "x86_64" ]; then
     ARCHITECTURE="x64"
 elif [ "$RAW_ARCHITECTURE" = "aarch64" ]; then
     ARCHITECTURE="arm64"
+elif [ "$RAW_ARCHITECTURE" = "arm64" ]; then
+    ARCHITECTURE="arm64"
 elif [ "$RAW_ARCHITECTURE" = "i386" ] || [ "$ARCHITECTURE" = "i686" ]; then
     ARCHITECTURE="x32"
 else
@@ -39,18 +41,20 @@ fi
 
 if [ "$OS" = "Linux" ]; then
     if [ "$ARCHITECTURE" = "x64" ]; then
-        GITHUB_REPO_URL="https://github.com/username/CipherOS/releases/latest/download/linux-x64-executeable"
+        GITHUB_REPO_URL="https://github.com/mas6y6/CipherOS/releases/latest/download/linux-x64-executeable"
     elif [ "$ARCHITECTURE" = "arm64" ]; then
-        GITHUB_REPO_URL="https://github.com/username/CipherOS/releases/latest/download/linux-arm64-executeable"
+        GITHUB_REPO_URL="https://github.com/mas6y6/CipherOS/releases/latest/download/linux-arm64-executeable"
     elif [ "$ARCHITECTURE" = "x32" ]; then
-        GITHUB_REPO_URL="https://github.com/username/CipherOS/releases/latest/download/linux-x32-executeable"
+        GITHUB_REPO_URL="https://github.com/mas6y6/CipherOS/releases/latest/download/linux-x32-executeable"
     fi
     INSTALL_DIR="/opt/cipheros"
 elif [ "$OS" = "Darwin" ]; then
     if [ "$ARCHITECTURE" = "x64" ]; then
-        GITHUB_REPO_URL="https://github.com/username/CipherOS/releases/latest/download/macos-x64-executeable"
+        GITHUB_REPO_URL="https://github.com/mas6y6/CipherOS/releases/latest/download/macos-x64-executeable"
     elif [ "$ARCHITECTURE" = "arm64" ]; then
-        GITHUB_REPO_URL="https://github.com/username/CipherOS/releases/latest/download/macos-arm64-executeable"
+        GITHUB_REPO_URL="https://github.com/mas6y6/CipherOS/releases/latest/download/macos-arm64-executeable"
+    elif [ "$ARCHITECTURE" = "x32" ]; then
+        GITHUB_REPO_URL="https://github.com/mas6y6/CipherOS/releases/latest/download/macos-x32-executeable"
     fi
     INSTALL_DIR="/usr/local/cipheros"
 else
@@ -60,7 +64,7 @@ fi
 echo "\033[1;34mDownloading CipherOS executable...\033[0m"
 mkdir -p "$INSTALL_DIR"
 
-HTTP_STATUS=$(curl -s -o "$INSTALL_DIR/$EXECUTABLE" -w "%{http_code}" "$GITHUB_REPO_URL")
+HTTP_STATUS=$(curl -L -s -o "$INSTALL_DIR/$EXECUTABLE" -w "%{http_code}" "$GITHUB_REPO_URL")
 
 if [ "$HTTP_STATUS" -ne 200 ]; then
     echo "\033[1;31mFailed to download CipherOS. HTTP Status: $HTTP_STATUS. Please check the URL or try again later.\033[0m"

@@ -192,10 +192,10 @@ if not executeargs.startdir:
         os.chdir(api.pwd)
     elif platform.system() == "Linux":
         if not debugmode:
-            api.starterdir = os.path.expanduser("~")
+            api.starterdir = os.path.join(os.path.expanduser("~"),"CipherOS")
     elif platform.system() == "Darwin":
         if not debugmode:
-            api.starterdir = os.path.expanduser("~")
+            api.starterdir = os.path.join(os.path.expanduser("~"),"CipherOS") 
 
     if executeargs.startdir:
         api.starterdir = executeargs.startdir
@@ -579,7 +579,7 @@ def plugins(argsraw):
         console.print("Reloading all plugins...")
         for plugin_name in list(api.plugins):
             api.disable_plugin(api.plugins[plugin_name])
-        for plugin_file in os.listdir(os.path.join(api.starterdir, "plugins")):
+        for plugin_file in os.listdir(os.path.join(api.starterdir,"CipherOS", "plugins")):
             api.load_plugin(os.path.join(api.starterdir, "plugins", plugin_file))
         console.print("Reload complete.")
 
@@ -817,8 +817,8 @@ if __name__ == "__main__":
     else:
         console.print("Starting CipherOS")
 
-    if not len(os.listdir(os.path.join(api.starterdir, "plugins"))) == 0:
-        for i in os.listdir(os.path.join(api.starterdir, "plugins")):
+    if not len(os.listdir(os.path.join(api.starterdir,"CipherOS","plugins"))) == 0:
+        for i in os.listdir(os.path.join(api.starterdir,"CipherOS","plugins")):
             try:
                 api.load_plugin(os.path.join(api.starterdir, "plugins", i))
             except:

@@ -35,7 +35,7 @@ DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 PrivilegesRequired=lowest
 OutputDir=./distworkflow
-OutputBaseFilename=CipherOS Windows 1.5.1 x64
+OutputBaseFilename=CipherOS Windows 1.5.2 x64
 SetupIconFile=./icon.ico
 Compression=lzma
 SolidCompression=yes

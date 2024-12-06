@@ -80,9 +80,10 @@ jobs:
           $arch = if ($env:PROCESSOR_ARCHITECTURE -eq "AMD64") { "x64" } else { "x32" }
 
           # Set the path to the ISS file based on architecture
-          $issFile = if ($arch -eq "x64") { "inno\\installer_x64.iss" } else { "inno\\installer_x32.iss" }
+          $issFile = if ($arch -eq "x64") { "installer_x64.iss" } else { "installer_x32.iss" }
           
           # Run the Inno Setup Compiler
+          
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $issFile
         shell: pwsh
 

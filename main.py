@@ -201,12 +201,12 @@ if not executeargs.startdir:
         api.starterdir = executeargs.startdir
 
 directories_to_create = [
-    os.path.join(api.starterdir, "data"),
-    os.path.join(api.starterdir, "plugins"),
-    os.path.join(api.starterdir, "data", "cache"),
-    os.path.join(api.starterdir, "data", "config"),
-    os.path.join(api.starterdir, "data", "cache", "packages"),
-    os.path.join(api.starterdir, "data", "cache", "packageswhl")
+    os.path.join(api.starterdir,"CipherOS", "data"),
+    os.path.join(api.starterdir,"CipherOS", "plugins"),
+    os.path.join(api.starterdir,"CipherOS", "data", "cache"),
+    os.path.join(api.starterdir,"CipherOS", "data", "config"),
+    os.path.join(api.starterdir,"CipherOS", "data", "cache", "packages"),
+    os.path.join(api.starterdir,"CipherOS", "data", "cache", "packageswhl")
 ]
 
 create_directories(directories_to_create)

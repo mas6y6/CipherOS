@@ -82,9 +82,9 @@ jobs:
           # Check architecture and run the appropriate ISS file
           $arch = if ($env:PROCESSOR_ARCHITECTURE -eq "AMD64") { "x64" } else { "x32" }
           if ($arch -eq "x64") {
-            "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" inno\installer_x64.iss
+            "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" inno\InstallerCompilerx64.iss
           } else {
-            "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" inno\installer_x32.iss
+            "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" inno\InstallerCompilerx32.iss
           }
         shell: pwsh
 

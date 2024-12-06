@@ -33,10 +33,10 @@ ArchitecturesInstallIn64BitMode=x64compatible
 ChangesAssociations=yes
 DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
-;PrivilegesRequired=lowest
-OutputDir=D:\Projects\CipherOS\Installers\Windows\x64
+PrivilegesRequired=lowest
+OutputDir=.\distworkflow
 OutputBaseFilename=CipherOS Windows 1.5.1 x64
-SetupIconFile=D:\Projects\CipherOS\icon.ico
+SetupIconFile=.\icon.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -48,7 +48,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "./distworkflow/{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "./distworkflow\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

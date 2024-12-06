@@ -23,7 +23,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.13'
+          python-version: '3.13.1'
 
       - name: Install Inno Setup
         if: runner.os == 'Windows'

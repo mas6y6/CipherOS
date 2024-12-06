@@ -159,7 +159,7 @@ networkmap = json.load(
 def networkmap_save():
     global networkmap
     with open(
-        os.path.join(api.starterdir, "data", "cache", "networkmap.json"), "w"
+        os.path.join(api.starterdir,"CipherOS", "data", "cache", "networkmap.json"), "w"
     ) as f:
         json.dump(networkmap, f, indent=4)
         f.close()
@@ -184,18 +184,23 @@ def create_directories(path_list):
             os.makedirs(path)
 
 if not executeargs.startdir:
-    if platform.system() == "Windows":
-        api.pwd = os.path.expanduser("~")
-        roaming_folder = os.path.join(os.environ.get("APPDATA"))
-        create_directories([roaming_folder])
-        api.starterdir = roaming_folder
-        os.chdir(api.pwd)
+    if platform.system() == "Windows": 
+        if is_running_in_program_files():
+            api.pwd = os.path.expanduser("~")
+            roaming_folder = os.path.join(os.environ.get("APPDATA"))
+            create_directories([roaming_folder])
+            api.starterdir = roaming_folder
+            os.chdir(api.pwd)
+        else:
+            roaming_folder = os.path.join(os.environ.get("APPDATA"))
+            create_directories([roaming_folder])
+            api.starterdir = roaming_folder
     elif platform.system() == "Linux":
         if not debugmode:
-            api.starterdir = os.path.join(os.path.expanduser("~"))
+            api.starterdir = os.path.expanduser("~")
     elif platform.system() == "Darwin":
         if not debugmode:
-            api.starterdir = os.path.join(os.path.expanduser("~")) 
+            api.starterdir = os.path.expanduser("~")
 
     if executeargs.startdir:
         api.starterdir = executeargs.startdir

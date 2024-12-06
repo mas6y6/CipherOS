@@ -170,13 +170,10 @@ parser.add_argument("--startdir",action="store",help="Overrides the cache direct
 
 executeargs = parser.parse_args()
 
-def is_running_in_program_files():
-    program_files = os.environ.get("ProgramFiles")  # C:\Program Files
-    program_files_x86 = os.environ.get("ProgramFiles(x86)")  # C:\Program Files (x86)
+def is_running_in_appdata():
+    appdata_folder = os.environ.get("APPDATA")  # e.g., C:\Users\<User>\AppData\Roaming
     current_dir = os.path.abspath(os.getcwd())
-    return current_dir.startswith(program_files) or current_dir.startswith(
-        program_files_x86
-    )
+    return current_dir.startswith(appdata_folder)
 
 def create_directories(path_list):
     for path in path_list:
@@ -185,7 +182,7 @@ def create_directories(path_list):
 
 if not executeargs.startdir:
     if platform.system() == "Windows": 
-        if is_running_in_program_files():
+        if is_running_in_appdata():
             api.pwd = os.path.expanduser("~")
             roaming_folder = os.path.join(os.environ.get("APPDATA"))
             create_directories([roaming_folder])

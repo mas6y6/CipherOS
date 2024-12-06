@@ -73,25 +73,16 @@ jobs:
 
           $EXECUTABLE --debug --startdir=. || (echo "Error: Program failed during initialization!" && exit 1)
 
-      - name: Debug distworkflow Directory
-        run: |
-          echo "Contents of ./distworkflow:"
-          ls -la ./distworkflow
-        shell: bash
-      
-      - name: Debug Current Directory
-        run: |
-          echo "Contents of current directory (./):"
-          ls -la ./
-        shell: bash
-      
-
       - name: Package with Inno Setup
         if: runner.os == 'Windows'
         run: |
           # Detect architecture
           $arch = if ($env:PROCESSOR_ARCHITECTURE -eq "AMD64") { "x64" } else { "x32" }
           
+          pwd
+          ls -la ./distworkflow
+          ls -la ./
+
           # Set the path to the ISS file based on architecture
           $issFile = if ($arch -eq "x64") { "inno\\installer_x64.iss" } else { "inno\\installer_x32.iss" }
           

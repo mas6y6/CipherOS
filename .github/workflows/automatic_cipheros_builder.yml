@@ -78,6 +78,7 @@ jobs:
         run: |
           Write-Host "Current Directory:"
           pwd
+          ls
         shell: pwsh
         
       - name: Package with Inno Setup

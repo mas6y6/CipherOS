@@ -43,7 +43,7 @@ jobs:
       - name: Run Compilation Script
         shell: bash
         run: |
-          OUTPUT_DIR="distworkflow/${{ matrix.os }}/${{ matrix.arch }}"
+          OUTPUT_DIR="distworkflow"
           mkdir -p "$OUTPUT_DIR"
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             echo "Compiling for Windows (${RUNNER_ARCH})..."
@@ -61,7 +61,7 @@ jobs:
       - name: Test Initialization
         shell: bash
         run: |
-          EXECUTABLE="distworkflow/${{ matrix.os }}/${{ matrix.arch }}/cipheros"
+          EXECUTABLE="distworkflow/cipheros"
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             EXECUTABLE="${EXECUTABLE}.exe"
           fi
@@ -92,6 +92,6 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: "${{ matrix.os }}-${{ matrix.arch }}-build"
-          path: "distworkflow/${{ matrix.os }}/${{ matrix.arch }}"
+          path: "distworkflow"
       
 

@@ -74,10 +74,12 @@ jobs:
           $EXECUTABLE --debug --startdir=. || (echo "Error: Program failed during initialization!" && exit 1)
 
       - name: Debug File Locations
-        run: ls -la ./distworkflow
+        run: ls ./distworkflow
+        shell: bash
     
       - name: Debug File Locations 2
-        run: ls -la ./
+        run: ls ./
+        shell: bash
 
       - name: Package with Inno Setup
         if: runner.os == 'Windows'

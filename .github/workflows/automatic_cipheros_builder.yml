@@ -72,14 +72,6 @@ jobs:
           fi
 
           $EXECUTABLE --debug --startdir=. || (echo "Error: Program failed during initialization!" && exit 1)
-
-
-      - name: Print Current Directory (pwsh)
-        run: |
-          Write-Host "Current Directory:"
-          pwd
-          ls
-        shell: pwsh
         
       - name: Package with Inno Setup
         if: runner.os == 'Windows'

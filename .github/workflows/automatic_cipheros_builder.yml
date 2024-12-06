@@ -17,11 +17,9 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Setup Python
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
@@ -33,7 +31,6 @@ jobs:
           choco install innosetup -y
         shell: cmd
 
-      # Step 3: Install Dependencies
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
@@ -79,14 +76,16 @@ jobs:
       - name: Package with Inno Setup
         if: runner.os == 'Windows'
         run: |
-          # Check architecture and run the appropriate ISS file
+          # Detect architecture
           $arch = if ($env:PROCESSOR_ARCHITECTURE -eq "AMD64") { "x64" } else { "x32" }
-          if ($arch -eq "x64") {
-            "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" inno\InstallerCompilerx64.iss
-          } else {
-            "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" inno\InstallerCompilerx32.iss
-          }
+          
+          # Set the path to the ISS file based on architecture
+          $issFile = if ($arch -eq "x64") { "inno\\installer_x64.iss" } else { "inno\\installer_x32.iss" }
+          
+          # Run the Inno Setup Compiler
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $issFile
         shell: pwsh
+
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v3

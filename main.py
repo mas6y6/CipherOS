@@ -192,10 +192,10 @@ if not executeargs.startdir:
         os.chdir(api.pwd)
     elif platform.system() == "Linux":
         if not debugmode:
-            api.starterdir = os.path.expanduser("~")
+            api.starterdir = os.path.join(os.path.expanduser("~"),"CipherOS")
     elif platform.system() == "Darwin":
         if not debugmode:
-            api.starterdir = os.path.expanduser("~")
+            api.starterdir = os.path.join(os.path.expanduser("~"),"CipherOS") 
 
     if executeargs.startdir:
         api.starterdir = executeargs.startdir

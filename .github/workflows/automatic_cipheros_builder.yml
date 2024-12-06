@@ -76,16 +76,18 @@ jobs:
       - name: Package with Inno Setup
         if: runner.os == 'Windows'
         run: |
-          # Detect architecture
-          $arch = if ($env:PROCESSOR_ARCHITECTURE -eq "AMD64") { "x64" } else { "x32" }
-
+          # Detect architecture more reliably
+          $arch = if ($env:PROCESSOR_ARCHITECTURE -eq "AMD64" -and $env:ProgramFiles -match "x86") { "x32" } 
+                  elseif ($env:PROCESSOR_ARCHITECTURE -eq "AMD64") { "x64" }
+                  else { "x32" }
+      
           # Set the path to the ISS file based on architecture
           $issFile = if ($arch -eq "x64") { "installer_x64.iss" } else { "installer_x32.iss" }
           
           # Run the Inno Setup Compiler
-          
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $issFile
         shell: pwsh
+      
 
 
       - name: Upload Build Artifacts

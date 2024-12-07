@@ -207,7 +207,7 @@ class ConfigParser:
                 self.displayname = self.name
             
             self.version = self.dict["version"]
-            self.authors = None
+            self.authors = [None]
             self.team = None
             self.description = None
             self.classname = self.dict["class"]

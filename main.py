@@ -141,29 +141,6 @@ def showc():
 def printerror(msg):
     console.print(msg, style="bold bright_red")
 
-
-if not os.path.exists(os.path.join(api.starterdir, "data", "cache", "networkmap.json")):
-    if not os.path.exists(os.path.join(api.starterdir, "data")):
-        os.mkdir(os.path.join(api.starterdir,"data"))
-    if not os.path.exists(os.path.join(api.starterdir, "data", "cache")):
-        os.mkdir(os.path.join(api.starterdir, "data","cache"))
-    json.dump(
-        {}, open(os.path.join(api.starterdir, "data", "cache", "networkmap.json"), "w")
-    )
-
-networkmap = json.load(
-    open(os.path.join(api.starterdir, "data", "cache", "networkmap.json"), "r")
-)
-
-
-def networkmap_save():
-    global networkmap
-    with open(
-        os.path.join(api.starterdir,"CipherOS", "data", "cache", "networkmap.json"), "w"
-    ) as f:
-        json.dump(networkmap, f, indent=4)
-        f.close()
-
 parser = argparse.ArgumentParser()
 parser.add_argument("--debug",action="store_true",help="Enables debug mode")
 parser.add_argument("--startdir",action="store",help="Overrides the cache directory")
@@ -172,48 +149,61 @@ executeargs = parser.parse_args()
 
 def is_running_in_appdata():
     appdata_folder = os.environ.get("LOCALAPPDATA")  # e.g., C:\Users\<User>\AppData\Roaming
-    print(os.environ.get("LOCALAPPDATA"))
     current_dir = os.path.abspath(os.getcwd())
     return current_dir.startswith(appdata_folder)
 
 def create_directories(path_list):
     for path in path_list:
         if not os.path.exists(path):
+            print(path)
             os.makedirs(path)
 
-if not executeargs.startdir:
+if not executeargs.startdir != None:
     if platform.system() == "Windows": 
         if is_running_in_appdata():
             api.pwd = os.path.expanduser("~")
-            roaming_folder = os.path.join(os.environ.get("APPDATA"))
-            create_directories([roaming_folder])
-            api.starterdir = roaming_folder
+            roaming_folder = os.environ.get("APPDATA")
+            os.makedirs(roaming_folder,exist_ok=True)
+            api.starterdir = os.path.join(os.environ.get("APPDATA"),"CipherOS")
             os.chdir(api.pwd)
         else:
-            roaming_folder = os.path.join(os.environ.get("APPDATA"))
-            create_directories([roaming_folder])
-            api.starterdir = roaming_folder
+            pass
     elif platform.system() == "Linux":
         if not debugmode:
             api.starterdir = os.path.expanduser("~")
     elif platform.system() == "Darwin":
         if not debugmode:
             api.starterdir = os.path.expanduser("~")
-
-    if executeargs.startdir:
-        api.starterdir = executeargs.startdir
+else:
+    api.starterdir = executeargs.startdir
 
 directories_to_create = [
-    os.path.join(api.starterdir,"CipherOS", "data"),
-    os.path.join(api.starterdir,"CipherOS", "plugins"),
-    os.path.join(api.starterdir,"CipherOS", "data", "cache"),
-    os.path.join(api.starterdir,"CipherOS", "data", "config"),
-    os.path.join(api.starterdir,"CipherOS", "data", "cache", "packages"),
+    os.path.join(api.starterdir, "data"),
+    os.path.join(api.starterdir, "plugins"),
+    os.path.join(api.starterdir, "data", "cache"),
+    os.path.join(api.starterdir, "data", "config"),
+    os.path.join(api.starterdir, "data", "cache", "packages"),
     os.path.join(api.starterdir,"CipherOS", "data", "cache", "packageswhl")
 ]
 
-create_directories(directories_to_create)
+for i in directories_to_create:
+    os.makedirs(i,exist_ok=True)
 
+json.dump(
+    {}, open(os.path.join(api.starterdir, "data", "cache", "networkmap.json"), "w")
+)
+
+networkmap = json.load(
+    open(os.path.join(api.starterdir, "data", "cache", "networkmap.json"), "r")
+)
+
+def networkmap_save():
+    global networkmap
+    with open(
+        os.path.join(api.starterdir, "data", "cache", "networkmap.json"), "w"
+    ) as f:
+        json.dump(networkmap, f, indent=4)
+        f.close()
 
 @api.command()
 def exit(args):
@@ -573,6 +563,7 @@ def plugins(argsraw):
     if args.subcommand == "reload":
         if args.plugin in api.plugins:
             console.print(f"Reloading \"{args.plugin}\"")
+            print(api.plugins[args.plugin].__class__.name)
             api.disable_plugin(api.plugins[args.plugin])
             api.load_plugin(os.path.join(api.starterdir, "plugins", args.plugin))
             console.print("Reload complete.")
@@ -623,6 +614,7 @@ def plugins(argsraw):
             config = api.plugins[args.plugin].config
             console.print(f"Plugin '{config.displayname}' details:\n")
             console.print("Version:",config.version)
+            console.print("Description:",config.description)
             console.print("Organization/Team:",config.team)
             console.print("Authors of plugin")
             for i in config.authors:
@@ -822,8 +814,8 @@ if __name__ == "__main__":
     else:
         console.print("Starting CipherOS")
 
-    if not len(os.listdir(os.path.join(api.starterdir,"CipherOS","plugins"))) == 0:
-        for i in os.listdir(os.path.join(api.starterdir,"CipherOS","plugins")):
+    if not len(os.listdir(os.path.join(api.starterdir,"plugins"))) == 0:
+        for i in os.listdir(os.path.join(api.starterdir,"plugins")):
             try:
                 api.load_plugin(os.path.join(api.starterdir, "plugins", i))
             except:

@@ -1,0 +1,12 @@
+configversion: 3
+version: 1
+team: 
+authors:
+- mas6y6
+name: entech_enrypto
+displayname: "Entech Encrypto"
+description: A encrypting software like 7zip
+class: EntechEncrypto
+dependencies:
+  - cryptography
+  - bcrypt

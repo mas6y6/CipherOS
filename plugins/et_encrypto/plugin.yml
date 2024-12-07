@@ -8,5 +8,5 @@ displayname: "Entech Encrypto"
 description: A encrypting software like 7zip
 class: EntechEncrypto
 dependencies:
-  - cryptography
-  - bcrypt
+#  - cryptography
+#  - bcrypt

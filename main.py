@@ -171,7 +171,8 @@ parser.add_argument("--startdir",action="store",help="Overrides the cache direct
 executeargs = parser.parse_args()
 
 def is_running_in_appdata():
-    appdata_folder = os.environ.get("APPDATA")  # e.g., C:\Users\<User>\AppData\Roaming
+    appdata_folder = os.environ.get("LOCALAPPDATA")  # e.g., C:\Users\<User>\AppData\Roaming
+    print(os.environ.get("LOCALAPPDATA"))
     current_dir = os.path.abspath(os.getcwd())
     return current_dir.startswith(appdata_folder)
 
@@ -502,8 +503,6 @@ def scannet(argsraw):
     networkmap_save()
 
 @api.command(alias=["cd"])
-
-@api.command(alias=["cd"])
 def chdir(argsraw):
     parser = ArgumentParser(api, description="Change to a directory")
     parser.add_argument("path",type=str,required=True,help_text="Directory to move to")
@@ -514,11 +513,15 @@ def chdir(argsraw):
     if parser.help_flag:
         return None
     
-    if os.path.isdir(args.path):
-        os.chdir(args.path)
+    if not args.path == "~":
+        if os.path.isdir(args.path):
+            os.chdir(args.path)
+        else:
+            printerror(f"Error: {args.path} is a file")
+        api.pwd = os.getcwd()
     else:
-        printerror(f"Error: {args.path} is a file")
-    api.pwd = os.getcwd()
+        api.pwd = os.path.expanduser("~")
+        os.chdir(api.pwd)
     api.updatecompletions()
 
 @api.command()

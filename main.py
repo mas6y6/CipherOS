@@ -183,7 +183,7 @@ directories_to_create = [
     os.path.join(api.starterdir, "data", "cache"),
     os.path.join(api.starterdir, "data", "config"),
     os.path.join(api.starterdir, "data", "cache", "packages"),
-    os.path.join(api.starterdir,"CipherOS", "data", "cache", "packageswhl")
+    os.path.join(api.starterdir, "data", "cache", "packageswhl")
 ]
 
 for i in directories_to_create:

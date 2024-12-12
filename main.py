@@ -2,7 +2,7 @@ import argparse
 import os
 import socket
 import sys
-
+import runpy
 import rich
 import rich.traceback
 
@@ -62,6 +62,7 @@ from rich.table import Table
 from rich.text import Text
 from rich.tree import Tree
 from rich.markdown import Markdown
+
 
 colorama.init()
 running_on_mac = False  # Meant as the cipher library is not installed (for macOS)
@@ -300,6 +301,22 @@ def portscan(argsraw):
     for port in open_ports:
         table.add_row(str(port))
     console.print(table)
+
+@api.command(alias=["exe","cmd"])
+def executables(argsraw):
+    parser = ArgumentParser(api, description="Lists all commands")
+
+    args = parser.parse_args(argsraw)
+    
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
+
+    tab = Table()
+    tab.add_column("Commands")
+    for i in api.commands:
+        tab.add_row(i)
+    console.print(tab)
 
 @api.command(alias=["scn", "netscan"])
 def scannet(argsraw):
@@ -574,8 +591,8 @@ def plugins(argsraw):
     elif args.subcommand == "reloadall":
         console.print("Reloading all plugins...")
         for plugin_name in list(api.plugins):
-            api.disable_plugin(api.plugins[plugin_name])
-        for plugin_file in os.listdir(os.path.join(api.starterdir,"CipherOS", "plugins")):
+            api.disable_plugin(api.plugins[plugin_name].config.name)
+        for plugin_file in os.listdir(os.path.join(api.starterdir, "plugins")):
             api.load_plugin(os.path.join(api.starterdir, "plugins", plugin_file))
         console.print("Reload complete.")
 
@@ -629,7 +646,6 @@ def plugins(argsraw):
 
     else:
         print("Unknown subcommand.")
-
 
 @api.command()
 def tree(argsraw):
@@ -726,6 +742,18 @@ def touch(argsraw):
             args.file,
             "exists" + colorama.Fore.RESET + colorama.Style.NORMAL,
         )
+        
+@api.command(name="python",alias=["py"])
+def pythoncode(argsraw):
+    parser = ArgumentParser(api,description="Executes a python file")
+    parser.add_argument("file", type=str, help_text="The file to display", required=True)
+    
+    args = parser.parse_args(argsraw)
+    
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
+    runpy.run_path(args.file)
 
 @api.command(alias=["cat"])
 def viewfile(argsraw):

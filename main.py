@@ -1,4 +1,5 @@
 import argparse
+import ctypes
 import os
 import socket
 import sys
@@ -110,6 +111,7 @@ import cipher.exceptions as ex
 import cipher.network
 from cipher.parsers import ArgumentParser, ConfigParser
 import cipher.api
+from cipher.elevate import elevate, is_root
 
 # variables
 version = 1
@@ -145,7 +147,7 @@ def printerror(msg):
 parser = argparse.ArgumentParser()
 parser.add_argument("--debug",action="store_true",help="Enables debug mode")
 parser.add_argument("--startdir",action="store",help="Overrides the cache directory")
-
+parser.add_argument("--sudo",action="store_true",help="Enables sudo mode")
 executeargs = parser.parse_args()
 
 def is_running_in_appdata():
@@ -317,6 +319,22 @@ def executables(argsraw):
     for i in api.commands:
         tab.add_row(i)
     console.print(tab)
+
+@api.command()
+def sudomode(argsraw):
+    parser = ArgumentParser(api, description="Elevates permissions to admin permissions for CipherOS")
+
+    args = parser.parse_args(argsraw)
+    
+    if parser.help_flag:
+        return None
+    
+    if not is_root():
+        console.print("Entering Sudomode",style="bright_red")
+        console.print("Acquiring Admin privileges (This may open a password prompt)",style="bright_red")
+        elevate(graphical=False)
+    else:
+        printerror("Error: Admin permissions already acquired")
 
 @api.command(alias=["scn", "netscan"])
 def scannet(argsraw):
@@ -800,6 +818,8 @@ if __name__ == "__main__":
     
     if debugmode:
         console.print("Starting CipherOS in [purple]debug mode[/purple]")
+        if is_root():
+            console.print("Admin privileges detected starting as admin",style="bright_magenta")
         api.debug = True
         @api.command()
         def arbc(argsraw):
@@ -841,6 +861,8 @@ if __name__ == "__main__":
                 print(f"vdump encountered an error: {e}")
     else:
         console.print("Starting CipherOS")
+        if is_root():
+            console.print("Admin privileges detected starting as admin",style="bright_magenta")
 
     if not len(os.listdir(os.path.join(api.starterdir,"plugins"))) == 0:
         for i in os.listdir(os.path.join(api.starterdir,"plugins")):

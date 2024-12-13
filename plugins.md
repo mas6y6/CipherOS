@@ -46,7 +46,7 @@ description: I am a example plugin! # Description of your plugin
 
 class: ExamplePlugin # This must match the class in the __init__.py file
 
-dependencies: # Put your dependencies here, and CipherOS will download them from PyPi automatically
+dependencies: # Put your dependencies here, and CipherOS will download them from PyPi automatically (You can insert the url if you want to download that)
 #  - requests
 ```
 
@@ -87,7 +87,8 @@ The class of the plugin in the `__init__.py` file
 
 ### `dependencies`
 
-If your plugin has dependencies from PyPi you can specify them here and CipherOS will download them for you. 
+If your plugin has dependencies from PyPi you can specify them here and CipherOS will download them for you.
+If you want a specific URL you can CipherOS can download that as well.
 
 # Setting up the code
 

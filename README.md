@@ -14,7 +14,8 @@ An hacknet inspired hacking program
 ### Windows
 You can use the standalone .exe from [releases](https://github.com/mas6y6/CipherOS/releases), or you can clone the repository locally and use [pyinstaller](https://pyinstaller.org/en/stable/) with `compile.bat`
 
-Note: the standalone .exe will generate the `plugins` and `data` folder in the directory that the executable is run in, so it is recommended to drop the .exe in a dedicated folder before running.
+> [!NOTE]
+> the standalone .exe will generate the `plugins` and `data` folder in the directory that the executable is run in, so it is >  > > recommended to drop the .exe in a dedicated folder before running.
 
 ### macOS / Linux
 You can run:

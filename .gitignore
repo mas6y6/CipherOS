@@ -5,6 +5,7 @@ cipher.spec
 cipher/__pycache__
 example_plugin/__pycache__
 plugins/neofetch/__pycache__
+plugins/hpt/__pycache__
 dist
 visualstudio
 macos/cipher/.DS_Store

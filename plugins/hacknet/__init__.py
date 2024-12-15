@@ -4,7 +4,8 @@ import string
 from cipher.plugins import CipherPlugin, CipherAPI
 from cipher.parsers import ArgumentParser
 from rich.panel import Panel
-import os, pygame, progressbar, time, cursor, subprocess, requests
+import os, pygame, progressbar, time, subprocess, requests
+from .cursor import hide, show
 
 class HacknetPlugin(CipherPlugin):
     def __init__(self, api: CipherAPI,config):
@@ -93,7 +94,7 @@ YOUR Assigned IP: {self.ipAddress}
                 pygame.mixer.music.stop()
                 pygame.mixer.music.load(os.path.join(self.api.starterdir,"plugins","hacknet","traced.ogg"))
                 print("\033c", end="")
-                cursor.hide()
+                hide()
                 if os.name == "nt":
                     os.system("color 40")
                 elif os.name == "posix":
@@ -115,13 +116,13 @@ YOUR Assigned IP: {self.ipAddress}
                 #        bar[x].update(100-z)
                 columns, _ = shutil.get_terminal_size()
                 for z in range(110):
-                    cursor.hide()
+                    hide()
                     time.sleep(0.13)
                     random_string = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=columns))
                     self.console.print(str(random_string),style="white on red",markup=False,highlight=False)
 
                 #time.sleep(14)
-                cursor.show()
+                show()
             self.console.clear()
             self.console.print(Panel(f"""
 EMERGENCY TRACE AVERSION SEQUENCE

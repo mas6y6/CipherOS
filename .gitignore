@@ -1,7 +1,7 @@
 data
 cipher/__pycache__
 build
-cipher.spec
+cipheros.spec
 cipher/__pycache__
 example_plugin/__pycache__
 plugins/neofetch/__pycache__
@@ -14,3 +14,4 @@ plugins/hacknet/__pycache__
 tools
 downloads
 .vscode/launch.json
+releaseprep

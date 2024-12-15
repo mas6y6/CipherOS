@@ -116,10 +116,15 @@ class CipherAPI:
         plugin_displayname = yml.get("displayname")
         plugin_dependencies = yml.get("dependencies")
         print(f"Loading {plugin_displayname}")
+        
+        pm = PackageManager()
         if not plugin_dependencies == None:
             for i in plugin_dependencies:
                 if not os.path.exists(os.path.join(self.starterdir, "data", "cache", "packages", i)):
-                    self.download_package(i)
+                    if i.startswith("https://") or i.startswith("http://"):
+                        pm.download_from_url(i)
+                    else:
+                        pm.download_package(i)
 
         if not plugin_name:
             raise PluginInitializationError(f"'name' is missing in {yml_path}")
@@ -160,8 +165,8 @@ class CipherAPI:
             print("\n\n")
 
     def disable_plugin(self, plugin):
-        print(f"Disabling {plugin.__class__.name}")
-        plugin_instance = self.plugins[plugin.__class__.name]
+        print(f"Disabling {plugin}")
+        plugin_instance = self.plugins[plugin]
         if hasattr(plugin_instance, "on_disable") and callable(
             plugin_instance.on_disable
         ):
@@ -169,18 +174,26 @@ class CipherAPI:
         else:
             pass
 
-        for i in self.plugincommands[plugin.__class__.name]:
+        for i in self.plugincommands[plugin]:
             self.commands.pop(i)
-        self.plugins.pop(plugin.__class__.name)
+        self.plugins.pop(plugin)
         self.updatecompletions()
 
-    def _is_compatible_whl(self, filename):
-        """
-        Check if a .whl file is compatible with the current system and Python version.
-        """
-        import sysconfig
+    def updatecompletions(self):
+        self.completions = []
+        for i in os.listdir(self.pwd):
+            self.completions.append(i)
 
-        print(sysconfig.get_platform())
+        for i in self.commands:
+            self.completions.append(i)
+
+class PackageManager:
+    def __init__(self):
+        self.resolved_dependencies = set()
+        self.api = initialized_api
+
+    def _is_compatible_whl(self, filename):
+        import sysconfig
 
         python_version = sysconfig.get_python_version()
         python_tag = f"cp{python_version.replace('.', '')}"
@@ -205,20 +218,21 @@ class CipherAPI:
 
         return python_compatible and platform_compatible
 
-
-
     def download_package(self, package_name, version=None):
-        """
-        Downloads the specified package from PyPI, resolving dependencies recursively.
-
-        :param package_name: Name of the PyPI package.
-        :param version: Optional version of the package to download.
-        """
         base_url = "https://pypi.org/pypi"
         version_part = f"/{version}" if version else ""
         url = f"{base_url}/{package_name}{version_part}/json"
-        download_dir = os.path.join(self.starterdir, "data", "cache", "packageswhl")
-        packages_dir = os.path.join(self.starterdir, "data", "cache", "packages")
+        download_dir = os.path.join(self.api.starterdir, "data", "cache", "packageswhl")
+        packages_dir = os.path.join(self.api.starterdir, "data", "cache", "packages")
+
+        identifier = f"{package_name}=={version}" if version else package_name
+
+        if identifier in self.resolved_dependencies:
+            if self.api.debug:
+                self.api.console.print(f"[DEBUG] Package already resolved: {identifier}", style="dim")
+            return
+
+        self.resolved_dependencies.add(identifier)
 
         try:
             response = requests.get(url)
@@ -227,13 +241,12 @@ class CipherAPI:
 
             dependencies = data.get("info", {}).get("requires_dist", [])
             if dependencies:
-                self.console.print(f"Resolving dependencies for "+ package_name+ ": "+ f"{dependencies}",style="bold bright_yellow")
+                self.api.console.print(f"Resolving dependencies for {package_name}: {dependencies}", style="bold bright_yellow")
                 for dep in dependencies:
                     dep_name, dep_version = self._parse_dependency(dep)
-                    if dep_name and not self.is_package_installed(
-                        dep_name, dep_version
-                    ):
+                    if dep_name and not self.is_package_installed(dep_name, dep_version):
                         self.download_package(dep_name, dep_version)
+
             releases = data.get("releases", {})
             if version:
                 files = releases.get(version, [])
@@ -258,123 +271,68 @@ class CipherAPI:
                 reverse=True
             )
 
-            if self.debug:
-                self.console.print(f"Available files for {package_name}: {[file_info['filename'] for file_info in files]}")
-            
-            if self.debug:
-                self.console.print(f"Available files for {package_name} that works on this system: {compatible_files}")
+            if self.api.debug:
+                self.api.console.print(f"[DEBUG] Compatible files for {package_name}: {compatible_files}")
+
             if not compatible_files:
-                self.console.print("No compatible .whl files. Falling back to .tar.gz.")
-                tar_gz_files = [
-                    file_info["url"]
-                    for file_info in files
-                    if file_info["url"].endswith(".tar.gz")
-                ]
-                if tar_gz_files:
-                    download_url = tar_gz_files[0]
-                else:
-                    self.console.print("No valid files found.")
-                    return
-            
+                self.api.console.print(f"[ERROR] No compatible files found for {package_name}", style="bold red")
+                return
+
             download_url = compatible_files[0]
             filename = download_url.split("/")[-1]
 
             os.makedirs(download_dir, exist_ok=True)
             file_path = os.path.join(download_dir, filename)
 
-            print(f"Downloading {package_name} from {download_url}...")
-            with requests.get(download_url, stream=True) as r:
-                r.raise_for_status()
-                total_size = int(r.headers.get("Content-Length", 0))
-                with open(file_path, "wb") as f:
-                    bar = progressbar.ProgressBar(
-                        maxval=total_size,
-                        widgets=[
-                            "Downloading: ",
-                            progressbar.Percentage(),
-                            " [",
-                            progressbar.Bar(),
-                            " ]",
-                            progressbar.ETA(),
-                        ],
-                    )
-                    bar.start()
-                    downloaded = 0
-                    for chunk in r.iter_content(chunk_size=8192):
-                        f.write(chunk)
-                        downloaded += len(chunk)
-                        bar.update(downloaded)
-                    bar.finish()
+            self._download_file(download_url, file_path)
+            self._extract_package(file_path, packages_dir, filename)
 
-            if filename.endswith(".zip"):
-                os.makedirs(packages_dir, exist_ok=True)
-                with zipfile.ZipFile(file_path, "r") as zip_ref:
-                    zip_ref.extractall(packages_dir)
-
-            elif filename.endswith(".whl"):
-                with WheelFile(file_path, "r") as whl_ref:
-                    whl_ref.extractall(packages_dir)
-            
-            elif filename.endswith(".tar.gz"):
-                try:
-                    temp_dir = os.path.join(download_dir, "temp_extract")
-                    os.makedirs(temp_dir, exist_ok=True)
-
-                    with tarfile.open(file_path, "r:gz") as tar_ref:
-                        tar_ref.extractall(temp_dir)
-
-                    setup_py = os.path.join(temp_dir, 'setup.py')
-                    package_dir = None
-
-                    if os.path.exists(setup_py):
-                        print(f"Found setup.py in {setup_py}. Attempting to find the main package...")
-                        from setuptools import find_packages
-                        found_packages = find_packages(where=temp_dir)
-                        if found_packages:
-                            package_dir = os.path.join(temp_dir, found_packages[0])
-
-                    if not package_dir:
-                        extracted_folders = [f for f in os.listdir(temp_dir) if os.path.isdir(os.path.join(temp_dir, f))]
-                        if extracted_folders:
-                            package_dir = os.path.join(temp_dir, extracted_folders[0])
-
-                    if package_dir:
-                        print(f"Found main package directory: {package_dir}")
-                        for item in os.listdir(package_dir):
-                            s = os.path.join(package_dir, item)
-                            d = os.path.join(packages_dir, item)
-                            if os.path.isdir(s):
-                                shutil.copytree(s, d, dirs_exist_ok=True)
-                            else:
-                                shutil.copy2(s, d)
-
-                        print(f"Package {package_name} extracted and moved to {packages_dir}")
-                except (tarfile.TarError, IOError) as e:
-                    RuntimeError(f"Error extracting {filename}: {e}")
-                finally:
-                    if os.path.exists(temp_dir):
-                        shutil.rmtree(temp_dir)
-
-            else:
-                raise TypeError("File format is invalid to the extractor")
         except requests.RequestException as e:
-            self.console.print(f"Failed to download package '{package_name}':\n {e}",style="bold bright_red")
-        
+            self.api.console.print(f"[ERROR] Failed to fetch package metadata for {package_name}: {e}", style="bold red")
         except Exception as e:
-            self.console.print(f"An error occurred while extracting/downloading '{package_name}':\n {e}",style="bold bright_red")
+            self.api.console.print(f"[ERROR] An unexpected error occurred: {e}", style="bold red")
+
+    def _download_file(self, url, path):
+        with requests.get(url, stream=True) as r:
+            r.raise_for_status()
+            total_size = int(r.headers.get("Content-Length", 0))
+            with open(path, "wb") as f:
+                bar = progressbar.ProgressBar(
+                    maxval=total_size,
+                    widgets=[
+                        "Downloading: ",
+                        progressbar.Percentage(),
+                        " [",
+                        progressbar.Bar(),
+                        " ]",
+                        progressbar.ETA(),
+                    ],
+                )
+                bar.start()
+                downloaded = 0
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+                    downloaded += len(chunk)
+                    bar.update(downloaded)
+                bar.finish()
+
+    def _extract_package(self, file_path, target_dir, filename):
+        os.makedirs(target_dir, exist_ok=True)
+        if filename.endswith(".zip"):
+            with zipfile.ZipFile(file_path, "r") as zip_ref:
+                zip_ref.extractall(target_dir)
+        elif filename.endswith(".whl"):
+            with WheelFile(file_path, "r") as whl_ref:
+                whl_ref.extractall(target_dir)
+        elif filename.endswith(".tar.gz"):
+            with tarfile.open(file_path, "r:gz") as tar_ref:
+                tar_ref.extractall(target_dir)
+        else:
+            raise TypeError("Unsupported file format")
 
     def _parse_dependency(self, dependency_string):
-        """
-        Parse a dependency string from requires_dist into name and version.
-
-        :param dependency_string: A dependency string from requires_dist.
-        :return: A tuple of (name, version) or (name, None).
-        """
         import re
-
-        match = re.match(
-            r"([a-zA-Z0-9_\-\.]+)(?:\[.*\])?(?:\s+\((.+)\))?", dependency_string
-        )
+        match = re.match(r"([a-zA-Z0-9_\-.]+)(?:\[.*\])?(?:\s+\((.+)\))?", dependency_string)
         if match:
             dep_name = match.group(1).strip()
             dep_version = match.group(2)
@@ -382,28 +340,18 @@ class CipherAPI:
         return dependency_string, None
 
     def is_package_installed(self, package_name, version=None):
-        """
-        Checks if a package is already downloaded and installed.
-
-        :param package_name: Name of the package.
-        :param version: Optional version of the package.
-        :return: True if installed, False otherwise.
-        """
         try:
             importlib.import_module(package_name)
             return True
         except ImportError:
-            installed_dir = os.path.join(self.starterdir, "data", "cache", "packages")
-            if version:
-                package_path = os.path.join(installed_dir, f"{package_name}-{version}")
-            else:
-                package_path = os.path.join(installed_dir, package_name)
+            installed_dir = os.path.join(self.api.starterdir, "data", "cache", "packages")
+            package_path = os.path.join(installed_dir, package_name)
             return os.path.exists(package_path)
 
-    def updatecompletions(self):
-        self.completions = []
-        for i in os.listdir(self.pwd):
-            self.completions.append(i)
-
-        for i in self.commands:
-            self.completions.append(i)
+    def download_from_url(self,url):
+        download_dir = os.path.join(self.api.starterdir, "data", "cache", "packageswhl")
+        packages_dir = os.path.join(self.api.starterdir, "data", "cache", "packages")
+        
+        filename
+        file_path = os.path.join(download_dir, filename)
+        self._download_file(url, file_path)

@@ -14,20 +14,25 @@ jobs:
         exclude:
           - os: windows-latest
             arch: arm64
+          - os: windows-latest
+            arch: x32
     runs-on: ${{ matrix.os }}
 
     steps:
-      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Setup Python
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.13'
+          python-version: '3.13.1'
 
-      # Step 3: Install Dependencies
+      - name: Install Inno Setup
+        if: runner.os == 'Windows'
+        run: |
+          choco install innosetup -y
+        shell: cmd
+
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
@@ -40,7 +45,7 @@ jobs:
       - name: Run Compilation Script
         shell: bash
         run: |
-          OUTPUT_DIR="distworkflow/${{ matrix.os }}/${{ matrix.arch }}"
+          OUTPUT_DIR="distworkflow"
           mkdir -p "$OUTPUT_DIR"
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             echo "Compiling for Windows (${RUNNER_ARCH})..."
@@ -58,7 +63,7 @@ jobs:
       - name: Test Initialization
         shell: bash
         run: |
-          EXECUTABLE="distworkflow/${{ matrix.os }}/${{ matrix.arch }}/cipheros"
+          EXECUTABLE="distworkflow/cipheros"
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             EXECUTABLE="${EXECUTABLE}.exe"
           fi
@@ -69,11 +74,28 @@ jobs:
           fi
 
           $EXECUTABLE --debug --startdir=. || (echo "Error: Program failed during initialization!" && exit 1)
+        
+      - name: Package with Inno Setup
+        if: runner.os == 'Windows'
+        run: |
+          # Detect architecture more reliably
+          $arch = if ($env:PROCESSOR_ARCHITECTURE -eq "AMD64" -and $env:ProgramFiles -match "x86") { "x32" } 
+                  elseif ($env:PROCESSOR_ARCHITECTURE -eq "AMD64") { "x64" }
+                  else { "x32" }
+      
+          # Set the path to the ISS file based on architecture
+          $issFile = if ($arch -eq "x64") { "installer_x64.iss" } else { "installer_x32.iss" }
+          
+          # Run the Inno Setup Compiler
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $issFile
+        shell: pwsh
+      
+
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: "${{ matrix.os }}-${{ matrix.arch }}-build"
-          path: "distworkflow/${{ matrix.os }}/${{ matrix.arch }}"
+          path: "distworkflow"
       
 

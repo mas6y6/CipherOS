@@ -1,8 +1,9 @@
 import argparse
+import ctypes
 import os
 import socket
 import sys
-
+import runpy
 import rich
 import rich.traceback
 
@@ -63,6 +64,7 @@ from rich.text import Text
 from rich.tree import Tree
 from rich.markdown import Markdown
 
+
 colorama.init()
 running_on_mac = False  # Meant as the cipher library is not installed (for macOS)
 macpwd = None
@@ -109,6 +111,7 @@ import cipher.exceptions as ex
 import cipher.network
 from cipher.parsers import ArgumentParser, ConfigParser
 import cipher.api
+from cipher.elevate import elevate, is_root
 
 # variables
 version = 1
@@ -141,64 +144,41 @@ def showc():
 def printerror(msg):
     console.print(msg, style="bold bright_red")
 
-
-if not os.path.exists(os.path.join(api.starterdir, "data", "cache", "networkmap.json")):
-    if not os.path.exists(os.path.join(api.starterdir, "data")):
-        os.mkdir(os.path.join(api.starterdir,"data"))
-    if not os.path.exists(os.path.join(api.starterdir, "data", "cache")):
-        os.mkdir(os.path.join(api.starterdir, "data","cache"))
-    json.dump(
-        {}, open(os.path.join(api.starterdir, "data", "cache", "networkmap.json"), "w")
-    )
-
-networkmap = json.load(
-    open(os.path.join(api.starterdir, "data", "cache", "networkmap.json"), "r")
-)
-
-
-def networkmap_save():
-    global networkmap
-    with open(
-        os.path.join(api.starterdir, "data", "cache", "networkmap.json"), "w"
-    ) as f:
-        json.dump(networkmap, f, indent=4)
-        f.close()
-
 parser = argparse.ArgumentParser()
 parser.add_argument("--debug",action="store_true",help="Enables debug mode")
 parser.add_argument("--startdir",action="store",help="Overrides the cache directory")
-
+parser.add_argument("--sudo",action="store_true",help="Enables sudo mode")
 executeargs = parser.parse_args()
 
-def is_running_in_program_files():
-    program_files = os.environ.get("ProgramFiles")  # C:\Program Files
-    program_files_x86 = os.environ.get("ProgramFiles(x86)")  # C:\Program Files (x86)
+def is_running_in_appdata():
+    appdata_folder = os.environ.get("LOCALAPPDATA")  # e.g., C:\Users\<User>\AppData\Roaming
     current_dir = os.path.abspath(os.getcwd())
-    return current_dir.startswith(program_files) or current_dir.startswith(
-        program_files_x86
-    )
+    return current_dir.startswith(appdata_folder)
 
 def create_directories(path_list):
     for path in path_list:
         if not os.path.exists(path):
+            print(path)
             os.makedirs(path)
 
-if not executeargs.startdir:
-    if platform.system() == "Windows":
-        api.pwd = os.path.expanduser("~")
-        roaming_folder = os.path.join(os.environ.get("APPDATA"), "cipheros")
-        create_directories([roaming_folder])
-        api.starterdir = roaming_folder
-        os.chdir(api.pwd)
+if not executeargs.startdir != None:
+    if platform.system() == "Windows": 
+        if is_running_in_appdata():
+            api.pwd = os.path.expanduser("~")
+            roaming_folder = os.environ.get("APPDATA")
+            os.makedirs(roaming_folder,exist_ok=True)
+            api.starterdir = os.path.join(os.environ.get("APPDATA"),"CipherOS")
+            os.chdir(api.pwd)
+        else:
+            pass
     elif platform.system() == "Linux":
         if not debugmode:
             api.starterdir = os.path.expanduser("~")
     elif platform.system() == "Darwin":
         if not debugmode:
             api.starterdir = os.path.expanduser("~")
-
-    if executeargs.startdir:
-        api.starterdir = executeargs.startdir
+else:
+    api.starterdir = executeargs.startdir
 
 directories_to_create = [
     os.path.join(api.starterdir, "data"),
@@ -209,8 +189,24 @@ directories_to_create = [
     os.path.join(api.starterdir, "data", "cache", "packageswhl")
 ]
 
-create_directories(directories_to_create)
+for i in directories_to_create:
+    os.makedirs(i,exist_ok=True)
 
+json.dump(
+    {}, open(os.path.join(api.starterdir, "data", "cache", "networkmap.json"), "w")
+)
+
+networkmap = json.load(
+    open(os.path.join(api.starterdir, "data", "cache", "networkmap.json"), "r")
+)
+
+def networkmap_save():
+    global networkmap
+    with open(
+        os.path.join(api.starterdir, "data", "cache", "networkmap.json"), "w"
+    ) as f:
+        json.dump(networkmap, f, indent=4)
+        f.close()
 
 @api.command()
 def exit(args):
@@ -307,6 +303,38 @@ def portscan(argsraw):
     for port in open_ports:
         table.add_row(str(port))
     console.print(table)
+
+@api.command(alias=["exe","cmd"])
+def executables(argsraw):
+    parser = ArgumentParser(api, description="Lists all commands")
+
+    args = parser.parse_args(argsraw)
+    
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
+
+    tab = Table()
+    tab.add_column("Commands")
+    for i in api.commands:
+        tab.add_row(i)
+    console.print(tab)
+
+@api.command()
+def sudomode(argsraw):
+    parser = ArgumentParser(api, description="Elevates permissions to admin permissions for CipherOS")
+
+    args = parser.parse_args(argsraw)
+    
+    if parser.help_flag:
+        return None
+    
+    if not is_root():
+        console.print("Entering Sudomode",style="bright_red")
+        console.print("Acquiring Admin privileges (This may open a password prompt)",style="bright_red")
+        elevate(graphical=False)
+    else:
+        printerror("Error: Admin permissions already acquired")
 
 @api.command(alias=["scn", "netscan"])
 def scannet(argsraw):
@@ -500,8 +528,6 @@ def scannet(argsraw):
     networkmap_save()
 
 @api.command(alias=["cd"])
-
-@api.command(alias=["cd"])
 def chdir(argsraw):
     parser = ArgumentParser(api, description="Change to a directory")
     parser.add_argument("path",type=str,required=True,help_text="Directory to move to")
@@ -512,11 +538,15 @@ def chdir(argsraw):
     if parser.help_flag:
         return None
     
-    if os.path.isdir(args.path):
-        os.chdir(args.path)
+    if not args.path == "~":
+        if os.path.isdir(args.path):
+            os.chdir(args.path)
+        else:
+            printerror(f"Error: {args.path} is a file")
+        api.pwd = os.getcwd()
     else:
-        printerror(f"Error: {args.path} is a file")
-    api.pwd = os.getcwd()
+        api.pwd = os.path.expanduser("~")
+        os.chdir(api.pwd)
     api.updatecompletions()
 
 @api.command()
@@ -568,6 +598,7 @@ def plugins(argsraw):
     if args.subcommand == "reload":
         if args.plugin in api.plugins:
             console.print(f"Reloading \"{args.plugin}\"")
+            print(api.plugins[args.plugin].__class__.name)
             api.disable_plugin(api.plugins[args.plugin])
             api.load_plugin(os.path.join(api.starterdir, "plugins", args.plugin))
             console.print("Reload complete.")
@@ -578,7 +609,7 @@ def plugins(argsraw):
     elif args.subcommand == "reloadall":
         console.print("Reloading all plugins...")
         for plugin_name in list(api.plugins):
-            api.disable_plugin(api.plugins[plugin_name])
+            api.disable_plugin(api.plugins[plugin_name].config.name)
         for plugin_file in os.listdir(os.path.join(api.starterdir, "plugins")):
             api.load_plugin(os.path.join(api.starterdir, "plugins", plugin_file))
         console.print("Reload complete.")
@@ -618,6 +649,7 @@ def plugins(argsraw):
             config = api.plugins[args.plugin].config
             console.print(f"Plugin '{config.displayname}' details:\n")
             console.print("Version:",config.version)
+            console.print("Description:",config.description)
             console.print("Organization/Team:",config.team)
             console.print("Authors of plugin")
             for i in config.authors:
@@ -632,7 +664,6 @@ def plugins(argsraw):
 
     else:
         print("Unknown subcommand.")
-
 
 @api.command()
 def tree(argsraw):
@@ -729,6 +760,18 @@ def touch(argsraw):
             args.file,
             "exists" + colorama.Fore.RESET + colorama.Style.NORMAL,
         )
+        
+@api.command(name="python",alias=["py"])
+def pythoncode(argsraw):
+    parser = ArgumentParser(api,description="Executes a python file")
+    parser.add_argument("file", type=str, help_text="The file to display", required=True)
+    
+    args = parser.parse_args(argsraw)
+    
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
+    runpy.run_path(args.file)
 
 @api.command(alias=["cat"])
 def viewfile(argsraw):
@@ -775,6 +818,8 @@ if __name__ == "__main__":
     
     if debugmode:
         console.print("Starting CipherOS in [purple]debug mode[/purple]")
+        if is_root():
+            console.print("Admin privileges detected starting as admin",style="bright_magenta")
         api.debug = True
         @api.command()
         def arbc(argsraw):
@@ -816,9 +861,11 @@ if __name__ == "__main__":
                 print(f"vdump encountered an error: {e}")
     else:
         console.print("Starting CipherOS")
+        if is_root():
+            console.print("Admin privileges detected starting as admin",style="bright_magenta")
 
-    if not len(os.listdir(os.path.join(api.starterdir, "plugins"))) == 0:
-        for i in os.listdir(os.path.join(api.starterdir, "plugins")):
+    if not len(os.listdir(os.path.join(api.starterdir,"plugins"))) == 0:
+        for i in os.listdir(os.path.join(api.starterdir,"plugins")):
             try:
                 api.load_plugin(os.path.join(api.starterdir, "plugins", i))
             except:

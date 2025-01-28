@@ -1,6 +1,7 @@
-from cipher.plugins import CipherPlugin, CipherAPI
-from cipher.parsers import ArgumentParser
-import os, platform
+from cipher.plugins import CipherPlugin
+from cipher.api import CipherAPI
+from cipher.argparser import ArgumentParser
+import platform
 
 class neofetch(CipherPlugin):
     def __init__(self, api: CipherAPI, config):

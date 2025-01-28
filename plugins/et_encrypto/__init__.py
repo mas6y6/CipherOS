@@ -1,7 +1,9 @@
-from cipher.plugins import CipherAPI, CipherPlugin
+from cipher.plugins import CipherPlugin
+from cipher.api import CipherAPI
+from cipher.parsers import ConfigParser
 
 class EntechEncrypto(CipherPlugin):
-    def __init__(self, api: CipherAPI, config):
+    def __init__(self, api: CipherAPI, config: ConfigParser):
         super().__init__(api, config)
         self.register_commands()
 

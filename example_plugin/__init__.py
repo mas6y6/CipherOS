@@ -16,13 +16,13 @@ class ExamplePlugin(CipherPlugin):
         print("Example Plugin enabled")
     
     def register_commands(self):
-        @CipherPlugin.command()  # This can also be done with @CipherPlugin.command()
+        @self.command()
         def hello(args:list[str]):
             """This command prints a friendly greeting"""
             print("Hello from ExamplePlugin!")
         
         # Register another command called 'goodbye'
-        @CipherPlugin.command(name="goodbye")  # You can use this or @CipherPlugin.command()
+        @self.command(name="goodbye")
         def goodbye(args:list[str]):
             """This command prints a farewell message"""
             print("Goodbye from ExamplePlugin!")

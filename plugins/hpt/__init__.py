@@ -1,6 +1,4 @@
-from cipher.plugins import CipherPlugin
-from cipher.api import CipherAPI
-from cipher.parsers import ConfigParser
+from cipher.cipher_aio import CipherPlugin, CipherAPI, ConfigParser
 from hostprobe import *
 
 class hpt(CipherPlugin):
@@ -15,7 +13,7 @@ class hpt(CipherPlugin):
         print("hostprobe-terminal disabled.")
    
     def register_commands(self):
-        @CipherPlugin.command(name="hpt")
+        @self.command(name="hpt")
         def hpt(args):
             if args:
                 netprobe(args, output=True, info=True)

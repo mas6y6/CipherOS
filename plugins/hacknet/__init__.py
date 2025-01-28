@@ -1,11 +1,9 @@
 import random
 import shutil
 import string
-from cipher.plugins import CipherPlugin
-from cipher.parsers import ArgumentParser, ConfigParser
-from cipher.api import CipherAPI
+from cipher.cipher_aio import CipherPlugin, ConfigParser, CipherAPI, ArgumentParser
 from rich.panel import Panel
-import os, pygame, progressbar, time, subprocess, requests
+import os, pygame, time, subprocess, requests
 from .cursor import hide, show
 
 class HacknetPlugin(CipherPlugin):
@@ -26,7 +24,7 @@ class HacknetPlugin(CipherPlugin):
     def register_commands(self):
         """Method to register all commands for this plugin"""
         
-        @CipherPlugin.command()
+        @self.command()
         def traced(argsraw):
             parser = ArgumentParser(self.api,"EMERGENCY TRACE AVERSION SEQUENCE")
             parser.parse_args(argsraw)
@@ -134,7 +132,7 @@ YOUR Assigned IP: {self.ipAddress}
 """, expand=True,style="white on red"))
             time.sleep(1)
         
-        @CipherPlugin.command()
+        @self.command()
         def completetrace(argsraw):
             parser = ArgumentParser(self.api,"Stops the EMERGENCY TRACE AVERSION SEQUENCE")
             parser.parse_args(argsraw)

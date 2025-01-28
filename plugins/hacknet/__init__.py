@@ -1,15 +1,16 @@
 import random
 import shutil
 import string
-from cipher.plugins import CipherPlugin, CipherAPI
-from cipher.parsers import ArgumentParser
+from cipher.plugins import CipherPlugin
+from cipher.parsers import ArgumentParser, ConfigParser
+from cipher.api import CipherAPI
 from rich.panel import Panel
 import os, pygame, progressbar, time, subprocess, requests
 from .cursor import hide, show
 
 class HacknetPlugin(CipherPlugin):
-    def __init__(self, api: CipherAPI,config):
-        super().__init__(api,config)
+    def __init__(self, api: CipherAPI, config:ConfigParser):
+        super().__init__(api, config)
         self.register_commands()
         self.console = self.api.console
         self.traceactive = False

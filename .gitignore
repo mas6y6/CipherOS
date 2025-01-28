@@ -15,3 +15,5 @@ tools
 downloads
 .vscode/launch.json
 releaseprep
+venv/
+typings/

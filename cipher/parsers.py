@@ -1,7 +1,8 @@
+import types
+from typing import Any
 import json
-from yaml import YAMLObject, safe_load
-import io
-import cipher.api
+from yaml import safe_load #,YAMLObject
+from icecream import ic # type: ignore
 
 class ParserError(Exception):
     pass
@@ -11,183 +12,25 @@ class ArgumentRequiredError(Exception):
 
 class Namespace:
     """Container for parsed arguments."""
-    def __init__(self):
+    subcommand: str
+    def __init__(self) -> None:
         pass
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self.__dict__)
 
 class ArgumentGroup:
     """Represents a group of arguments."""
-    def __init__(self, name, description=None):
+    def __init__(self, name:str, description:str|None=None) -> None:
         self.name = name
         self.description = description
-        self.arguments = []
+        self.arguments: list[tuple[tuple[Any, ...], dict[str, Any]]] = []
 
-    def add_argument(self, *args, **kwargs):
+    def add_argument(self, *args:tuple[Any, ...], **kwargs:dict[str, Any]) -> None:
         self.arguments.append((args, kwargs))
 
-class ArgumentParser:
-    def __init__(self,api, description=None, include_help=True):
-        self.description = description
-        self._arguments = []
-        self._flags = {}
-        self._api = api
-        self._console = api.console
-        self._subcommands = {}
-        self.help_flag = False
-        self.include_help = include_help
-        self.argument_groups = []
-
-    def add_argument_group(self, name, description=None):
-        """Adds a new argument group."""
-        group = ArgumentGroup(name, description)
-        self.argument_groups.append(group)
-        return group
-
-    def add_subcommand(self, name, description=None):
-        """Adds a subcommand with its own ArgumentParser."""
-        if name in self._subcommands:
-            raise ParserError(f"Subcommand '{name}' already exists.")
-        subparser = ArgumentParser(self._api, description=description)
-        self._subcommands[name] = subparser
-        return subparser
-
-    def add_argument(self, name, type=str, default=None, required=False, help_text=None, action=None, aliases=None):
-        """Adds an argument or flag."""
-        aliases = aliases or []
-        flag_names = [name] + aliases
-
-        for flag_name in flag_names:
-            if flag_name.startswith("--") or flag_name.startswith("-"):
-                if flag_name in self._flags:
-                    raise ValueError(f"Duplicate flag/alias: {flag_name}")
-                self._flags[flag_name] = {
-                    "type": type,
-                    "default": default,
-                    "required": required,
-                    "help_text": help_text,
-                    "action": action,
-                    "name": name.lstrip("-"),
-                }
-            else:
-                if any(arg["name"] == name for arg in self._arguments):
-                    raise ValueError(f"Duplicate argument name: {name}")
-                self._arguments.append({
-                    "name": name,
-                    "type": type,
-                    "default": default,
-                    "required": required,
-                    "help_text": help_text,
-                })
-
-    def parse_args(self, args):
-        """Parses the provided argument list."""
-        parsed = Namespace()
-        
-        if "--help" in args or "-h" in args:
-            self.print_help()
-            self.help_flag = True
-            return parsed
-
-        if args and args[0] in self._subcommands:
-            subcommand = args[0]
-            subcommand_args = args[1:]
-            parsed.subcommand = subcommand
-            subparser = self._subcommands[subcommand]
-            subcommand_namespace = subparser.parse_args(subcommand_args)
-
-            for key, value in vars(subcommand_namespace).items():
-                setattr(parsed, key, value)
-            return parsed
-        elif self._subcommands:
-            raise ParserError("A subcommand is required. Use --help for usage information.")
-
-        index = 0
-        used_flags = set()
-        for arg in self._arguments:
-            if index < len(args):
-                setattr(parsed, arg["name"], arg["type"](args[index]))
-                index += 1
-            elif arg["required"]:
-                raise ArgumentRequiredError(f"Missing required argument: {arg['name']}")
-            else:
-                setattr(parsed, arg["name"], arg["default"])
-
-        while index < len(args):
-            arg = args[index]
-            if arg in self._flags:
-                flag = self._flags[arg]
-                canonical_name = flag["name"]
-                used_flags.add(canonical_name)
-
-                if flag["action"] == "store_true":
-                    setattr(parsed, canonical_name, True)
-                else:
-                    if index + 1 < len(args):
-                        index += 1
-                        setattr(parsed, canonical_name, flag["type"](args[index]))
-                    else:
-                        raise ArgumentRequiredError(f"Flag {arg} requires a value")
-            else:
-                raise ParserError(f"Unrecognized argument: {arg}")
-            index += 1
-
-        for flag, details in self._flags.items():
-            if details["name"] not in used_flags:
-                if details["action"] == "store_true":
-                    setattr(parsed, details["name"], False)
-                else:
-                    setattr(parsed, details["name"], details["default"])
-
-        return parsed
-
-
-    def print_help(self):
-        """Prints help message."""
-        if self.description:
-            self._console.print(self.description, style="bold bright_green")
-        
-        self._console.print("\nUsage:")
-        
-        
-        if self._arguments:
-            for arg in self._arguments:
-                self._console.print(f"  [bold bright_blue]{arg['name']}[/bold bright_blue]  {arg['help_text'] or ''} (required={arg['required']})")
-        
-        seen_flags = set()
-        if self.include_help:
-            self._console.print(f"  [bold bright_yellow]--help, -h[/bold bright_yellow]  Opens this message")
-        if self._flags:
-            for flag, details in self._flags.items():
-                if flag in seen_flags:
-                    continue
-                aliases = [alias for alias, info in self._flags.items() if info["name"] == details["name"]]
-                flag_aliases = ", ".join(aliases)
-                self._console.print(f"  [bold bright_yellow]{flag_aliases}[/bold bright_yellow]  {details['help_text'] or ''} (default={details['default']})")
-                seen_flags.update(aliases)
-
-        if self._subcommands:
-            self._console.print("\nSubcommands:")
-            for subcommand_name, subcommand_parser in self._subcommands.items():
-                self._console.print(f"\n  [bold bright_magenta]{subcommand_name}[/bold bright_magenta]  {subcommand_parser.description or ''}")
-                
-                if subcommand_parser._arguments:
-                    for arg in subcommand_parser._arguments:
-                        self._console.print(f"    [bold bright_blue]{arg['name']}[/bold bright_blue]  {arg['help_text'] or ''} (required={arg['required']})")
-                
-                seen_flags = set()
-                if subcommand_parser._flags:
-                    for flag, details in subcommand_parser._flags.items():
-                        if flag in seen_flags:
-                            continue
-                        aliases = [alias for alias, info in subcommand_parser._flags.items() if info["name"] == details["name"]]
-                        flag_aliases = ", ".join(aliases)
-                        self._console.print(f"    [bold bright_yellow]{flag_aliases}[/bold bright_yellow]  {details['help_text'] or ''} (default={details['default']})")
-                        seen_flags.update(aliases)
-
 class ConfigParser:
-    def __init__(self, file_path: str):
+    def __init__(self, file_path: str) -> None:
         """Parser to parse for all versions of "plugin.yml"
 
         Args:
@@ -197,54 +40,76 @@ class ConfigParser:
             self.yml = safe_load(file)
             self.dict = json.loads(json.dumps(self.yml))
 
-        self.configversion = self.dict["configversion"]
-        if self.configversion == 1:
-            self.name = self.dict["name"]
+        configversion = self.dict["configversion"]
+        if type(configversion) != int:
+            raise ParserError(f"{type(configversion)=} does not match expected type (int).")
+        if configversion == 1:
+            name = self.dict["name"]
             
             if not self.dict["displayname"]:
-                self.displayname = self.dict["displayname"]
+                displayname = self.dict["displayname"]
             else:
-                self.displayname = self.name
+                displayname = name
             
-            self.version = self.dict["version"]
-            self.authors = [None]
-            self.team = None
-            self.description = None
-            self.classname = self.dict["class"]
-            self.dependencies = self.dict["dependencies"]
-        elif self.configversion == 2:
-            self.name = self.dict["name"]
+            version = self.dict["version"]
+            authors: list[str] | None = None
+            team = None
+            description = None
+            classname = self.dict["class"]
+            dependencies = self.dict["dependencies"]
+        elif configversion == 2:
+            name = self.dict["name"]
             
             if not self.dict["displayname"]:
-                self.displayname = self.dict["displayname"]
+                displayname = self.dict["displayname"]
             else:
-                self.displayname = self.name
+                displayname = name
             
-            self.version = self.dict["version"]
-            self.authors = self.dict["authors"]
-            self.team = self.dict["team"]
-            self.description = None
-            self.classname = self.dict["class"]
-            self.dependencies = self.dict["dependencies"]
-        elif self.configversion == 3:
-            self.name = self.dict["name"]
+            version = self.dict["version"]
+            authors = self.dict["authors"]
+            team = self.dict["team"]
+            description = None
+            classname = self.dict["class"]
+            dependencies = self.dict["dependencies"]
+        elif configversion == 3:
+            name = self.dict["name"]
             
             if not self.dict["displayname"]:
-                self.displayname = self.dict["displayname"]
+                displayname = self.dict["displayname"]
             else:
-                self.displayname = self.name
+                displayname = name
             
-            self.version = self.dict["version"]
-            self.authors = self.dict["authors"]
-            self.team = self.dict["team"]
-            self.description = self.dict["description"]
-            self.classname = self.dict["class"]
-            self.dependencies = self.dict["dependencies"]
+            version = self.dict["version"]
+            authors = self.dict["authors"]
+            team = self.dict["team"]
+            description = self.dict["description"]
+            classname = self.dict["class"]
+            dependencies = self.dict["dependencies"]
         else:
             raise ParserError(
-                f"The specified configversion \"{self.configversion}\" defined in the \"plugin.yml\" is not supported.\n"
+                f"The specified configversion \"{configversion}\" defined in the \"plugin.yml\" is not supported.\n"
                 f"Please check the \"plugin.yml\" file or update to the latest version of CipherOS"
             )
+        expected_type_match_list: list[tuple[Any, type|types.UnionType]] = [
+            (name, str),
+            (displayname, str),
+            (version, int),
+            (authors, None|list), # list[str] # type: ignore
+            (team, None|str),
+            (description, None|str),
+            (classname, str),
+            (dependencies, list) # list[str]
+        ]
+        types_match = ic([isinstance(variable, type_of_variable) for variable, type_of_variable in expected_type_match_list])
+        if not all(types_match): raise ParserError(f"Some parsed data has incorrect types.")
+        self.name: str = name
+        self.displayname: str = displayname
+        self.version: int = version
+        self.authors: list[str] | None = authors
+        self.team: str | None = team
+        self.description: str | None = description
+        self.classname: str = classname
+        self.dependencies: list[str] = dependencies
 
         if isinstance(self.authors,list):
             if not len(self.authors) >= 1:

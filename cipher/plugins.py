@@ -1,14 +1,12 @@
 from cipher.api import CipherAPI
+from cipher.parsers import ConfigParser
 from yaml import YAMLObject
 
 class CipherPlugin:
-    api = None
-    config = None
     name = None
 
-    def __init__(self, api: CipherAPI, config):
-        if CipherPlugin.api is None:
-            CipherPlugin.api = api
+    def __init__(self, api:CipherAPI, config:ConfigParser): #api:CipherAPI        
+        self.api = api
         
         self.config = config
         self.name = config.name

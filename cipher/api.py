@@ -1,69 +1,76 @@
-import os, socket, tarfile, yaml, sys, socket, traceback, importlib.util, shutil, requests, zipfile, progressbar, re, colorama, platform
+from dataclasses import dataclass
+import os, socket, tarfile, traceback, importlib.util, requests, zipfile, progressbar, re
+from typing import Callable
 from cipher.exceptions import (
     ExitCodes,
     ExitCodeError,
-    PluginError,
     PluginInitializationError,
 )
-from prompt_toolkit.completion import (
-    Completer,
-    Completion,
-    PathCompleter,
-    WordCompleter,
-)
-from wheel.wheelfile import WheelFile
+from wheel.wheelfile import WheelFile # type: ignore
 from rich.console import Console
-from cipher.parsers import ArgumentParser, ArgumentRequiredError, ParserError, ConfigParser
+from cipher.parsers import ArgumentRequiredError, ParserError, ConfigParser
 
-initialized_api = None
+# REMOVE IF ERRORS
+from cipher.plugins import CipherPlugin
+
+#initialized_api = None
+
+@dataclass
+class Command:
+    func: Callable[[list[str]], None]
+    desc: str | None
+    helpflag: str
+    alias: list[str]
+    extradata: dict[str, str]
+
 
 class CipherAPI:
     def __init__(self):
-        self.commands = {}
+        self.commands: dict[str, Command] = {}
         self.pwd = os.getcwd()
         self.starterdir = os.getcwd()
         self.addressconnected = ""
         self.hostname = socket.gethostname()
         self.localip = socket.gethostbyname(self.hostname)
         self.currentenvironment = "COS"
-        self.plugins = {}
-        self.plugincommands = {}
+        self.plugins: dict[str, CipherPlugin] = {}
+        self.plugincommands: dict[str, list[str]] = {}
         self.threads = {}
         self.debug = False
         self.completions = []
         self.console = Console()
 
-    def command(self, name=None, helpflag="--help", desc=None, extradata={}, alias=[]):
-        def decorator(func):
+    def command(
+            self, name:str|None=None, helpflag:str="--help", desc:str|None=None, extradata:dict[str, str]={}, alias:list[str]=[]
+        ) -> Callable[[Callable[[list[str]], None]], Callable[[list[str]], None]]:
+        def decorator(func:Callable[[list[str]], None]) -> Callable[[list[str]], None]:
             funcname = name if name is not None else func.__name__
-            self.commands[funcname] = {
-                "func": func,
-                "desc": desc,
-                "helpflag": helpflag,
-                "alias":alias,
-                "parentcommand":True,
-                "extradata": extradata,
-            }
+            self.commands[funcname] = Command(
+                func=func,
+                desc=desc,
+                helpflag=helpflag,
+                alias=alias.copy(),
+                extradata=extradata
+            )
             for i in alias:
-                self.commands[i] = {
-                    "func": func,
-                    "desc": desc,
-                    "helpflag": helpflag,
-                    "alias":[],
-                    "parentcommand":False,
-                    "extradata": extradata,
-                }
+                self.commands[i] = self.commands[funcname] = Command(
+                    func=func,
+                    desc=desc,
+                    helpflag=helpflag,
+                    alias=alias.copy(),
+                    extradata=extradata
+                )
             return func
 
         return decorator
 
-    def rm_command(self, name):
+    def rm_command(self, name:str):
         self.commands.pop(name)
 
-    def run(self, args):
+    def run(self, args:list[str]):
         exc = None
         try:
-            exc = self.commands[args[0]]["func"](args[1:])
+            exc = self.commands[args[0]].func(args[1:])
         except KeyError:
             return ExitCodes.COMMANDNOTFOUND, traceback.format_exc()
         except ExitCodeError:
@@ -84,7 +91,7 @@ class CipherAPI:
         version_digits = ''.join(c for c in sanitized_version if c.isdigit())
         return int(version_digits * 1000)
 
-    def load_plugin(self, filepath):
+    def load_plugin(self, filepath:str):
         yml_path = os.path.join(filepath, "plugin.yml")
         if self.debug:
             print(filepath)
@@ -105,7 +112,7 @@ class CipherAPI:
             else:
                 if newv > enabledv:
                     self.console.print("Duplicate is newer then already enabled.\nDisabling and continuing enabling process...",style="bold bright_yellow")
-                    self.disable_plugin(self.plugins[yml.name])
+                    self.disable_plugin(yml.name)
                     self.console.print("Continuing...")
                 else:
                     self.console.print("Failed duplicate is older then already enabled.",style="bold bright_yellow")
@@ -117,12 +124,13 @@ class CipherAPI:
         plugin_dependencies = yml.get("dependencies")
         print(f"Loading {plugin_displayname}")
         
-        pm = PackageManager()
-        if not plugin_dependencies == None:
+        pm = PackageManager(self)
+        if plugin_dependencies != None:
             for i in plugin_dependencies:
                 if not os.path.exists(os.path.join(self.starterdir, "data", "cache", "packages", i)):
                     if i.startswith("https://") or i.startswith("http://"):
-                        pm.download_from_url(i)
+                        raise NotImplementedError(f"Feature not yet implemented. Please contact the editors of this program for more detail")
+                        #pm.download_from_url(i)
                     else:
                         pm.download_package(i)
 
@@ -132,16 +140,12 @@ class CipherAPI:
         if not os.path.exists(init_file):
             raise PluginInitializationError(f"'__init__.py' not found in {filepath}")
         spec = importlib.util.spec_from_file_location(plugin_name, init_file)
+        if spec == None: raise PluginInitializationError(f"Something went wrong during import-spec generation.")
         module = importlib.util.module_from_spec(spec)
+        if spec.loader == None: raise PluginInitializationError(f"Something went wrong while loading the import-spec")
         spec.loader.exec_module(module)
         if self.debug:
             print(module)
-
-        plugin_class = getattr(module, plugin_class_name, None)
-        if plugin_class is None:
-            raise PluginInitializationError(
-                f"Class '{plugin_class_name}' not found in {init_file}"
-            )
 
         plugin_class = getattr(module, plugin_class_name, None)
         if plugin_class is None:
@@ -164,13 +168,13 @@ class CipherAPI:
         if self.debug:
             print("\n\n")
 
-    def disable_plugin(self, plugin):
+    def disable_plugin(self, plugin:str):
         print(f"Disabling {plugin}")
         plugin_instance = self.plugins[plugin]
         if hasattr(plugin_instance, "on_disable") and callable(
-            plugin_instance.on_disable
+            plugin_instance.on_disable # type: ignore
         ):
-            plugin_instance.on_disable()
+            plugin_instance.on_disable() # type: ignore
         else:
             pass
 
@@ -180,7 +184,7 @@ class CipherAPI:
         self.updatecompletions()
 
     def updatecompletions(self):
-        self.completions = []
+        self.completions: list[str] = []
         for i in os.listdir(self.pwd):
             self.completions.append(i)
 
@@ -188,11 +192,11 @@ class CipherAPI:
             self.completions.append(i)
 
 class PackageManager:
-    def __init__(self):
-        self.resolved_dependencies = set()
-        self.api = initialized_api
+    def __init__(self, api:CipherAPI):
+        self.resolved_dependencies: set[str] = set()
+        self.api = api
 
-    def _is_compatible_whl(self, filename):
+    def _is_compatible_whl(self, filename:str):
         import sysconfig
 
         python_version = sysconfig.get_python_version()
@@ -218,7 +222,7 @@ class PackageManager:
 
         return python_compatible and platform_compatible
 
-    def download_package(self, package_name, version=None):
+    def download_package(self, package_name:str, version:str|None=None):
         base_url = "https://pypi.org/pypi"
         version_part = f"/{version}" if version else ""
         url = f"{base_url}/{package_name}{version_part}/json"
@@ -292,7 +296,7 @@ class PackageManager:
         except Exception as e:
             self.api.console.print(f"[ERROR] An unexpected error occurred: {e}", style="bold red")
 
-    def _download_file(self, url, path):
+    def _download_file(self, url:str, path:str):
         with requests.get(url, stream=True) as r:
             r.raise_for_status()
             total_size = int(r.headers.get("Content-Length", 0))
@@ -316,7 +320,7 @@ class PackageManager:
                     bar.update(downloaded)
                 bar.finish()
 
-    def _extract_package(self, file_path, target_dir, filename):
+    def _extract_package(self, file_path:str, target_dir:str, filename:str):
         os.makedirs(target_dir, exist_ok=True)
         if filename.endswith(".zip"):
             with zipfile.ZipFile(file_path, "r") as zip_ref:
@@ -330,16 +334,20 @@ class PackageManager:
         else:
             raise TypeError("Unsupported file format")
 
-    def _parse_dependency(self, dependency_string):
+    def _parse_dependency(self, dependency_string:str) -> tuple[str, str | None]:
         import re
         match = re.match(r"([a-zA-Z0-9_\-.]+)(?:\[.*\])?(?:\s+\((.+)\))?", dependency_string)
         if match:
             dep_name = match.group(1).strip()
             dep_version = match.group(2)
-            return dep_name, dep_version
+            if isinstance(dep_name, str) and isinstance(dep_version, str):
+                return dep_name, dep_version
         return dependency_string, None
 
-    def is_package_installed(self, package_name, version=None):
+    def is_package_installed(self, package_name:str, version:str|None=None):
+        '''
+        TODO: make version checks.
+        '''
         try:
             importlib.import_module(package_name)
             return True
@@ -348,10 +356,14 @@ class PackageManager:
             package_path = os.path.join(installed_dir, package_name)
             return os.path.exists(package_path)
 
-    def download_from_url(self,url):
+    '''
+    # TODO: finish function.
+    # The filename is never set, so I (tex) just assume that this function was not finished.
+    def download_from_url(self, url:str):
         download_dir = os.path.join(self.api.starterdir, "data", "cache", "packageswhl")
         packages_dir = os.path.join(self.api.starterdir, "data", "cache", "packages")
         
         filename
         file_path = os.path.join(download_dir, filename)
         self._download_file(url, file_path)
+    '''

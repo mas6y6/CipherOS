@@ -597,7 +597,8 @@ def plugins(argsraw:list[str]):
     info_parser.add_argument("plugin", argtype=str, help_text="The name of the plugin to get info about.",required=True)
 
     args = parser.parse_args(argsraw)
-    args_plugin: str = args.plugin # type: ignore
+    if hasattr(args, "plugin"): args_plugin: str = args.plugin # type: ignore
+    else: args_plugin = ""
     if not isinstance(args_plugin, str):
         raise TypeError(f"Type of 'arg_plugin' ({type(args_plugin)}) does not match expected type (str)") # type: ignore
 
@@ -820,14 +821,14 @@ def viewfile(argsraw:list[str]):
 
     if not hasattr(args, "markdown"):
         raise AttributeError(f"Argument 'markdown' missing.")
-    markdown: str = args.markdown # type: ignore
-    if not isinstance(markdown, str):
+    markdown: bool = args.markdown # type: ignore
+    if not isinstance(markdown, bool):
         raise TypeError(f"Type of 'markdown' ({type(markdown)}) does not match expected type (str)") # type: ignore
     
     if not hasattr(args, "color"):
         raise AttributeError(f"Argument 'color' missing.")
-    color: str = args.color # type: ignore
-    if not isinstance(color, str):
+    color: bool = args.color # type: ignore
+    if not isinstance(color, bool):
         raise TypeError(f"Type of 'color' ({type(color)}) does not match expected type (str)") # type: ignore
     
     #If the --help (-h) is passes it kills the rest of the script
@@ -954,6 +955,9 @@ if __name__ == "__main__":
 
     console.print(
         "[bold bright_magenta]Made by @mas6y6, @malachi196, and @overo3 (on github)[/bold bright_magenta]"
+    )
+    console.print(
+        "[bold bright_magenta]Fixed & modded by tex[/bold bright_magenta]"
     )
 
     print(

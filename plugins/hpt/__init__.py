@@ -1,5 +1,5 @@
 from cipher.cipher_aio import CipherPlugin, CipherAPI, ConfigParser
-from hostprobe import *
+from hostprobe import netprobe # type: ignore
 
 class hpt(CipherPlugin):
     def __init__(self, api: CipherAPI, config:ConfigParser):
@@ -14,8 +14,8 @@ class hpt(CipherPlugin):
    
     def register_commands(self):
         @self.command(name="hpt")
-        def hpt(args):
-            if args:
-                netprobe(args, output=True, info=True)
+        def hpt(args:list[str]):
+            if len(args) == 1:
+                netprobe(args[0], output=True, info=True)
             else:
                 print("hostprobe terminal: the cross-platform nmap of python")

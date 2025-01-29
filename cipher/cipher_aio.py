@@ -210,6 +210,8 @@ class ArgumentParser:
     def parse_args(self, args:list[str]) -> Namespace:
         """Parses the provided argument list."""
         parsed = Namespace()
+
+        if len(args) == 0: return parsed
         
         if "--help" in args or "-h" in args:
             self.print_help()

@@ -588,7 +588,7 @@ def plugins(argsraw:list[str]):
     if args.subcommand == "reload":
         if args_plugin in api.plugins:
             console.print(f"Reloading \"{args_plugin}\"")
-            print(api.plugins[args_plugin].__class__.name) # type: ignore
+            print(f'"{api.plugins[args_plugin].name}" or "{api.plugins[args_plugin].__class__.__name__}()"')
             api.disable_plugin(args_plugin)
             api.load_plugin(os.path.join(api.starterdir, "plugins", args_plugin))
             console.print("Reload complete.")

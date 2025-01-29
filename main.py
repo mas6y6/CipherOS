@@ -632,7 +632,7 @@ def plugins(argsraw:list[str]):
                 api.disable_plugin(args_plugin)
                 console.print(f'Plugin \"{args_plugin}\" disabled.')
             else:
-                printerror(f"Error: Plugin \"{args_plugin}\" enabled (not yet implemented).")
+                printerror(f"Error: Plugin with name \"{args_plugin}\" not found. Does it exist? Is it already disabled?")
         else:
             printerror("Error: No plugin specified to disable.")
 

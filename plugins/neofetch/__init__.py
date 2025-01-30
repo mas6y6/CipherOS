@@ -14,7 +14,7 @@ class neofetch(CipherPlugin):
         
     def register_commands(self):
         @self.command()
-        def neofetch(argsraw):
+        def neofetch(argsraw:list[str]):
             parser = ArgumentParser(self.api,"Fetches the system infomation and prints it to the console.")
             parser.parse_args(argsraw)
             

@@ -395,8 +395,14 @@ def scannet(argsraw:list[str]):
     else:
         console.print("Success", style="bright_green")
 
+    # why limit the "max_workers"?
+    # This is a networking-delayed task, meaning you can have way more threads, because they don't need to calculate anything.
+    # They just wait. Running the scan with 256 workers made the process spike at 1.11% cpu-capacity with my crappy cpu.
+    # If you have a function that actually can check if a host is up, that is.
+    max_workers = 256 #min(60, (0 if (cc:=os.cpu_count()) == None else cc) * 5)
     s = 0
     for i in interfaces:
+        if s >= len(netmasks): break
         cidr = sum(bin(int(x)).count("1") for x in netmasks[s].split("."))
         network_range = f"{localip}/{cidr}"
         console.print("Using Interface:", i, style="green")
@@ -414,8 +420,6 @@ def scannet(argsraw:list[str]):
             devicerange += 1
 
         console.print(f"Scanning {devicerange} potential devices on your network")
-        cpu_count = os.cpu_count()
-        max_workers = min(60, (0 if cpu_count == None else cpu_count) * 5)
         console.print("MAX WORKERS PER CHUNK:", max_workers)
         bar = progressbar.ProgressBar(
             maxval=devicerange,
@@ -436,7 +440,7 @@ def scannet(argsraw:list[str]):
         bar.start() # type: ignore
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_ip = {
-                executor.submit(cipher_ping, str(ip)): str(ip)
+                executor.submit(cipher_ping, str(ip)): str(ip) #cipher_ping
                 for ip in network
             }
             for future in as_completed(future_to_ip):
@@ -860,14 +864,11 @@ if __name__ == "__main__":
             parser = ArgumentParser(api,description="Executes arbitrary code")
             parser.add_argument("code",argtype=str,help_text="Code to execute",required=True)
             
-            args = parser.parse_args(argsraw)
+            _args = parser.parse_args(argsraw)
 
-            if not hasattr(args, "code"):
-                raise AttributeError(f"Argument 'code' missing.")
-            code: str = args.code # type: ignore
-            if not isinstance(code, str):
-                raise TypeError(f"Type of 'code' ({type(code)}) does not match expected type (str)") # type: ignore
-
+            if parser.help_flag: return
+            if len(argsraw) == 0: raise AttributeError(f"Argument 'code' missing.")
+            code = " ".join(argsraw)
             if parser.help_flag:
                 return None
             try:

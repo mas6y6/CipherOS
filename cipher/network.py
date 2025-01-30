@@ -1,5 +1,4 @@
 import socket, platform, subprocess, psutil
-from ping3 import ping #, verbose_ping # type: ignore
 
 def get_active_interface_and_netmask() -> tuple[list[str], list[str | None]]:
     interfaces = psutil.net_if_addrs()
@@ -36,18 +35,16 @@ def get_mac(ip: str) -> str:
         print(f"An error occurred while getting MAC for {ip}: {e}")
         return "Unknown"
 
-def cipher_ping(host:str) -> bool:
+def cipher_ping(ip:str, pings:int=1, timeout:int|float=4) -> bool:
+    if platform.system().lower().startswith("win"):
+        cmd = f"ping /n {pings} /w {int(timeout * 1000)}"
+    else:
+        cmd = f'ping -c {pings} -W {timeout} {ip}'
     try:
-        response_time = ping(host, timeout=2) # type: ignore
-        if response_time is not None:
-            return True
+        _output = subprocess.check_output(cmd, shell=True).decode(encoding="utf-8", errors="replace")
+    except: # Exception as e:
         return False
-    except TimeoutError:
-        #print(f"Timeout while pinging {host}.")
-        return False
-    except Exception as e: # type: ignore
-        #print(f"An error occurred while pinging {host}: {e}")
-        return False
+    return True
 
 def chunk_ports(start:int, end:int, chunk_size:int) -> list[tuple[int, int]]:
     return [(i, min(i + chunk_size - 1, end)) for i in range(start, end + 1, chunk_size)]

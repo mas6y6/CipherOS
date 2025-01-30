@@ -202,7 +202,7 @@ class ExamplePlugin(CipherPlugin):
 
 These are tools for helping you make your plugin that is built into CipherOS.
 
-## `cipher.parsers.ArgumentParser`
+## `cipher.cipher_aio.ArgumentParser`
 
 This is the custom built in `ArgumentParser` that CipherOS.
 

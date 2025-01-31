@@ -53,10 +53,10 @@ YOUR Assigned IP: {self.ipAddress}
                         os.system("setterm -background red -foreground black -store")
                 self.traceactive = True
             pygame.mixer.init()
-            pygame.mixer.music.load(os.path.join(self.api.starterdir,"plugins","hacknet","dark_drone_008.ogg"))
+            pygame.mixer.music.load(os.path.join(self.api.configdir,"plugins","hacknet","dark_drone_008.ogg"))
             pygame.mixer.music.play(loops=-1)
-            traced = pygame.mixer.Sound(os.path.join(self.api.starterdir,"plugins","hacknet","spiral_gauge_down.ogg"))
-            traceddo = pygame.mixer.Sound(os.path.join(self.api.starterdir,"plugins","hacknet","spiral_gauge_up.ogg"))
+            traced = pygame.mixer.Sound(os.path.join(self.api.configdir,"plugins","hacknet","spiral_gauge_down.ogg"))
+            traceddo = pygame.mixer.Sound(os.path.join(self.api.configdir,"plugins","hacknet","spiral_gauge_up.ogg"))
             
             traced.play()
             with self.console.screen(style="on bright_red") as e:
@@ -91,7 +91,7 @@ YOUR Assigned IP: {self.ipAddress}
                 traced.stop()
                 traceddo.play()
                 pygame.mixer.music.stop()
-                pygame.mixer.music.load(os.path.join(self.api.starterdir,"plugins","hacknet","Traced.ogg"))
+                pygame.mixer.music.load(os.path.join(self.api.configdir,"plugins","hacknet","Traced.ogg"))
                 print("\033c", end="")
                 hide()
                 if os.name == "nt":
@@ -148,9 +148,9 @@ YOUR Assigned IP: {self.ipAddress}
             
             with self.console.screen() as e:
                 pygame.mixer.music.stop()
-                completed = pygame.mixer.Sound(os.path.join(self.api.starterdir,"plugins","hacknet","spiral_gauge_down.ogg"))
+                completed = pygame.mixer.Sound(os.path.join(self.api.configdir,"plugins","hacknet","spiral_gauge_down.ogg"))
                 completed.play()
-                beep = pygame.mixer.Sound(os.path.join(self.api.starterdir,"plugins","hacknet","beep.wav"))
+                beep = pygame.mixer.Sound(os.path.join(self.api.configdir,"plugins","hacknet","beep.wav"))
                 e.console.print(Panel("""
 
 DISCONNECTED

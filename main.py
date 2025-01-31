@@ -58,7 +58,7 @@ pbar = None
 
 #! README
 # The api.pwd class is the current path where CipherOS is in right now
-# The api.starterdir is where the plugins and data folder is located in the this variable is to not change and if it changes then its going to break a lot of problems.
+# The api.configdir is where the plugins and data folders are located in. This variable should not change and because otherwise it's going to bring a lot of problems.
 
 '''
 if os.name == "posix":
@@ -101,7 +101,7 @@ version = 1
 api = CipherAPI()
 #cipher.cipher_aio.api_instance = api
 console = api.console
-debugmode = True
+debugmode = False
 
 if running_on_mac:
     # To fix the path plugins and data folders being created in the ~ folder
@@ -110,10 +110,10 @@ if running_on_mac:
     #
     # macOS is just a linux distro so :)
     if macpwd != None:        api.pwd = macpwd
-    if macapistarter != None: api.starterdir = macapistarter
+    if macapistarter != None: api.configdir = macapistarter
 
-sys.path.append(os.path.join(api.starterdir, "plugins"))
-sys.path.append(os.path.join(api.starterdir, "data", "cache", "packages"))
+sys.path.append(os.path.join(api.configdir, "plugins"))
+sys.path.append(os.path.join(api.configdir, "data", "cache", "packages"))
 
 
 def hidec():
@@ -152,43 +152,43 @@ if executeargs.startdir == None:
             roaming_folder = os.environ.get("APPDATA")
             if roaming_folder != None:
                 os.makedirs(roaming_folder ,exist_ok=True)
-                api.starterdir = os.path.join(roaming_folder,"CipherOS")
+                api.configdir = os.path.join(roaming_folder,"CipherOS")
             os.chdir(api.pwd)
         else:
             pass
     elif platform.system() == "Linux":
         if not debugmode:
-            api.starterdir = os.path.expanduser("~")
+            api.configdir = os.path.join(os.path.expanduser("~"), ".config/CipherOS")
     elif platform.system() == "Darwin":
         if not debugmode:
-            api.starterdir = os.path.expanduser("~")
+            api.configdir = os.path.expanduser("~")
 else:
-    api.starterdir = executeargs.startdir
+    api.configdir = executeargs.startdir
 
 directories_to_create = [
-    os.path.join(api.starterdir, "data"),
-    os.path.join(api.starterdir, "plugins"),
-    os.path.join(api.starterdir, "data", "cache"),
-    os.path.join(api.starterdir, "data", "config"),
-    os.path.join(api.starterdir, "data", "cache", "packages"),
-    os.path.join(api.starterdir, "data", "cache", "packageswhl")
+    #os.path.join(api.configdir, "data"),
+    os.path.join(api.configdir, "plugins"),
+    #os.path.join(api.configdir, "data", "cache"),
+    os.path.join(api.configdir, "data", "config"),
+    os.path.join(api.configdir, "data", "cache", "packages"),
+    os.path.join(api.configdir, "data", "cache", "packageswhl")
 ]
 
 for i in directories_to_create:
     os.makedirs(i,exist_ok=True)
 
 json.dump(
-    {}, open(os.path.join(api.starterdir, "data", "cache", "networkmap.json"), "w")
+    {}, open(os.path.join(api.configdir, "data", "cache", "networkmap.json"), "w")
 )
 
 networkmap = json.load(
-    open(os.path.join(api.starterdir, "data", "cache", "networkmap.json"), "r")
+    open(os.path.join(api.configdir, "data", "cache", "networkmap.json"), "r")
 )
 
 def networkmap_save():
     global networkmap
     with open(
-        os.path.join(api.starterdir, "data", "cache", "networkmap.json"), "w"
+        os.path.join(api.configdir, "data", "cache", "networkmap.json"), "w"
     ) as f:
         json.dump(networkmap, f, indent=4)
         f.close()
@@ -594,7 +594,7 @@ def plugins(argsraw:list[str]):
             console.print(f"Reloading \"{args_plugin}\"")
             print(f'"{api.plugins[args_plugin].name}" or "{api.plugins[args_plugin].__class__.__name__}()"')
             api.disable_plugin(args_plugin)
-            api.load_plugin(os.path.join(api.starterdir, "plugins", args_plugin))
+            api.load_plugin(os.path.join(api.configdir, "plugins", args_plugin))
             console.print("Reload complete.")
         else:
             console.print(f"Error: plugin {args_plugin} does not exist.")
@@ -604,8 +604,8 @@ def plugins(argsraw:list[str]):
         console.print("Reloading all plugins...")
         for plugin_name in list(api.plugins):
             api.disable_plugin(api.plugins[plugin_name].config.name)
-        for plugin_file in os.listdir(os.path.join(api.starterdir, "plugins")):
-            api.load_plugin(os.path.join(api.starterdir, "plugins", plugin_file))
+        for plugin_file in os.listdir(os.path.join(api.configdir, "plugins")):
+            api.load_plugin(os.path.join(api.configdir, "plugins", plugin_file))
         console.print("Reload complete.")
 
     elif args.subcommand == "disable":
@@ -621,10 +621,10 @@ def plugins(argsraw:list[str]):
 
     elif args.subcommand == "enable":
         if args_plugin:
-            if args_plugin in os.listdir(os.path.join(api.starterdir,"plugins")):
+            if args_plugin in os.listdir(os.path.join(api.configdir,"plugins")):
                 if not args_plugin in api.plugins:
                     console.print(f'Enabling \"{args_plugin}\"...')
-                    api.load_plugin(os.path.join(api.starterdir,"plugins",args_plugin))
+                    api.load_plugin(os.path.join(api.configdir,"plugins",args_plugin))
                     console.print(f"Plugin \"{args_plugin}\" enabled.")
                 else:
                     printerror(f"Error: \"{args_plugin}\" is already enabled")
@@ -907,10 +907,10 @@ if __name__ == "__main__":
         if is_root():
             console.print("Admin privileges detected starting as admin",style="bright_magenta")
 
-    if not len(os.listdir(os.path.join(api.starterdir,"plugins"))) == 0:
-        for i in os.listdir(os.path.join(api.starterdir,"plugins")):
+    if not len(os.listdir(os.path.join(api.configdir,"plugins"))) == 0:
+        for i in os.listdir(os.path.join(api.configdir,"plugins")):
             try:
-                api.load_plugin(os.path.join(api.starterdir, "plugins", i))
+                api.load_plugin(os.path.join(api.configdir, "plugins", i))
             except:
                 printerror(f"Error: Plugin '{i}' failed to load\n" + traceback.format_exc())
     else:

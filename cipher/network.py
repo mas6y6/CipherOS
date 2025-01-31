@@ -15,7 +15,7 @@ def get_active_interface_and_netmask() -> tuple[list[str], list[str | None]]:
 
 def get_mac(ip: str) -> str:
     try:
-        if platform.system().lower() == "windows":
+        if platform.system().lower().startswith("win"):
             command = ["arp", "-a", ip]
         else:
             command = ["arp", "-n", ip]

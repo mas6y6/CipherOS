@@ -141,6 +141,7 @@ jobs:
       
       - name: Extract Build Artifacts
         run: |
+          tree
           mkdir -p build
           for os in ubuntu-latest windows-latest macos-latest; do
           for arch in x64 arm64 x32; do

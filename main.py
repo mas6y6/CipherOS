@@ -711,12 +711,10 @@ def ls(argsraw:list[str]):
     if parser.help_flag:
         return None
     
-    if not args.path is None: # type: ignore
+    if hasattr(args, "path") and isinstance(args.path, str): # type: ignore
         path: str = args.path # type: ignore
     else:
         path = api.pwd
-    if not isinstance(path, str):
-        raise TypeError(f"Type of 'path' ({type(path)} does not match expected type (str).") # type: ignore
     try:
         raw = os.listdir(path)
     except FileNotFoundError:

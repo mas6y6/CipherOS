@@ -1,17 +1,27 @@
 #!/bin/bash
 
+#this file should work on UNIX based systems
+#tested shells: bash and zsh
+
 set -e
 
-echo "\033[1;35m   _______       __              ____  _____\033[0m"
-echo "\033[1;35m  / ____(_)___  / /_  ___  _____/ __ \/ ___/\033[0m"
-echo "\033[1;35m / /   / / __ \/ __ \/ _ \/ ___/ / / /\__ \ \033[0m"
-echo "\033[1;35m/ /___/ / /_/ / / / /  __/ /  / /_/ /___/ / \033[0m"
-echo "\033[1;35m\____/_/ .___/_/ /_/\___/_/   \____//____/\033[0m"
-echo "\033[1;35m      /_/                                   \033[0m"
-echo "\033[1;35mProject Codename: Paradox\033[0m"
+MAGENTA=$(printf '\033[1;35m')
+BLUE=$(printf '\033[1;34m')
+YELLOW=$(printf '\033[1;33m')
+RED=$(printf '\033[1;31m')
+GREEN=$(printf '\033[1;32m')
+CLEAR=$(printf '\033[0m')
+
+echo "$MAGENTA   _______       __              ____  _____"
+echo "  / ____(_)___  / /_  ___  _____/ __ \/ ___/"
+echo " / /   / / __ \/ __ \/ _ \/ ___/ / / /\__ \ "
+echo "/ /___/ / /_/ / / / /  __/ /  / /_/ /___/ /"
+echo "\____/_/ .___/_/ /_/\___/_/   \____//____/"
+echo "      /_/                             "
+echo "${BLUE}Project Codename: Paradox"
 echo
-echo "\033[1;34mOpen source on github: https://github.com/mas6y6/CipherOS\033[0m"
-echo "\033[1;33mStarting CipherOS installation...\033[0m"
+echo "${BLUE}Open source on github: https://github.com/mas6y6/CipherOS"
+echo "${YELLOW}Starting CipherOS installation..$CLEAR"
 echo
 echo "Starting CipherOS installation..."
 
@@ -35,7 +45,7 @@ fi
 echo "System architecture: $ARCHITECTURE"
 
 if [ "$(id -u)" -ne 0 ]; then
-    echo "\033[1;31mPlease run as root using sudo.\033[0m"
+    echo "${RED}Please run as root using sudo.$CLEAR"
     exit 1
 fi
 
@@ -61,25 +71,25 @@ else
     echo "Unsupported operating system: $OS"
     exit 1
 fi
-echo "\033[1;34mDownloading CipherOS executable...\033[0m"
+echo "${BLUE}Downloading CipherOS executable...$CLEAR"
 mkdir -p "$INSTALL_DIR"
 
 HTTP_STATUS=$(curl -L -s -o "$INSTALL_DIR/$EXECUTABLE" -w "%{http_code}" "$GITHUB_REPO_URL")
 
 if [ "$HTTP_STATUS" -ne 200 ]; then
-    echo "\033[1;31mFailed to download CipherOS. HTTP Status: $HTTP_STATUS. Please check the URL or try again later.\033[0m"
+    echo "${RED}Failed to download CipherOS. HTTP Status: $HTTP_STATUS. Please check the URL or try again later. $CLEAR"
     rm -f "$INSTALL_DIR/$EXECUTABLE"
     exit 1
 fi
 
 if [ $? -ne 0 ]; then
-    echo "\033[1;31mFailed to download CipherOS. Please check your network or the URL.\033[0m"
+    echo "${RED}Failed to download CipherOS. Please check your network or the URL. $CLEAR"
     exit 1
 fi
 
 chmod +x "$INSTALL_DIR/$EXECUTABLE"
 
-echo "\033[1;34mCreating symbolic link...\033[0m"
+echo "${BLUE}Creating symbolic link...$CLEAR"
 ln -sf "$INSTALL_DIR/$EXECUTABLE" /usr/local/bin/$EXECUTABLE
 
-echo "\033[1;32mCipherOS installation complete! You can run CipherOS by typing 'cipheros' in the terminal.\033[0m"
+echo "${GREEN}CipherOS installation complete! You can run CipherOS by typing 'cipheros' in the terminal.$CLEAR"

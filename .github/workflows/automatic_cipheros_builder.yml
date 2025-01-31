@@ -142,14 +142,6 @@ jobs:
       - name: Extract Build Artifacts
         run: |
           mkdir -p build
-          tar -xzf "distworkflow.tar.gz" -C build
-      - name: Create Release Package
-        run: |
-          mkdir -p release
-          zip -r release/cipheros_release.zip build
-      - name: Create Release Package for All OS
-        run: |
-          mkdir -p release
           for os in ubuntu-latest windows-latest macos-latest; do
           for arch in x64 arm64 x32; do
             if [[ "$os" == "windows-latest" && ( "$arch" == "arm64" || "$arch" == "x32" ) ]]; then
@@ -157,10 +149,29 @@ jobs:
             fi
             artifact="${os}-${arch}-build"
             mkdir -p "build/$artifact"
-            tar -xzf "${artifact}.tar.gz" -C "build/$artifact"
+            unzip "${artifact}.zip" -d "build/$artifact"
           done
             done
-            zip -r release/cipheros_release.zip build
+      
+      - name: Create Release Package for All OS
+        run: |
+          mkdir -p release/bundle
+          for os in ubuntu-latest windows-latest macos-latest; do
+            for arch in x64 arm64 x32; do
+              if [[ "$os" == "windows-latest" && ( "$arch" == "arm64" || "$arch" == "x32" ) ]]; then
+                continue
+              fi
+              artifact="${os}-${arch}-build"
+              if [ -d "$artifact" ]; then
+                cp -r "$artifact"/* release/bundle/
+              else
+                echo "Warning: Artifact $artifact not found, skipping..."
+              fi
+            done
+          done
+          cd release
+          zip -r cipheros_release.zip bundle
+
       
       - name: Upload Release Package
         uses: actions/upload-artifact@v4

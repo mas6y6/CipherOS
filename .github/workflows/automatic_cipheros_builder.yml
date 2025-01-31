@@ -149,7 +149,7 @@ jobs:
             fi
             artifact="${os}-${arch}-build"
             mkdir -p "build/$artifact"
-            unzip "${artifact}.zip" -d "build/$artifact"
+            unzip "${artifact}" -d "build/$artifact"
           done
             done
       

@@ -6,12 +6,10 @@ I know that split files are super cool for maintenance and stuff, but I put work
 '''
 
 import types
-from typing import Any
-import json
+from typing import Any, Callable
 from yaml import safe_load #,YAMLObject
 from dataclasses import dataclass
-import os, socket, tarfile, traceback, importlib.util, requests, zipfile, progressbar, re
-from typing import Callable
+import os, socket, tarfile, traceback, importlib.util, requests, zipfile, progressbar, re, json
 from cipher.exceptions import (
     ExitCodes,
     ExitCodeError,
@@ -335,7 +333,7 @@ class CipherAPI:
     def __init__(self):
         self.commands: dict[str, Command] = {}
         self.pwd = os.getcwd()
-        self.starterdir = os.getcwd()
+        self.configdir = os.getcwd()
         self.addressconnected = ""
         self.hostname = socket.gethostname()
         self.localip = socket.gethostbyname(self.hostname)
@@ -434,7 +432,7 @@ class CipherAPI:
         pm = PackageManager(self)
         if plugin_dependencies != None:
             for i in plugin_dependencies:
-                if not os.path.exists(os.path.join(self.starterdir, "data", "cache", "packages", i)):
+                if not os.path.exists(os.path.join(self.configdir, "data", "cache", "packages", i)):
                     if i.startswith("https://") or i.startswith("http://"):
                         raise NotImplementedError(f"Feature not yet implemented. Please contact the editors of this program for more detail")
                         #pm.download_from_url(i)
@@ -539,8 +537,8 @@ class PackageManager:
         base_url = "https://pypi.org/pypi"
         version_part = f"/{version}" if version else ""
         url = f"{base_url}/{package_name}{version_part}/json"
-        download_dir = os.path.join(self.api.starterdir, "data", "cache", "packageswhl")
-        packages_dir = os.path.join(self.api.starterdir, "data", "cache", "packages")
+        download_dir = os.path.join(self.api.configdir, "data", "cache", "packageswhl")
+        packages_dir = os.path.join(self.api.configdir, "data", "cache", "packages")
 
         identifier = f"{package_name}=={version}" if version else package_name
 
@@ -665,7 +663,7 @@ class PackageManager:
             importlib.import_module(package_name)
             return True
         except ImportError:
-            installed_dir = os.path.join(self.api.starterdir, "data", "cache", "packages")
+            installed_dir = os.path.join(self.api.configdir, "data", "cache", "packages")
             package_path = os.path.join(installed_dir, package_name)
             return os.path.exists(package_path)
 
@@ -673,8 +671,8 @@ class PackageManager:
     # TODO: finish function.
     # The filename is never set, so I (tex) just assume that this function was not finished.
     def download_from_url(self, url:str):
-        download_dir = os.path.join(self.api.starterdir, "data", "cache", "packageswhl")
-        packages_dir = os.path.join(self.api.starterdir, "data", "cache", "packages")
+        download_dir = os.path.join(self.api.configdir, "data", "cache", "packageswhl")
+        packages_dir = os.path.join(self.api.configdir, "data", "cache", "packages")
         
         filename
         file_path = os.path.join(download_dir, filename)

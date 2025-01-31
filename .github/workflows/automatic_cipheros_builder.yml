@@ -49,7 +49,7 @@ jobs:
           mkdir -p "$OUTPUT_DIR"
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             echo "Compiling for Windows (${RUNNER_ARCH})..."
-            pyinstaller main.py --distpath "$OUTPUT_DIR" --onefile --icon="./icon.ico" --name="${{ matrix.os }}-${{ matrix.arch }}-executeable"
+            pyinstaller main.py --distpath "$OUTPUT_DIR" --onefile --icon="./icon.ico" --name="cipheros"
           elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
             echo "Compiling for Linux (${RUNNER_ARCH})..."
             pyinstaller main.py --distpath "$OUTPUT_DIR" --onefile --icon="./icon.ico" --name="${{ matrix.os }}-${{ matrix.arch }}-executeable"
@@ -63,9 +63,9 @@ jobs:
       - name: Test Initialization
         shell: bash
         run: |
-          EXECUTABLE="distworkflow/cipheros"
+          EXECUTABLE="distworkflow/${{ matrix.os }}-${{ matrix.arch }}-executeable"
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            EXECUTABLE="${EXECUTABLE}.exe"
+            EXECUTABLE="distworkflow/cipheros.exe"
           fi
 
           if [[ ! -f "$EXECUTABLE" ]]; then

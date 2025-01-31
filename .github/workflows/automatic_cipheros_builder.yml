@@ -49,15 +49,15 @@ jobs:
           mkdir -p "$OUTPUT_DIR"
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             echo "Compiling for Windows (${RUNNER_ARCH})..."
-            pyinstaller main.py --distpath "$OUTPUT_DIR" --onefile --icon="./icon.ico" --name="cipheros"
+            pyinstaller main.py --distpath "$OUTPUT_DIR" --onefile --icon="./icon.ico" --name="${{ matrix.os }}-${{ matrix.arch }}-executeable"
           elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
             echo "Compiling for Linux (${RUNNER_ARCH})..."
-            pyinstaller main.py --distpath "$OUTPUT_DIR" --onefile --icon="./icon.ico" --name="cipheros"
-            chmod +x $OUTPUT_DIR/cipheros
+            pyinstaller main.py --distpath "$OUTPUT_DIR" --onefile --icon="./icon.ico" --name="${{ matrix.os }}-${{ matrix.arch }}-executeable"
+            chmod +x $OUTPUT_DIR/${{ matrix.os }}-${{ matrix.arch }}-executeable
           elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
             echo "Compiling for macOS (${RUNNER_ARCH})..."
-            pyinstaller main.py --distpath "$OUTPUT_DIR" --onefile --icon="./icon.ico" --name="cipheros"
-            chmod +x $OUTPUT_DIR/cipheros
+            pyinstaller main.py --distpath "$OUTPUT_DIR" --onefile --icon="./icon.ico" --name="${{ matrix.os }}-${{ matrix.arch }}-executeable"
+            chmod +x $OUTPUT_DIR/${{ matrix.os }}-${{ matrix.arch }}-executeable
           fi
 
       - name: Test Initialization

@@ -1,9 +1,8 @@
-from cipher.plugins import CipherPlugin, CipherAPI
-from cipher.parsers import ArgumentParser
-import os, platform
+from cipher.cipher_aio import CipherPlugin, CipherAPI, ArgumentParser, ConfigParser
+import platform
 
 class neofetch(CipherPlugin):
-    def __init__(self, api: CipherAPI, config):
+    def __init__(self, api:CipherAPI, config:ConfigParser):
         super().__init__(api, config)
         self.register_commands()
 
@@ -14,8 +13,8 @@ class neofetch(CipherPlugin):
         print("neofetch disabled.")
         
     def register_commands(self):
-        @CipherPlugin.command()
-        def neofetch(argsraw):
+        @self.command()
+        def neofetch(argsraw:list[str]):
             parser = ArgumentParser(self.api,"Fetches the system infomation and prints it to the console.")
             parser.parse_args(argsraw)
             

@@ -1,6 +1,6 @@
 import sys, platform, os, ctypes
 
-def is_root():
+def is_root() -> bool:
     system = platform.system()
     if system in ["Linux", "Darwin"]:
         try:
@@ -15,7 +15,7 @@ def is_root():
     else:
         raise NotImplementedError(f"Unsupported OS: {system}")
 
-def elevate(show_console=True, graphical=True):
+def elevate(show_console:bool=True, graphical:bool=True) -> None:
     """
     Re-launch the current process with root/admin privileges
 

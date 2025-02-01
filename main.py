@@ -1,66 +1,50 @@
 import argparse
-import ctypes
 import os
 import socket
 import sys
 import runpy
-import rich
-import rich.traceback
 
-# Check if the cipher folder exists and adds it to the sys.path.append
+import cipher.cipher_aio
+
+# Check if the cipher folder exists and add it to the sys.path
 if "cipher" in os.listdir() and os.path.isdir("cipher"):
     sys.path.append(os.getcwd())
     sys.path.append(os.path.join(os.getcwd(),"cipher"))
 else:
-    def get_resource_path(relative_path):
+    def get_resource_path(relative_path:str) -> str:
         """Get the absolute path to a resource, works for development and PyInstaller."""
         if hasattr(sys, "_MEIPASS"):
-            base_path = sys._MEIPASS
+            base_path = sys._MEIPASS # type: ignore
         else:
             base_path = os.path.abspath(".")
-        return os.path.join(base_path, relative_path)
+        return os.path.join(base_path, relative_path) # type: ignore
     sys.path.append(get_resource_path("resources/cipher"))
     sys.path.append(get_resource_path("resources/cipher/tools"))
-    
-# Thats hella lot of libraries
-# And thats just the beginning there is more in the cipher/api.py file :)
-#
-# - @mas6y6
+
+'''
+Thats hella lot of libraries
+And thats just the beginning there is more in the cipher/api.py file :)
+- @mas6y6
+
+Yes. And many are unused, which is why I decided to remove them for now.
+- tex
+'''
 import json
-import math
-import os
 import platform
-import shutil
 import signal
-import socket
-import struct
-import subprocess
-import tarfile
-import tempfile
-import time
 import traceback
-import urllib.request
+#import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from ipaddress import IPv4Address, IPv4Network
-from threading import Lock
 import colorama
-import markdown
-import paramiko
-import progressbar
-import psutil
-import pyinputplus
+import progressbar # type: ignore
+#import pyinputplus
 import requests
-import urllib3
-import websockets
-from ping3 import ping, verbose_ping
 from prompt_toolkit import prompt
-from prompt_toolkit.completion import (Completer, Completion, PathCompleter,WordCompleter)
+from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.history import InMemoryHistory
-from rich.console import Console
-from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
-from rich.text import Text
 from rich.tree import Tree
 from rich.markdown import Markdown
 
@@ -74,49 +58,48 @@ pbar = None
 
 #! README
 # The api.pwd class is the current path where CipherOS is in right now
-# The api.starterdir is where the plugins and data folder is located in the this variable is to not change and if it changes then its going to break a lot of problems.
+# The api.configdir is where the plugins and data folders are located in. This variable should not change and because otherwise it's going to bring a lot of problems.
 
-#if os.name == "posix":
-#    if os.getcwd() == os.path.expanduser("~"):
-#        macpwd = os.path.expanduser("~")
-#        os.chdir(macpwd)
-#        if not os.path.exists(os.path.join(os.path.expanduser("~"), "CipherOS")):
-#            os.mkdir(os.path.join(os.path.expanduser("~"), "CipherOS"))
-#        macapistarter = os.path.join(os.path.expanduser("~"), "CipherOS")
-#        if not os.path.exists(
-#            os.path.join(os.path.expanduser("~"), "CipherOS", "cipher")
-#        ):
-#            print(
-#                'Warning the "cipher" library is not installed and its required to run'
-#            )
-#            print('Do you want to download the "cipher" library?')
-#            print()
-#            print('You cannot install it using "pip" as its not available on pypi.org')
-#            print()
-#            q = pyinputplus.inputYesNo("Would you like to continue? (Y/n): ")
-#            if q:
-#                urllib.request.urlretrieve(
-#                    "https://codeload.github.com/mas6y6/CipherOS/zip/refs/heads/main",
-#                    os.path.join(os.path.expanduser("~"), "CipherOS", "cache.zip"),
-#                    show_progress,
-#                )
-#           else:
-#               print(
-#                    'You can download the "cipher" folder from github https://github.com/mas6y6/CipherOS/archive'
-#                )
-#                sys.exit()
+'''
+if os.name == "posix":
+    if os.getcwd() == os.path.expanduser("~"):
+        macpwd = os.path.expanduser("~")
+        os.chdir(macpwd)
+        if not os.path.exists(os.path.join(os.path.expanduser("~"), "CipherOS")):
+            os.mkdir(os.path.join(os.path.expanduser("~"), "CipherOS"))
+        macapistarter = os.path.join(os.path.expanduser("~"), "CipherOS")
+        if not os.path.exists(
+            os.path.join(os.path.expanduser("~"), "CipherOS", "cipher")
+        ):
+            print(
+                'Warning the "cipher" library is not installed and its required to run'
+            )
+            print('Do you want to download the "cipher" library?')
+            print()
+            print('You cannot install it using "pip" as its not available on pypi.org')
+            print()
+            q = pyinputplus.inputYesNo("Would you like to continue? (Y/n): ")
+            if q:
+                urllib.request.urlretrieve(
+                    "https://codeload.github.com/mas6y6/CipherOS/zip/refs/heads/main",
+                    os.path.join(os.path.expanduser("~"), "CipherOS", "cache.zip"),
+                    show_progress,
+                )
+           else:
+               print(
+                    'You can download the "cipher" folder from github https://github.com/mas6y6/CipherOS/archive'
+                )
+                sys.exit()
+'''
 
-from cipher.api import CipherAPI
-import cipher.exceptions as ex
+from cipher.cipher_aio import CipherAPI, ArgumentParser
 import cipher.network
-from cipher.parsers import ArgumentParser, ConfigParser
-import cipher.api
 from cipher.elevate import elevate, is_root
 
 # variables
 version = 1
 api = CipherAPI()
-cipher.api.initialized_api = api
+#cipher.cipher_aio.api_instance = api
 console = api.console
 debugmode = False
 
@@ -126,11 +109,11 @@ if running_on_mac:
     # The plugins folder must be in the ~/CipherOS/plugins if you are using linux or macOS
     #
     # macOS is just a linux distro so :)
-    api.pwd = macpwd
-    api.starterdir = macapistarter
+    if macpwd != None:        api.pwd = macpwd
+    if macapistarter != None: api.configdir = macapistarter
 
-sys.path.append(os.path.join(api.starterdir, "plugins"))
-sys.path.append(os.path.join(api.starterdir, "data", "cache", "packages"))
+sys.path.append(os.path.join(api.configdir, "plugins"))
+sys.path.append(os.path.join(api.configdir, "data", "cache", "packages"))
 
 
 def hidec():
@@ -141,7 +124,7 @@ def showc():
     print("\033[?25h", end="", flush=True)  # show cursor
 
 
-def printerror(msg):
+def printerror(msg:str):
     console.print(msg, style="bold bright_red")
 
 parser = argparse.ArgumentParser()
@@ -150,73 +133,75 @@ parser.add_argument("--startdir",action="store",help="Overrides the cache direct
 parser.add_argument("--sudo",action="store_true",help="Enables sudo mode")
 executeargs = parser.parse_args()
 
-def is_running_in_appdata():
+def is_running_in_appdata() -> bool:
     appdata_folder = os.environ.get("LOCALAPPDATA")  # e.g., C:\Users\<User>\AppData\Roaming
+    if appdata_folder == None: return False
     current_dir = os.path.abspath(os.getcwd())
     return current_dir.startswith(appdata_folder)
 
-def create_directories(path_list):
+def create_directories(path_list:list[str]) -> None:
     for path in path_list:
         if not os.path.exists(path):
-            print(path)
+            print(f"creating path '{path}'.")
             os.makedirs(path)
 
-if not executeargs.startdir != None:
+if executeargs.startdir == None:
     if platform.system() == "Windows": 
         if is_running_in_appdata():
             api.pwd = os.path.expanduser("~")
             roaming_folder = os.environ.get("APPDATA")
-            os.makedirs(roaming_folder,exist_ok=True)
-            api.starterdir = os.path.join(os.environ.get("APPDATA"),"CipherOS")
+            if roaming_folder != None:
+                os.makedirs(roaming_folder ,exist_ok=True)
+                api.configdir = os.path.join(roaming_folder,"CipherOS")
             os.chdir(api.pwd)
         else:
             pass
     elif platform.system() == "Linux":
         if not debugmode:
-            api.starterdir = os.path.expanduser("~")
+            api.configdir = os.path.join(os.path.expanduser("~"), ".config/CipherOS")
     elif platform.system() == "Darwin":
         if not debugmode:
-            api.starterdir = os.path.expanduser("~")
+            api.configdir = os.path.expanduser("~")
 else:
-    api.starterdir = executeargs.startdir
+    api.configdir = executeargs.startdir
 
 directories_to_create = [
-    os.path.join(api.starterdir, "data"),
-    os.path.join(api.starterdir, "plugins"),
-    os.path.join(api.starterdir, "data", "cache"),
-    os.path.join(api.starterdir, "data", "config"),
-    os.path.join(api.starterdir, "data", "cache", "packages"),
-    os.path.join(api.starterdir, "data", "cache", "packageswhl")
+    #os.path.join(api.configdir, "data"),
+    os.path.join(api.configdir, "plugins"),
+    #os.path.join(api.configdir, "data", "cache"),
+    os.path.join(api.configdir, "data", "config"),
+    os.path.join(api.configdir, "data", "cache", "packages"),
+    os.path.join(api.configdir, "data", "cache", "packageswhl")
 ]
 
 for i in directories_to_create:
     os.makedirs(i,exist_ok=True)
 
 json.dump(
-    {}, open(os.path.join(api.starterdir, "data", "cache", "networkmap.json"), "w")
+    {}, open(os.path.join(api.configdir, "data", "cache", "networkmap.json"), "w")
 )
 
 networkmap = json.load(
-    open(os.path.join(api.starterdir, "data", "cache", "networkmap.json"), "r")
+    open(os.path.join(api.configdir, "data", "cache", "networkmap.json"), "r")
 )
 
 def networkmap_save():
     global networkmap
     with open(
-        os.path.join(api.starterdir, "data", "cache", "networkmap.json"), "w"
+        os.path.join(api.configdir, "data", "cache", "networkmap.json"), "w"
     ) as f:
         json.dump(networkmap, f, indent=4)
         f.close()
 
-@api.command()
-def exit(args):
+@api.command(desc="Exits CipherOS")
+def exit(args:list[str]):
     print("Closing CipherOS")
     sys.exit(0)
 
 @api.command(name="open")
-def openfile(argsraw):
+def openfile(argsraw:list[str]):
     parser = ArgumentParser(api, description="Opens a file")
-    parser.add_argument("file",type=str,action="store",required=True,help_text="File to open")
+    parser.add_argument(name="file", argtype=str,action="store",required=True,help_text="File to open")
 
     args = parser.parse_args(argsraw)
     
@@ -224,18 +209,24 @@ def openfile(argsraw):
     if parser.help_flag:
         return None
     
-    if os.path.exists(args.file):
-        base = os.path.basename(args.file)
+    if not hasattr(args, "file"):
+        raise AttributeError(f"Argument 'folder' missing.")
+    file = args.file # type: ignore
+    if not isinstance(file, str):
+        raise TypeError(f"Type of 'file' ({type(file)}) does not match expected type (str)") # type: ignore
+    
+    if os.path.exists(file):
+        base = os.path.basename(file)
         if base.endswith(".exe"):
             console.print("[blue]Starting Windows Executeable[/blue]")
-        elif base.endwith(".txt"):
-            viewfile([args.file])
+        else:
+            viewfile([file])
     
 
 @api.command(alias=["pscn"])
-def portscan(argsraw):
-    parser = ArgumentParser(api, description="Scan the specified device for open ports (This is will work in progress so it will not be reliable)")
-    parser.add_argument("ip",type=str,action="store",required=True,help_text="IP Address to device to scan")
+def portscan(argsraw:list[str]):
+    parser = ArgumentParser(api, description="Scan the specified device for open ports (This is work in progress so it will not be reliable)")
+    parser.add_argument("ip",argtype=str, action="store", required=True, help_text="IP Address to device to scan")
 
     args = parser.parse_args(argsraw)
     
@@ -245,18 +236,21 @@ def portscan(argsraw):
     
     global sigIntPscn
     sigIntPscn = False
-    ip = args.ip
+    ip: str = args.ip # type: ignore
+    if not isinstance(ip, str):
+        console.print(colorama.Fore.RED + "An error occured while trying to get the target ip. Exiting command..." + colorama.Fore.RESET)
+        return
 
     console.print(Panel("CipherOS Port Scanner\n[red]Not fully accurate[/red]", style="bold bright_blue"))
     console.print("Scanning...", style="bright_blue")
 
-    def sig_handler_pscn(sig, frame):
+    def sig_handler_pscn(sig, frame): # type: ignore
         global sigIntPscn
         sigIntPscn = True
 
-    signal.signal(signal.SIGINT, sig_handler_pscn)
+    signal.signal(signal.SIGINT, sig_handler_pscn) # type: ignore
 
-    def scan_ports(ip, port):
+    def scan_ports(ip:str, port:int):
         if sigIntPscn:
             return None
         try:
@@ -269,11 +263,13 @@ def portscan(argsraw):
             pass
         return None
 
-    open_ports = []
+    open_ports: list[int] = []
     completed = 0
-    max_workers = min(80, os.cpu_count() * 100)
+    cpu_count = os.cpu_count()
+    max_workers = min(80, (0 if cpu_count == None else cpu_count) * 100)
     console.print("MAX WORKERS PER CHUNK:", max_workers)
     pbar = progressbar.ProgressBar(
+        maxval=65536,
         widgets=[
             f"{colorama.Fore.LIGHTBLUE_EX}Progress: ",
             f" [SCANNED: N/A,OPEN: N/A]",
@@ -287,8 +283,7 @@ def portscan(argsraw):
             colorama.Fore.RESET,
         ]
     )
-    pbar.maxval = 65536
-    pbar.start()
+    pbar.start() # type: ignore
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = {
@@ -306,13 +301,13 @@ def portscan(argsraw):
                 if result:
                     open_ports.append(port)
                 completed += 1
-                pbar.widgets[1] = f"[SCANNED: {completed},OPEN: {len(open_ports)}]"
-                pbar.update(completed)
+                pbar.widgets[1] = f"[SCANNED: {completed},OPEN: {len(open_ports)}]" # type: ignore
+                pbar.update(completed) # type: ignore
             except Exception as e:
                 error_msg = f"Error scanning port {port}: {e}"
                 printerror(error_msg)
 
-    pbar.finish()
+    pbar.finish() # type: ignore
     console.print("Scan Complete\n", style="bold bright_green")
     open_ports.sort()
 
@@ -322,11 +317,11 @@ def portscan(argsraw):
         table.add_row(str(port))
     console.print(table)
 
-@api.command(alias=["exe","cmd"])
-def executables(argsraw):
+@api.command(alias=["exe","cmd"], desc="Lists all commands")
+def executables(argsraw:list[str]):
     parser = ArgumentParser(api, description="Lists all commands")
 
-    args = parser.parse_args(argsraw)
+    _args = parser.parse_args(argsraw)
     
     #If the --help (-h) is passes it kills the rest of the script
     if parser.help_flag:
@@ -338,11 +333,11 @@ def executables(argsraw):
         tab.add_row(i)
     console.print(tab)
 
-@api.command(name="elevate")
-def elevateperm(argsraw):
+@api.command(name="elevate", desc="Elevates permissions to admin permissions for CipherOS", alias=["sudo-su"])
+def elevateperm(argsraw:list[str]):
     parser = ArgumentParser(api, description="Elevates permissions to admin permissions for CipherOS")
 
-    args = parser.parse_args(argsraw)
+    _args = parser.parse_args(argsraw)
     
     if parser.help_flag:
         return None
@@ -357,11 +352,11 @@ def elevateperm(argsraw):
     else:
         printerror("Error: Admin permissions already acquired")
 
-@api.command(alias=["scn", "netscan"])
-def scannet(argsraw):
+@api.command(alias=["scn", "netscan"], desc="Scan your network for devices")
+def scannet(argsraw:list[str]):
     parser = ArgumentParser(api, description="Scan your network for devices")
 
-    args = parser.parse_args(argsraw)
+    _args = parser.parse_args(argsraw)
     
     #If the --help (-h) is passes it kills the rest of the script
     if parser.help_flag:
@@ -370,16 +365,16 @@ def scannet(argsraw):
     global sigIntScn
     sigIntScn = False
 
-    def sig_handler_scn(sig, frame):
+    def sig_handler_scn(sig, frame): # type: ignore
         global sigIntScn
         sigIntScn = True
 
-    signal.signal(signal.SIGINT, sig_handler_scn)
+    signal.signal(signal.SIGINT, sig_handler_scn) # type: ignore
     console.print(Panel("CipherOS Network Device Scanner", style="bright_blue",expand=True))
     console.print("Getting Network Range... ", style="bright_blue")
     console.print("\tGetting localip... ", end="", style="bright_blue")
 
-    def cipher_ping(host):
+    def cipher_ping(host:str):
         # if host.split(".")[3] == "0":
         #     print(f"Checking {host}/8")
         if sigIntScn:
@@ -389,7 +384,7 @@ def scannet(argsraw):
         except TimeoutError:
             #print(f"Timeout while pinging {host}.")
             return False
-        except Exception as e:
+        except Exception as _e:
             #print(f"An error occurred while pinging {host}: {e}")
             return False
         return False
@@ -415,19 +410,26 @@ def scannet(argsraw):
         console.print("Success", style="bright_green")
 
     console.print("\tGetting Submask... ", end="", style="bright_blue")
+    interfaces: list[str] = []
     try:
-        interfaces, netmasks = cipher.network.get_active_interface_and_netmask()
-        if netmasks == None:
+        interfaces, netmasks_any = cipher.network.get_active_interface_and_netmask()
+        netmasks = [netmask for netmask in netmasks_any if netmask != None]
+        if netmasks == []:
             raise ConnectionAbortedError()
     except Exception:
         console.print('Failed. using "255.255.255.0" as submask', style="bright_red")
-        for i in range(len(interfaces)):
-            netmasks[i] = "255.255.255.0"
+        netmasks = ["255.255.255.0" for _i in range(len(interfaces))]
     else:
         console.print("Success", style="bright_green")
 
+    # why limit the "max_workers"?
+    # This is a networking-delayed task, meaning you can have way more threads, because they don't need to calculate anything.
+    # They just wait. Running the scan with 256 workers made the process spike at 1.11% cpu-capacity with my crappy cpu.
+    # If you have a function that actually can check if a host is up, that is.
+    max_workers = 256 #min(60, (0 if (cc:=os.cpu_count()) == None else cc) * 5)
     s = 0
     for i in interfaces:
+        if s >= len(netmasks): break
         cidr = sum(bin(int(x)).count("1") for x in netmasks[s].split("."))
         network_range = f"{localip}/{cidr}"
         console.print("Using Interface:", i, style="green")
@@ -438,16 +440,16 @@ def scannet(argsraw):
         console.print("Ready. Scanning for devices...", style="bold bright_green")
         print("")
         network = IPv4Network(network_range, strict=False)
-        devices = []
+        devices: list[dict[str, str]] = []
         devicerange = 0
         scanned = 0
         for i in network:
             devicerange += 1
 
         console.print(f"Scanning {devicerange} potential devices on your network")
-        max_workers = min(60, os.cpu_count() * 5)
         console.print("MAX WORKERS PER CHUNK:", max_workers)
         bar = progressbar.ProgressBar(
+            maxval=devicerange,
             widgets=[
                 colorama.Fore.LIGHTBLUE_EX,
                 "Progress: ",
@@ -462,11 +464,10 @@ def scannet(argsraw):
                 colorama.Fore.RESET,
             ]
         )
-        bar.maxval = devicerange
-        bar.start()
+        bar.start() # type: ignore
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_ip = {
-                executor.submit(cipher_ping, str(ip)): str(ip)
+                executor.submit(cipher_ping, str(ip)): str(ip) #cipher_ping
                 for ip in network
             }
             for future in as_completed(future_to_ip):
@@ -493,30 +494,15 @@ def scannet(argsraw):
                         except ValueError:
                             hostname = "Unknown"
                         
-                        devices.append(
-                                    {"ip": ip, "mac": mac_address, "hostname": hostname}
-                                )
-
-                        scanned += 1
-                        bar.widgets[2] = (
-                            f" [SCANNED: {scanned}/{devicerange}, ONLINE: {len(devices)}] "
-                        )
-                        bar.update(scanned)
-                    else:
-                        scanned += 1
-                        bar.widgets[2] = (
-                            f" [SCANNED: {scanned}/{devicerange}, ONLINE: {len(devices)}] "
-                        )
-                        bar.update(scanned)
+                        devices.append({"ip": ip, "mac": mac_address, "hostname": hostname})
                 except Exception:
-                    scanned += 1
-                    bar.widgets[2] = (
-                        f" [SCANNED: {scanned}/{devicerange}, ONLINE: {len(devices)}] "
-                    )
-                    bar.update(scanned)
+                    ...
+                scanned += 1
+                bar.widgets[2] = (f" [SCANNED: {scanned}/{devicerange}, ONLINE: {len(devices)}] ") # type: ignore
+                bar.update(scanned) # type: ignore
 
         s += 1
-        bar.finish()
+        bar.finish() # type: ignore
 
         print()
         console.print("Scan Complete", style="bold bright_green")
@@ -548,115 +534,136 @@ def scannet(argsraw):
         console.print(table)
     networkmap_save()
 
-@api.command(alias=["cd"])
-def chdir(argsraw):
+@api.command(alias=["cd"], desc="Change to a directory")
+def chdir(argsraw:list[str]):
     parser = ArgumentParser(api, description="Change to a directory")
-    parser.add_argument("path",type=str,required=True,help_text="Directory to move to")
+    parser.add_argument("path",argtype=str,required=True,help_text="Directory to move to")
 
     args = parser.parse_args(argsraw)
-    
+
     #If the --help (-h) is passes it kills the rest of the script
     if parser.help_flag:
         return None
+
+    if not hasattr(args, "path"):
+        path = "~"
+    else:
+        path: str = args.path # type: ignore
+    if not isinstance(path, str):
+        raise TypeError(f"Type of 'path' ({type(path)}) does not match expected type (str)") # type: ignore
     
-    if not args.path == "~":
-        if os.path.isdir(args.path):
-            os.chdir(args.path)
+    if not path == "~":
+        if os.path.isdir(path):
+            os.chdir(path)
         else:
-            printerror(f"Error: {args.path} is a file")
+            printerror(f"Error: {path} is a file")
         api.pwd = os.getcwd()
     else:
         api.pwd = os.path.expanduser("~")
         os.chdir(api.pwd)
     api.updatecompletions()
 
-@api.command()
-def mkdir(argsraw):
+@api.command(desc="Makes a directory")
+def mkdir(argsraw:list[str]):
     parser = ArgumentParser(api, description="Makes a directory")
-    parser.add_argument("path",type=str,required=True,help_text="Directory to create")
+    parser.add_argument("path",argtype=str,required=True,help_text="Directory to create")
 
-    args = parser.parse_args(argsraw)
-    
     #If the --help (-h) is passes it kills the rest of the script
     if parser.help_flag:
         return None
-    
-    if os.path.exists(args.folder):
-        os.mkdir(args.folder)
-    else:
-        printerror(f"Error: {args.folder} exists")
 
-@api.command(alias=["cls"])
-def clear(args):
+    args = parser.parse_args(argsraw)
+    if not hasattr(args, "folder"):
+        raise AttributeError(f"Argument 'folder' missing.")
+    folder: str = args.folder # type: ignore
+    if not isinstance(folder, str):
+        raise TypeError(f"Type of 'path' ({type(folder)}) does not match expected type (str)") # type: ignore
+    
+    if os.path.exists(folder):
+        os.mkdir(folder)
+    else:
+        printerror(f"Error: {folder} exists")
+
+@api.command(alias=["cls"], desc="Clears the screen")
+def clear(args:list[str]):
     print("\033c", end="")
 
-@api.command(alias=["pl"])
-def plugins(argsraw):
+@api.command(alias=["pl"], desc="Manage plugins for the system.")
+def plugins(argsraw:list[str]):
     parser = ArgumentParser(api, description="Manage plugins for the system.")
 
     reload_parser = parser.add_subcommand("reload", description="Reloads a given plugin.")
-    reload_parser.add_argument("plugin",type=str, help_text="The name of the plugin to reload.",required=True)
+    reload_parser.add_argument("plugin",argtype=str, help_text="The name of the plugin to reload.",required=True)
     
-    reloadall_parser = parser.add_subcommand("reloadall", description="Reload all plugins.")
+    _reloadall_parser = parser.add_subcommand("reloadall", description="Reload all plugins.")
     
     disable_parser = parser.add_subcommand("disable", description="Disable a plugin.")
-    disable_parser.add_argument("plugin", type=str, help_text="The name of the plugin to disable.",required=True)
+    disable_parser.add_argument("plugin", argtype=str, help_text="The name of the plugin to disable.",required=True)
 
     enable_parser = parser.add_subcommand("enable", description="Enable a plugin.")
-    enable_parser.add_argument("plugin", type=str, help_text="The name of the plugin to enable.",required=True)
+    enable_parser.add_argument("plugin", argtype=str, help_text="The name of the plugin to enable.",required=True)
 
-    list_parser = parser.add_subcommand("list", description="List all available plugins.")
+    _list_parser = parser.add_subcommand("list", description="List all available plugins.")
     
     info_parser = parser.add_subcommand("info", description="Get detailed info about a plugin.")
-    info_parser.add_argument("plugin", type=str, help_text="The name of the plugin to get info about.",required=True)
+    info_parser.add_argument("plugin", argtype=str, help_text="The name of the plugin to get info about.",required=True)
 
     args = parser.parse_args(argsraw)
+    if parser.help_flag: return
+    if len(argsraw) == 0:
+        parser.print_help()
+        return
+
+    if hasattr(args, "plugin"): args_plugin: str = args.plugin # type: ignore
+    else: args_plugin = ""
+    if not isinstance(args_plugin, str):
+        raise TypeError(f"Type of 'arg_plugin' ({type(args_plugin)}) does not match expected type (str)") # type: ignore
 
     #If the --help (-h) is passes it kills the rest of the script
     if parser.help_flag:
         return None
 
     if args.subcommand == "reload":
-        if args.plugin in api.plugins:
-            console.print(f"Reloading \"{args.plugin}\"")
-            print(api.plugins[args.plugin].__class__.name)
-            api.disable_plugin(api.plugins[args.plugin])
-            api.load_plugin(os.path.join(api.starterdir, "plugins", args.plugin))
+        if args_plugin in api.plugins:
+            console.print(f"Reloading \"{args_plugin}\"")
+            print(f'"{api.plugins[args_plugin].name}" or "{api.plugins[args_plugin].__class__.__name__}()"')
+            api.disable_plugin(args_plugin)
+            api.load_plugin(os.path.join(api.configdir, "plugins", args_plugin))
             console.print("Reload complete.")
         else:
-            console.print(f"Error: plugin {args.plugin} does not exist.")
+            console.print(f"Error: plugin {args_plugin} does not exist.")
         
 
     elif args.subcommand == "reloadall":
         console.print("Reloading all plugins...")
         for plugin_name in list(api.plugins):
             api.disable_plugin(api.plugins[plugin_name].config.name)
-        for plugin_file in os.listdir(os.path.join(api.starterdir, "plugins")):
-            api.load_plugin(os.path.join(api.starterdir, "plugins", plugin_file))
+        for plugin_file in os.listdir(os.path.join(api.configdir, "plugins")):
+            api.load_plugin(os.path.join(api.configdir, "plugins", plugin_file))
         console.print("Reload complete.")
 
     elif args.subcommand == "disable":
-        if args.plugin:
-            if args.plugin in api.plugins:
-                console.print(f'Disabling \"{args.plugin}\"...')
-                api.disable_plugin(api.plugins[args.plugin])
-                console.print(f'Plugin \"{args.plugin}\" disabled.')
+        if args_plugin:
+            if args_plugin in api.plugins:
+                console.print(f'Disabling \"{args_plugin}\"...')
+                api.disable_plugin(args_plugin)
+                console.print(f'Plugin \"{args_plugin}\" disabled.')
             else:
-                printerror(f"Error: Plugin \"{args.plugin}\" enabled (not yet implemented).")
+                printerror(f"Error: Plugin with name \"{args_plugin}\" not found. Does it exist? Is it already disabled?")
         else:
             printerror("Error: No plugin specified to disable.")
 
     elif args.subcommand == "enable":
-        if args.plugin:
-            if args.plugin in os.listdir(os.path.join(api.starterdir,"plugins")):
-                if not args.plugin in api.plugins:
-                    console.print(f'Enabling \"{args.plugin}\"...')
-                    api.load_plugin(os.path.join(api.starterdir,"plugins",args.plugin))
-                    console.print(f"Plugin \"{args.plugin}\" enabled.")
+        if args_plugin:
+            if args_plugin in os.listdir(os.path.join(api.configdir,"plugins")):
+                if not args_plugin in api.plugins:
+                    console.print(f'Enabling \"{args_plugin}\"...')
+                    api.load_plugin(os.path.join(api.configdir,"plugins",args_plugin))
+                    console.print(f"Plugin \"{args_plugin}\" enabled.")
                 else:
-                    printerror(f"Error: \"{args.plugin}\" is already enabled")
+                    printerror(f"Error: \"{args_plugin}\" is already enabled")
             else:
-                printerror(f"Error: \"{args.plugin}\" is not found in the plugins folder.")
+                printerror(f"Error: \"{args_plugin}\" is not found in the plugins folder.")
         else:
             printerror("Error: No plugin specified to enable.")
 
@@ -666,30 +673,33 @@ def plugins(argsraw):
             console.print(f"  - {plugin}")
 
     elif args.subcommand == "info":
-        if args.plugin in api.plugins:
-            config = api.plugins[args.plugin].config
+        if args_plugin in api.plugins:
+            config = api.plugins[args_plugin].config
             console.print(f"Plugin '{config.displayname}' details:\n")
-            console.print("Version:",config.version)
+            console.print("Config Version:",config.version)
             console.print("Description:",config.description)
             console.print("Organization/Team:",config.team)
             console.print("Authors of plugin")
-            for i in config.authors:
-                console.print(f"  - [bold green]{i}[/bold green]")
-            console.print("\nPluginclass:",config.classname)
+            if config.authors != None:
+                for i in config.authors:
+                    console.print(f"  - [bold green]{i}[/bold green]")
+            else:
+                console.print(f"  - [bold red]- missing -[/bold red]")
+            console.print("Pluginclass:",config.classname)
             if config.dependencies:
-                console.print("Dependencies (Downloaded by PyPI):",config.classname)
+                console.print("Dependencies (Downloaded by PyPI):")
                 for i in config.dependencies:
                     console.print(f"  - [bold bright_magenta]{i}[/bold bright_magenta]")
         else:
-            printerror(f"Plugin '{args.plugin}' not found or enabled.")
+            printerror(f"Plugin '{args_plugin}' not found or enabled.")
 
     else:
         print("Unknown subcommand.")
 
-@api.command()
-def tree(argsraw):
+@api.command(desc="List the contents of a path in a tree-like structure, making it easier to read.")
+def tree(argsraw:list[str]):
     parser = ArgumentParser(api, description="List the contents of a path in a tree-like structure, making it easier to read.")
-    parser.add_argument("path", type=str, help_text="Folder or path to list", required=False)
+    parser.add_argument("path", argtype=str, help_text="Folder or path to list", required=False)
     
     args = parser.parse_args(argsraw)
     
@@ -697,10 +707,13 @@ def tree(argsraw):
     if parser.help_flag:
         return None
     
-    if args.path is None:
-        path = api.pwd
+    if hasattr(args, "path") and args.path != None: # type: ignore
+        path: str = args.path # type: ignore
     else:
-        path = args.path
+        path = api.pwd
+    
+    if not isinstance(path, str):
+        raise TypeError(f"Type of 'path' ({type(path)} does not match expected type (str).") # type: ignore
 
     console.print(Panel(path, expand=True))
     
@@ -721,10 +734,10 @@ def tree(argsraw):
             branch.add(filename)
     console.print(tree)
 
-@api.command(alias=["list", "l"])
-def ls(argsraw):
+@api.command(alias=["list", "l"], desc="List the contents of a path")
+def ls(argsraw:list[str]):
     parser = ArgumentParser(api,description="List the contents of a path")
-    parser.add_argument("path",type=str,help_text="Folder or path to list",required=False)
+    parser.add_argument("path",argtype=str,help_text="Folder or path to list",required=False)
     
     args = parser.parse_args(argsraw)
     
@@ -732,8 +745,8 @@ def ls(argsraw):
     if parser.help_flag:
         return None
     
-    if not args.path is None:
-        path = args.path
+    if hasattr(args, "path") and isinstance(args.path, str): # type: ignore
+        path: str = args.path # type: ignore
     else:
         path = api.pwd
     try:
@@ -744,8 +757,8 @@ def ls(argsraw):
     except PermissionError:
         printerror(f"Error: Permission denied to access '{path}'.")
         return
-    files = []
-    folders = []
+    files: list[str] = []
+    folders: list[str] = []
     for item in raw:
         full_path = os.path.join(path, item)
         if os.path.isfile(full_path):
@@ -759,11 +772,10 @@ def ls(argsraw):
     for i in files:
         print(f"{colorama.Fore.GREEN}{i} {colorama.Fore.RESET}")
 
-
-@api.command()
-def touch(argsraw):
+@api.command(desc="Creates a file")
+def touch(argsraw:list[str]):
     parser = ArgumentParser(api,description="Creates a file")
-    parser.add_argument("file",type=str,help_text="File to create",required=True)
+    parser.add_argument("file",argtype=str,help_text="File to create",required=True)
     
     args = parser.parse_args(argsraw)
     
@@ -771,83 +783,136 @@ def touch(argsraw):
     if parser.help_flag:
         return None
     
-    if not os.path.exists(args.file):
-        open(args.file, "w")
-        print("Created file", args.file)
+    if not hasattr(args, "file"):
+        raise AttributeError(f"Argument 'file' missing.")
+    file: str = args.file # type: ignore
+    if not isinstance(file, str):
+        raise TypeError(f"Type of 'file' ({type(file)}) does not match expected type (str)") # type: ignore
+    
+    if not os.path.exists(file):
+        open(file, "w")
+        print("Created file", file)
         api.updatecompletions()
     else:
         print(
             colorama.Style.BRIGHT + colorama.Fore.RED + f"Error:",
-            args.file,
+            file,
             "exists" + colorama.Fore.RESET + colorama.Style.NORMAL,
         )
         
-@api.command(name="python",alias=["py"])
-def pythoncode(argsraw):
+@api.command(name="python", alias=["py"], desc="Executes a python file")
+def pythoncode(argsraw:list[str]):
     parser = ArgumentParser(api,description="Executes a python file")
-    parser.add_argument("file", type=str, help_text="The file to display", required=True)
+    parser.add_argument("file", argtype=str, help_text="The file to display", required=True)
     
     args = parser.parse_args(argsraw)
-    
+
     #If the --help (-h) is passes it kills the rest of the script
     if parser.help_flag:
         return None
-    runpy.run_path(args.file)
 
-@api.command(alias=["cat"])
-def viewfile(argsraw):
+    if not hasattr(args, "file"):
+        raise AttributeError(f"Argument 'file' missing.")
+    file: str = args.file # type: ignore
+    if not isinstance(file, str):
+        raise TypeError(f"Type of 'file' ({type(file)}) does not match expected type (str)") # type: ignore
+    
+    runpy.run_path(file)
+
+@api.command(alias=["cat"], desc="Echos a file's contents to the console")
+def viewfile(argsraw:list[str]):
     parser = ArgumentParser(api,description="Echos a file's contents to the console")
-    parser.add_argument("file", type=str, help_text="The file to display", required=True)
+    parser.add_argument("file", argtype=str, help_text="The file to display", required=True)
     parser.add_argument("--markdown",action="store_true",help_text="Enables markdown text processing",aliases=["-md"])
     parser.add_argument("--color",action="store_true",help_text="Enables Color code texting (Uses rich as processer)",aliases=["-c"])
     
     args = parser.parse_args(argsraw)
-    
+
     #If the --help (-h) is passes it kills the rest of the script
     if parser.help_flag:
         return None
+
+    if not hasattr(args, "file"):
+        raise AttributeError(f"Argument 'file' missing.")
+    file: str = args.file # type: ignore
+    if not isinstance(file, str):
+        raise TypeError(f"Type of 'file' ({type(file)}) does not match expected type (str)") # type: ignore
+
+    if not hasattr(args, "markdown"):
+        raise AttributeError(f"Argument 'markdown' missing.")
+    markdown: bool = args.markdown # type: ignore
+    if not isinstance(markdown, bool):
+        raise TypeError(f"Type of 'markdown' ({type(markdown)}) does not match expected type (str)") # type: ignore
     
-    with open(args.file) as f:
-        if args.markdown:
+    if not hasattr(args, "color"):
+        raise AttributeError(f"Argument 'color' missing.")
+    color: bool = args.color # type: ignore
+    if not isinstance(color, bool):
+        raise TypeError(f"Type of 'color' ({type(color)}) does not match expected type (str)") # type: ignore
+    
+    with open(file) as f:
+        if markdown:
             console.print(Markdown(f.read()))
-        elif args.color:
+        elif color:
             console.print(f.read())
         else:
             print(f.read())
 
-@api.command(alias=["rm"])
-def remove(argsraw):
+@api.command(alias=["rm"], desc="Removes a file")
+def remove(argsraw:list[str]):
     parser = ArgumentParser(api,description="Removes a file")
-    parser.add_argument("file",type=str,help_text="File to delete",required=True)
+    parser.add_argument("file",argtype=str,help_text="File to delete",required=True)
     
     args = parser.parse_args(argsraw)
-    
+
     #If the --help (-h) is passes it kills the rest of the script
     if parser.help_flag:
         return None
+
+    if not hasattr(args, "file"):
+        raise AttributeError(f"Argument 'file' missing.")
+    file: str = args.file # type: ignore
+    if not isinstance(file, str):
+        raise TypeError(f"Type of 'file' ({type(file)}) does not match expected type (str)") # type: ignore
+    
+
+    if not hasattr(args, "file"):
+        raise AttributeError(f"Argument 'file' missing.")
+    file: str = args.file # type: ignore
+    if not isinstance(file, str):
+        raise TypeError(f"Type of 'file' ({type(file)}) does not match expected type (str)") # type: ignore
+    
     try:
-        os.remove(os.path.join(api.pwd, args.file))
+        os.remove(os.path.join(api.pwd, file))
     except PermissionError:
-        printerror(f"Error: Permission to delete '{args.file}' denied")
+        printerror(f"Error: Permission to delete '{file}' denied")
+        printerror(f"Error: Permission to delete '{file}' denied")
     except FileNotFoundError:
-        printerror(f"Error: '{args.file}' does not exist.")
+        printerror(f"Error: '{file}' does not exist.")
 
 @api.command(alias=["rmdir"])
-def rmdir(argsraw):
+def rmdir(argsraw:list[str]):
     parser = ArgumentParser(api,description="Removes a directory")
-    parser.add_argument("file",type=str,help_text="File to directory",required=True)
+    parser.add_argument("file", argtype=str,help_text="File to directory",required=True)
     
     args = parser.parse_args(argsraw)
     
     #If the --help (-h) is passes it kills the rest of the script
     if parser.help_flag:
         return None
+    
+    if not hasattr(args, "file"):
+        raise AttributeError(f"Argument 'folder' missing.")
+    file = args.file # type: ignore
+    if not isinstance(file, str):
+        raise TypeError(f"Type of 'file' ({type(file)}) does not match expected type (str)") # type: ignore
+
     try:
-        os.rmdir(os.path.join(api.pwd, args.file))
+        os.rmdir(os.path.join(api.pwd, file))
     except PermissionError:
-        printerror(f"Error: Permission to delete '{args.file}' denied")
+        printerror(f"Error: Permission to delete '{file}' denied")
     except FileNotFoundError:
-        printerror(f"Error: '{args.file}' does not exist.")
+        printerror(f"Error: '{file}' does not exist.")
 
 if __name__ == "__main__":
     debugmode = executeargs.debug
@@ -858,52 +923,57 @@ if __name__ == "__main__":
             console.print("Admin privileges detected starting as admin",style="bright_magenta")
         api.debug = True
         @api.command()
-        def arbc(argsraw):
+        def arbc(argsraw:list[str]):
             parser = ArgumentParser(api,description="Executes arbitrary code")
-            parser.add_argument("code",type=str,help_text="Code to execute",required=True)
+            parser.add_argument("code",argtype=str,help_text="Code to execute",required=True)
             
-            args = parser.parse_args(argsraw)
+            _args = parser.parse_args(argsraw)
 
+            if parser.help_flag: return
+            if len(argsraw) == 0: raise AttributeError(f"Argument 'code' missing.")
+            code = " ".join(argsraw)
             if parser.help_flag:
                 return None
             try:
-                eval(args.code)
+                eval(code)
             except Exception as e:
                 print(f"arbc encountered an error: {e}")
         @api.command()
-        def vdump(argsraw):
+        def vdump(argsraw:list[str]):
             parser = ArgumentParser(api, description="Dumps all variables to console")
-            parser.add_argument("scope", type=str, help_text="Scope (global/local)",required=True)
+            parser.add_argument("scope", argtype=str, help_text="Scope (global/local)",required=True)
 
             args = parser.parse_args(argsraw)
+            if parser.help_flag: return None
 
-            if parser.help_flag:
-                return None
+            if not hasattr(args, "scope"):
+                raise AttributeError(f"Argument 'scope' missing.")
+            scope: str = args.scope # type: ignore
+            if not isinstance(scope, str):
+                raise TypeError(f"Type of 'scope' ({type(scope)}) does not match expected type (str)") # type: ignore
 
             try:
                 username = os.environ.get("USER", "unknown")
 
-                if args.scope == "local":
+                if scope == "local":
                     local_vars = {k: v for k, v in locals().items() if k != "local_vars"}
                     console.print(str(local_vars).replace(username, "###"))
-                elif args.scope == "global":
+                elif scope == "global":
                     global_vars = {k: v for k, v in globals().items() if k != "global_vars"}
                     console.print(str(global_vars).replace(username, "###"))
                 else:
-                    console.print(f"[bold red]Invalid option: {args.scope}[/bold red]")
+                    console.print(f"[bold red]Invalid option: {scope}[/bold red]")
             except Exception as e:
                 console.print(f"[bold red]vdump encountered an error: {e}[/bold red]")
-            except Exception as e:
-                print(f"vdump encountered an error: {e}")
     else:
         console.print("Starting CipherOS")
         if is_root():
             console.print("Admin privileges detected starting as admin",style="bright_magenta")
 
-    if not len(os.listdir(os.path.join(api.starterdir,"plugins"))) == 0:
-        for i in os.listdir(os.path.join(api.starterdir,"plugins")):
+    if not len(os.listdir(os.path.join(api.configdir,"plugins"))) == 0:
+        for i in os.listdir(os.path.join(api.configdir,"plugins")):
             try:
-                api.load_plugin(os.path.join(api.starterdir, "plugins", i))
+                api.load_plugin(os.path.join(api.configdir, "plugins", i))
             except:
                 printerror(f"Error: Plugin '{i}' failed to load\n" + traceback.format_exc())
     else:
@@ -911,6 +981,9 @@ if __name__ == "__main__":
 
     console.print(
         "[bold bright_magenta]Made by @mas6y6, @malachi196, and @overo3 (on github)[/bold bright_magenta]"
+    )
+    console.print(
+        "[bold bright_magenta]Fixed & modded by tex[/bold bright_magenta]"
     )
 
     print(
@@ -931,16 +1004,10 @@ Project Codename: Paradox"""
     api.updatecompletions()
     while True:
         try:
-            if api.addressconnected == "":
-                commandlineinfo = f"{api.currentenvironment} {api.pwd}"
-            else:
-                commandlineinfo = (
-                    f"{api.currentenvironment} {api.addressconnected} {api.pwd}"
-                )
             command_completer = WordCompleter(api.completions, ignore_case=True)
             try:
                 user_input = user_input = prompt(
-                f"{commandlineinfo}> ", completer=command_completer, history=history
+                f"{api.commandlineinfo}> ", completer=command_completer, history=history
             )
             except Exception as e:
                 if debugmode:
@@ -958,7 +1025,7 @@ Project Codename: Paradox"""
                         printerror(f'Error: "{cmd}" requires arguments:\n{e[1]}')
                     elif e[0] == 231:
                         printerror(f'Error: {e[1]}')
-                    elif not e[0] == 0 or e[0] == 404:
+                    elif not e[0] == 0:
                         printerror(f'Error: Command "{cmd}" encountered an error\n{e[1]}')
                     else:
                         pass
@@ -968,5 +1035,5 @@ Project Codename: Paradox"""
                 pass
         except (EOFError, KeyboardInterrupt):
             print()
-            exit(None)
+            exit([])
             break

@@ -1,15 +1,14 @@
 import random
 import shutil
 import string
-from cipher.plugins import CipherPlugin, CipherAPI
-from cipher.parsers import ArgumentParser
+from cipher.cipher_aio import CipherPlugin, ConfigParser, CipherAPI, ArgumentParser
 from rich.panel import Panel
-import os, pygame, progressbar, time, subprocess, requests
+import os, pygame, time, subprocess, requests
 from .cursor import hide, show
 
 class HacknetPlugin(CipherPlugin):
-    def __init__(self, api: CipherAPI,config):
-        super().__init__(api,config)
+    def __init__(self, api: CipherAPI, config:ConfigParser):
+        super().__init__(api, config)
         self.register_commands()
         self.console = self.api.console
         self.traceactive = False
@@ -18,15 +17,15 @@ class HacknetPlugin(CipherPlugin):
             tracert = subprocess.run(["tracert","-h","2","8.8.8.8"],capture_output=True).stdout
             self.ispAddress = tracert[int(tracert.rfind(b"["))+1:int(tracert.rfind(b"]"))].decode("UTF-8")
         if os.name == "posix":
-            tracert = subprocess.run(["traceroute","-m","2","8.8.8.8"],capture_output=True).stdout
-            self.ispAddress = tracert[int(tracert.rfind(b"("))+1:int(tracert.rfind(b")"))].decode("UTF-8")
+            tracert = subprocess.run(["traceroute","-m","2","8.8.8.8"],capture_output=True).stdout.decode(encoding="UTF-8", errors="replace").splitlines()[-1]
+            self.ispAddress = tracert[int(tracert.rfind("("))+1:int(tracert.rfind(")"))]
 
     
     def register_commands(self):
         """Method to register all commands for this plugin"""
         
-        @CipherPlugin.command()
-        def traced(argsraw):
+        @self.command(desc="EMERGENCY TRACE AVERSION SEQUENCE")
+        def traced(argsraw:list[str]):
             parser = ArgumentParser(self.api,"EMERGENCY TRACE AVERSION SEQUENCE")
             parser.parse_args(argsraw)
             
@@ -54,10 +53,10 @@ YOUR Assigned IP: {self.ipAddress}
                         os.system("setterm -background red -foreground black -store")
                 self.traceactive = True
             pygame.mixer.init()
-            pygame.mixer.music.load(os.path.join(self.api.starterdir,"plugins","hacknet","dark_drone_008.ogg"))
+            pygame.mixer.music.load(os.path.join(self.api.configdir,"plugins","hacknet","dark_drone_008.ogg"))
             pygame.mixer.music.play(loops=-1)
-            traced = pygame.mixer.Sound(os.path.join(self.api.starterdir,"plugins","hacknet","spiral_gauge_down.ogg"))
-            traceddo = pygame.mixer.Sound(os.path.join(self.api.starterdir,"plugins","hacknet","spiral_gauge_up.ogg"))
+            traced = pygame.mixer.Sound(os.path.join(self.api.configdir,"plugins","hacknet","spiral_gauge_down.ogg"))
+            traceddo = pygame.mixer.Sound(os.path.join(self.api.configdir,"plugins","hacknet","spiral_gauge_up.ogg"))
             
             traced.play()
             with self.console.screen(style="on bright_red") as e:
@@ -92,7 +91,7 @@ YOUR Assigned IP: {self.ipAddress}
                 traced.stop()
                 traceddo.play()
                 pygame.mixer.music.stop()
-                pygame.mixer.music.load(os.path.join(self.api.starterdir,"plugins","hacknet","traced.ogg"))
+                pygame.mixer.music.load(os.path.join(self.api.configdir,"plugins","hacknet","Traced.ogg"))
                 print("\033c", end="")
                 hide()
                 if os.name == "nt":
@@ -105,17 +104,19 @@ YOUR Assigned IP: {self.ipAddress}
                 e.console.print(Panel("INITIALIZING FAILSAFE", expand=True,style="white on red"))
                 time.sleep(1.5)
                 pygame.mixer.music.play()
+                '''
                 bar = {}
-                #for i in range(5):
-                #    bar[i] = progressbar.ProgressBar(widgets=[" [",progressbar.Bar(),"]"])
-                #    bar[i].start()
-                #    print("")
-                #for z in range(100):
-                #    time.sleep(0.14)
-                #    for x in range(5):
-                #        bar[x].update(100-z)
+                for i in range(5):
+                    bar[i] = progressbar.ProgressBar(widgets=[" [",progressbar.Bar(),"]"])
+                    bar[i].start()
+                    print("")
+                for z in range(100):
+                    time.sleep(0.14)
+                    for x in range(5):
+                        bar[x].update(100-z)
+                '''
                 columns, _ = shutil.get_terminal_size()
-                for z in range(110):
+                for _ in range(110):
                     hide()
                     time.sleep(0.13)
                     random_string = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=columns))
@@ -133,8 +134,8 @@ YOUR Assigned IP: {self.ipAddress}
 """, expand=True,style="white on red"))
             time.sleep(1)
         
-        @CipherPlugin.command()
-        def completetrace(argsraw):
+        @self.command(desc="Stops the EMERGENCY TRACE AVERSION SEQUENCE")
+        def completetrace(argsraw:list[str]):
             parser = ArgumentParser(self.api,"Stops the EMERGENCY TRACE AVERSION SEQUENCE")
             parser.parse_args(argsraw)
             
@@ -147,9 +148,9 @@ YOUR Assigned IP: {self.ipAddress}
             
             with self.console.screen() as e:
                 pygame.mixer.music.stop()
-                completed = pygame.mixer.Sound(os.path.join(self.api.starterdir,"plugins","hacknet","spiral_gauge_down.ogg"))
+                completed = pygame.mixer.Sound(os.path.join(self.api.configdir,"plugins","hacknet","spiral_gauge_down.ogg"))
                 completed.play()
-                beep = pygame.mixer.Sound(os.path.join(self.api.starterdir,"plugins","hacknet","beep.wav"))
+                beep = pygame.mixer.Sound(os.path.join(self.api.configdir,"plugins","hacknet","beep.wav"))
                 e.console.print(Panel("""
 
 DISCONNECTED

@@ -1,11 +1,11 @@
-from cipher.plugins import CipherPlugin, CipherAPI
+from cipher.cipher_aio import CipherPlugin, CipherAPI, ConfigParser
 
 # This structure of a plugin 
 
 class ExamplePlugin(CipherPlugin):
-    def __init__(self, api: CipherAPI,config):
+    def __init__(self, api: CipherAPI, config:ConfigParser):
         # Call the parent constructor to initialize the plugin with the API
-        super().__init__(api,config)
+        super().__init__(api, config)
         
         # Register your plugin's commands
         self.register_commands()
@@ -14,13 +14,13 @@ class ExamplePlugin(CipherPlugin):
         print("Example Plugin enabled")
     
     def register_commands(self):
-        @CipherPlugin.command()  # This can also be done with @CipherPlugin.command()
-        def hello(args):
+        @self.command()
+        def hello(args:list[str]):
             """This command prints a friendly greeting"""
             print("Hello from ExamplePlugin!")
         
         # Register another command called 'goodbye'
-        @CipherPlugin.command(name="goodbye")  # You can use this or @CipherPlugin.command()
-        def goodbye(args):
+        @self.command(name="goodbye")
+        def goodbye(args:list[str]):
             """This command prints a farewell message"""
             print("Goodbye from ExamplePlugin!")

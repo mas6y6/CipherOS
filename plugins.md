@@ -2,7 +2,7 @@
 
 Making plugins for CipherOS is very easy if you know how to do object orianted programming for Python and if you know how to build modules with the `__init__.py` class.
 
-You can use the [Example plugin](https://github.com/mas6y6/CipherOS/tree/main/example_plugin) if you want.
+You can use the [Example plugin](example_plugin/) if you want.
 
 # Setting up the directory structure
 
@@ -14,7 +14,7 @@ So the directory structure of a plugin is very similar to modules it must look s
 > [!TIP]
 > **There is a `displayname` argument in the config for `pl info`**
 
-```py
+```tree
 .
 ├── __init__.py
 └── plugin.yml
@@ -95,7 +95,7 @@ If you want a specific URL you can CipherOS can download that as well.
 You need to import the `CipherAPI` and the `CipherPlugin` to be able to register commands and build a plugin.
 
 ```py
-from cipher.plugins import CipherPlugin, CipherAPI
+from cipher.cipher_aio import CipherPlugin, CipherAPI, ConfigParser
 ```
 
 This will import the `CipherPlugin` class which directly talks to CipherOS and the `CipherAPI` for registering the plugin.
@@ -103,9 +103,9 @@ For the actual class you would need to make a child class of `CipherPlugin` clas
 
 ```py
 class ExamplePlugin(CipherPlugin):
-    def __init__(self, api: CipherAPI,config):
+    def __init__(self, api:CipherAPI, config:ConfigParser):
         # Call the parent constructor to initialize the plugin with the API
-        super().__init__(api,config)
+        super().__init__(api, config)
 
         # Register your plugin's commands
         self.register_commands()
@@ -126,19 +126,20 @@ The init class is to pass the `config` and the `api` variables to the subclass `
 >
 > ```py
 > def register_commands(self):
->   @CipherPlugin.command()  # You can use this or @CipherPlugin.command()
+>   @self.command()  # Use this decorator to register your command
 >        def myexamplecommand(args):
 >            print("Example")
 > ```
 
-To register commands you can use the `@CipherPlugin.command()` decorator.
+To register commands you can use the `@self.command()` decorator.
 
 ```py
 # Register a command called 'hello'
-@CipherPlugin.command()
+@self.command()
 def hello(self,args):
     print("Hello from ExamplePlugin!")
 ```
+Note how `self` referrs to the initial class that inherits the `CipherPlugin` class.
 
 The command decorator does have arguments to customize your plugin:
 
@@ -147,7 +148,7 @@ The command decorator does have arguments to customize your plugin:
 By default, your command will be accessible by typing the name of the class into the command line, but if your command overrides default commands set a name for it in the decorator.
 Example:
 ```py
-CipherPlugin.command(name=["exampleName"])
+self.command(name=["exampleName"])
 ```
 
 ### `helpflag` *deprecated*
@@ -167,7 +168,7 @@ This argument is deprecated.
 Adds additional aliases to access the command via CLI.
 Example: 
 ```py
-@CipherPlugin.command(alias=["myalias_1","and_2"])
+@self.command(alias=["myalias_1","and_2"])
 ```
 
 # Full structure of your plugin
@@ -177,22 +178,22 @@ This is what your entire plugin should look like
 
 # From example_plugin.
 
-from cipher.plugins import CipherPlugin, CipherAPI
+from cipher.cipher_aio import CipherPlugin, CipherAPI, ConfigParser
 
 class ExamplePlugin(CipherPlugin):
-    def __init__(self, api: CipherAPI,config):
-        super().__init__(api,config)
+    def __init__(self, api:CipherAPI, config:ConfigParser):
+        super().__init__(api, config)
         self.register_commands()
     
     def on_enable(self):
         print("Example Plugin enabled")
     
     def register_commands(self):
-        @CipherPlugin.command()
+        @self.command()
         def hello(args):
             print("Hello from ExamplePlugin!")
         
-        @CipherPlugin.command(name="goodbye")
+        @self.command(name="goodbye")
         def goodbye(args):
             print("Goodbye from ExamplePlugin!")
 ```
@@ -201,7 +202,7 @@ class ExamplePlugin(CipherPlugin):
 
 These are tools for helping you make your plugin that is built into CipherOS.
 
-## `cipher.parsers.ArgumentParser`
+## `cipher.cipher_aio.ArgumentParser`
 
 This is the custom built in `ArgumentParser` that CipherOS.
 

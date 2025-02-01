@@ -66,6 +66,8 @@ else
     echo "Unsupported operating system: $OS"
     exit 1
 fi
+echo "${BLUE}Running a sudo command this will prompt a password prompt...$CLEAR"
+
 echo "${BLUE}Downloading CipherOS executable...$CLEAR"
 mkdir -p "$INSTALL_DIR"
 
@@ -82,7 +84,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo "${BLUE}Running a sudo command this will prompt a password prompt...$CLEAR"
 sudo chmod +x "$INSTALL_DIR/$EXECUTABLE"
 
 echo "${BLUE}Creating symbolic link...$CLEAR"

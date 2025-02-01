@@ -157,7 +157,7 @@ jobs:
             done
           
           mv ./cipheros.exe build
-          mv ./CipherOS Windows %VERSION x64.exe build
+          mv ./"CipherOS Windows %{VERSION} x64.exe" build
       
       - name: Create Release Package for All OS
         run: |

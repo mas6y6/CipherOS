@@ -24,7 +24,7 @@ class HacknetPlugin(CipherPlugin):
     def register_commands(self):
         """Method to register all commands for this plugin"""
         
-        @self.command()
+        @self.command(desc="EMERGENCY TRACE AVERSION SEQUENCE")
         def traced(argsraw:list[str]):
             parser = ArgumentParser(self.api,"EMERGENCY TRACE AVERSION SEQUENCE")
             parser.parse_args(argsraw)
@@ -134,7 +134,7 @@ YOUR Assigned IP: {self.ipAddress}
 """, expand=True,style="white on red"))
             time.sleep(1)
         
-        @self.command()
+        @self.command(desc="Stops the EMERGENCY TRACE AVERSION SEQUENCE")
         def completetrace(argsraw:list[str]):
             parser = ArgumentParser(self.api,"Stops the EMERGENCY TRACE AVERSION SEQUENCE")
             parser.parse_args(argsraw)

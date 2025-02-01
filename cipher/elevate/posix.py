@@ -7,11 +7,11 @@ except ImportError:
     from pipes import quote
 
 
-def quote_shell(args):
+def quote_shell(args:list[str]) -> str:
     return " ".join(quote(arg) for arg in args)
 
 
-def quote_applescript(string):
+def quote_applescript(string:str) -> str:
     charmap = {
         "\n": "\\n",
         "\r": "\\r",
@@ -22,12 +22,12 @@ def quote_applescript(string):
     return '"%s"' % "".join(charmap.get(char, char) for char in string)
 
 
-def elevate(show_console=True, graphical=True):
+def elevate(show_console:bool=True, graphical:bool=True) -> None:
     if os.getuid() == 0:
         return
 
     args = [sys.executable] + sys.argv
-    commands = []
+    commands: list[list[str]] = []
 
     if graphical:
         if sys.platform.startswith("darwin"):

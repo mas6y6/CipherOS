@@ -63,7 +63,7 @@ CloseHandle.restype = BOOL
 
 # At last, the actual implementation!
 
-def elevate(show_console=True, graphical=True):
+def elevate(show_console:bool=True, graphical:bool=True) -> None:
     if windll.shell32.IsUserAnAdmin():
         return
 

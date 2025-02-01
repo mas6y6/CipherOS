@@ -142,7 +142,7 @@ def is_running_in_appdata() -> bool:
 def create_directories(path_list:list[str]) -> None:
     for path in path_list:
         if not os.path.exists(path):
-            print(path)
+            print(f"creating path '{path}'.")
             os.makedirs(path)
 
 if executeargs.startdir == None:
@@ -193,13 +193,12 @@ def networkmap_save():
         json.dump(networkmap, f, indent=4)
         f.close()
 
-@api.command()
+@api.command(desc="Exits CipherOS")
 def exit(args:list[str]):
     print("Closing CipherOS")
     sys.exit(0)
 
-
-@api.command(alias=["pscn"])
+@api.command(alias=["pscn"], desc="Scan the specified device for open ports")
 def portscan(argsraw:list[str]):
     parser = ArgumentParser(api, description="Scan the specified device for open ports (This is work in progress so it will not be reliable)")
     parser.add_argument("ip",argtype=str, action="store", required=True, help_text="IP Address to device to scan")
@@ -293,7 +292,7 @@ def portscan(argsraw:list[str]):
         table.add_row(str(port))
     console.print(table)
 
-@api.command(alias=["exe","cmd"])
+@api.command(alias=["exe","cmd"], desc="Lists all commands")
 def executables(argsraw:list[str]):
     parser = ArgumentParser(api, description="Lists all commands")
 
@@ -309,7 +308,7 @@ def executables(argsraw:list[str]):
         tab.add_row(i)
     console.print(tab)
 
-@api.command()
+@api.command(desc="Elevates permissions to admin permissions for CipherOS")
 def sudomode(argsraw:list[str]):
     parser = ArgumentParser(api, description="Elevates permissions to admin permissions for CipherOS")
 
@@ -325,7 +324,7 @@ def sudomode(argsraw:list[str]):
     else:
         printerror("Error: Admin permissions already acquired")
 
-@api.command(alias=["scn", "netscan"])
+@api.command(alias=["scn", "netscan"], desc="Scan your network for devices")
 def scannet(argsraw:list[str]):
     parser = ArgumentParser(api, description="Scan your network for devices")
 
@@ -507,21 +506,22 @@ def scannet(argsraw:list[str]):
         console.print(table)
     networkmap_save()
 
-@api.command(alias=["cd"])
+@api.command(alias=["cd"], desc="Change to a directory")
 def chdir(argsraw:list[str]):
     parser = ArgumentParser(api, description="Change to a directory")
     parser.add_argument("path",argtype=str,required=True,help_text="Directory to move to")
 
     args = parser.parse_args(argsraw)
+
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
+
     if not hasattr(args, "path"):
         raise AttributeError(f"Argument 'path' missing.")
     path: str = args.path # type: ignore
     if not isinstance(path, str):
         raise TypeError(f"Type of 'path' ({type(path)}) does not match expected type (str)") # type: ignore
-    
-    #If the --help (-h) is passes it kills the rest of the script
-    if parser.help_flag:
-        return None
     
     if not path == "~":
         if os.path.isdir(path):
@@ -534,10 +534,14 @@ def chdir(argsraw:list[str]):
         os.chdir(api.pwd)
     api.updatecompletions()
 
-@api.command()
+@api.command(desc="Makes a directory")
 def mkdir(argsraw:list[str]):
     parser = ArgumentParser(api, description="Makes a directory")
     parser.add_argument("path",argtype=str,required=True,help_text="Directory to create")
+
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
 
     args = parser.parse_args(argsraw)
     if not hasattr(args, "folder"):
@@ -546,20 +550,16 @@ def mkdir(argsraw:list[str]):
     if not isinstance(folder, str):
         raise TypeError(f"Type of 'path' ({type(folder)}) does not match expected type (str)") # type: ignore
     
-    #If the --help (-h) is passes it kills the rest of the script
-    if parser.help_flag:
-        return None
-    
     if os.path.exists(folder):
         os.mkdir(folder)
     else:
         printerror(f"Error: {folder} exists")
 
-@api.command(alias=["cls"])
+@api.command(alias=["cls"], desc="Clears the screen")
 def clear(args:list[str]):
     print("\033c", end="")
 
-@api.command(alias=["pl"])
+@api.command(alias=["pl"], desc="Manage plugins for the system.")
 def plugins(argsraw:list[str]):
     parser = ArgumentParser(api, description="Manage plugins for the system.")
 
@@ -580,6 +580,11 @@ def plugins(argsraw:list[str]):
     info_parser.add_argument("plugin", argtype=str, help_text="The name of the plugin to get info about.",required=True)
 
     args = parser.parse_args(argsraw)
+    if parser.help_flag: return
+    if len(argsraw) == 0:
+        parser.print_help()
+        return
+
     if hasattr(args, "plugin"): args_plugin: str = args.plugin # type: ignore
     else: args_plugin = ""
     if not isinstance(args_plugin, str):
@@ -662,7 +667,7 @@ def plugins(argsraw:list[str]):
     else:
         print("Unknown subcommand.")
 
-@api.command()
+@api.command(desc="List the contents of a path in a tree-like structure, making it easier to read.")
 def tree(argsraw:list[str]):
     parser = ArgumentParser(api, description="List the contents of a path in a tree-like structure, making it easier to read.")
     parser.add_argument("path", argtype=str, help_text="Folder or path to list", required=False)
@@ -700,7 +705,7 @@ def tree(argsraw:list[str]):
             branch.add(filename)
     console.print(tree)
 
-@api.command(alias=["list", "l"])
+@api.command(alias=["list", "l"], desc="List the contents of a path")
 def ls(argsraw:list[str]):
     parser = ArgumentParser(api,description="List the contents of a path")
     parser.add_argument("path",argtype=str,help_text="Folder or path to list",required=False)
@@ -738,8 +743,7 @@ def ls(argsraw:list[str]):
     for i in files:
         print(f"{colorama.Fore.GREEN}{i} {colorama.Fore.RESET}")
 
-
-@api.command()
+@api.command(desc="Creates a file")
 def touch(argsraw:list[str]):
     parser = ArgumentParser(api,description="Creates a file")
     parser.add_argument("file",argtype=str,help_text="File to create",required=True)
@@ -767,12 +771,16 @@ def touch(argsraw:list[str]):
             "exists" + colorama.Fore.RESET + colorama.Style.NORMAL,
         )
         
-@api.command(name="python",alias=["py"])
+@api.command(name="python", alias=["py"], desc="Executes a python file")
 def pythoncode(argsraw:list[str]):
     parser = ArgumentParser(api,description="Executes a python file")
     parser.add_argument("file", argtype=str, help_text="The file to display", required=True)
     
     args = parser.parse_args(argsraw)
+
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
 
     if not hasattr(args, "file"):
         raise AttributeError(f"Argument 'file' missing.")
@@ -780,12 +788,9 @@ def pythoncode(argsraw:list[str]):
     if not isinstance(file, str):
         raise TypeError(f"Type of 'file' ({type(file)}) does not match expected type (str)") # type: ignore
     
-    #If the --help (-h) is passes it kills the rest of the script
-    if parser.help_flag:
-        return None
     runpy.run_path(file)
 
-@api.command(alias=["cat"])
+@api.command(alias=["cat"], desc="Echos a file's contents to the console")
 def viewfile(argsraw:list[str]):
     parser = ArgumentParser(api,description="Echos a file's contents to the console")
     parser.add_argument("file", argtype=str, help_text="The file to display", required=True)
@@ -793,6 +798,10 @@ def viewfile(argsraw:list[str]):
     parser.add_argument("--color",action="store_true",help_text="Enables Color code texting (Uses rich as processer)",aliases=["-c"])
     
     args = parser.parse_args(argsraw)
+
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
 
     if not hasattr(args, "file"):
         raise AttributeError(f"Argument 'file' missing.")
@@ -812,10 +821,6 @@ def viewfile(argsraw:list[str]):
     if not isinstance(color, bool):
         raise TypeError(f"Type of 'color' ({type(color)}) does not match expected type (str)") # type: ignore
     
-    #If the --help (-h) is passes it kills the rest of the script
-    if parser.help_flag:
-        return None
-    
     with open(file) as f:
         if markdown:
             console.print(Markdown(f.read()))
@@ -824,12 +829,16 @@ def viewfile(argsraw:list[str]):
         else:
             print(f.read())
 
-@api.command(alias=["rm"])
+@api.command(alias=["rm"], desc="Removes a file")
 def remove(argsraw:list[str]):
     parser = ArgumentParser(api,description="Removes a file")
     parser.add_argument("file",argtype=str,help_text="File to delete",required=True)
     
     args = parser.parse_args(argsraw)
+
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
 
     if not hasattr(args, "file"):
         raise AttributeError(f"Argument 'file' missing.")
@@ -837,9 +846,6 @@ def remove(argsraw:list[str]):
     if not isinstance(file, str):
         raise TypeError(f"Type of 'file' ({type(file)}) does not match expected type (str)") # type: ignore
     
-    #If the --help (-h) is passes it kills the rest of the script
-    if parser.help_flag:
-        return None
     try:
         os.remove(os.path.join(api.pwd, file))
     except PermissionError:
@@ -879,15 +885,13 @@ if __name__ == "__main__":
             parser.add_argument("scope", argtype=str, help_text="Scope (global/local)",required=True)
 
             args = parser.parse_args(argsraw)
+            if parser.help_flag: return None
 
             if not hasattr(args, "scope"):
                 raise AttributeError(f"Argument 'scope' missing.")
             scope: str = args.scope # type: ignore
             if not isinstance(scope, str):
                 raise TypeError(f"Type of 'scope' ({type(scope)}) does not match expected type (str)") # type: ignore
-
-            if parser.help_flag:
-                return None
 
             try:
                 username = os.environ.get("USER", "unknown")
@@ -941,16 +945,10 @@ Project Codename: Paradox"""
     api.updatecompletions()
     while True:
         try:
-            if api.addressconnected == "":
-                commandlineinfo = f"{api.currentenvironment} {api.pwd}"
-            else:
-                commandlineinfo = (
-                    f"{api.currentenvironment} {api.addressconnected} {api.pwd}"
-                )
             command_completer = WordCompleter(api.completions, ignore_case=True)
             try:
                 user_input = user_input = prompt(
-                f"{commandlineinfo}> ", completer=command_completer, history=history
+                f"{api.commandlineinfo}> ", completer=command_completer, history=history
             )
             except Exception as e:
                 if debugmode:

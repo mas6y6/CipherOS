@@ -1,13 +1,18 @@
 # CipherOS
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mas6y6/CipherOS/refs/heads/main/logos/banner.png">
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/mas6y6/CipherOS/refs/heads/main/logos/banner_black.png">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/TEX479/CipherOS/refs/heads/main/logos/banner.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/TEX479/CipherOS/refs/heads/main/logos/banner_black.png">
   <img alt="CipherOS logo" src="https://user-images.githubusercontent.com/25423296/163456779-a8556205-d0a5-45e2-ac17-42d089e3c3f8.png">
 </picture>
 
 
 An hacknet inspired hacking program
+
+## Contents
+- [How to install](#how-to-install)
+- [Running from source](#running-from-source)
+- [About](#about)
 
 ## How to install
 
@@ -20,11 +25,11 @@ You can use the standalone .exe from [releases](https://github.com/mas6y6/Cipher
 ### macOS / Linux
 You can run:
 ```
-curl -sSL https://raw.githubusercontent.com/mas6y6/CipherOS/refs/heads/main/installer.sh | bash
+curl -sSL https://raw.githubusercontent.com/TEX479/CipherOS/refs/heads/main/installer.sh | bash
 ```
 To use the automatic installer.
 
-But if your architecture isn't supported you can build your own CipherOS build can just use the [compile.sh](https://github.com/mas6y6/CipherOS/blob/main/compile.sh) to compile the `main.py` file to `cipher`.
+But if your architecture isn't supported you can build your own CipherOS build can just use the [compile.sh](https://github.com/TEX479/CipherOS/blob/main/compile.sh) to compile the `main.py` file to `cipher`.
 
 And download the cipher folder and put it in the same directory as `cipher`
 ```tree
@@ -40,14 +45,48 @@ And download the cipher folder and put it in the same directory as `cipher`
 ```
 > [!IMPORTANT]
 > **The `cipher` folder must be in the SAME folder as the executeable!**
-## Discord
+
+## Running from source
+### getting the code
+Download the project either [here](https://github.com/TEX479/CipherOS/archive/refs/heads/main.zip) or using
+```shell
+git clone https://github.com/TEX479/CipherOS.git
+```
+### getting the requirements
+Note: I (tex) can only provide detailed information for linux. If you use a different operating system and are having trouble, google will be your friend. On websites like stackexchange there are usually answers for your problems.\
+
+Install python (for example from [python.org](python.org)). The minimum version required is `3.12`.\
+\
+Navigate a terminal to the downloaded project's folder.
+<details>
+<summary>Optional: using a virtual environment</summary>
+
+I recommend to use a [virtual environment](https://docs.python.org/3/library/venv.html) for installing the required packages. To do this, run
+```shell
+python3 -m pip install venv
+python3 -m venv venv
+source venv/bin/activate
+```
+If you do this, you'll have to run `source venv/bin/activate` every time you want to run the program, but you are not risking to break any system-required libraries or requirements for other projects.
+</details>
+
+Now install the requirements of this project using the command
+```shell
+pip install -r requirements.txt
+```
+And finally, to run the program, run
+```shell
+python3 main.py
+```
+
+## About
 [Click me](https://discord.gg/4HJrhKhWgj) to join the Cipher HackSquad discord server
 
-# Contributors
-+ [@mas6y6](https://github.com/mas6y6) (Owner)
+### Contributors
++ [@mas6y6](https://github.com/mas6y6) (original author)
 + [@malachi196](https://github.com/malachi196)
 + [@overo3](https://github.com/Overo3)
++ [@tex479](https://github.com/TEX479) (me `;)`)
 
-# Credits
-
+### Credits
 None yet..

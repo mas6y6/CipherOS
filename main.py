@@ -670,7 +670,7 @@ def plugins(argsraw:list[str]):
         if args_plugin in api.plugins:
             config = api.plugins[args_plugin].config
             console.print(f"Plugin '{config.displayname}' details:\n")
-            console.print("Version:",config.version)
+            console.print("Config Version:",config.version)
             console.print("Description:",config.description)
             console.print("Organization/Team:",config.team)
             console.print("Authors of plugin")
@@ -679,9 +679,9 @@ def plugins(argsraw:list[str]):
                     console.print(f"  - [bold green]{i}[/bold green]")
             else:
                 console.print(f"  - [bold red]- missing -[/bold red]")
-            console.print("\nPluginclass:",config.classname)
+            console.print("Pluginclass:",config.classname)
             if config.dependencies:
-                console.print("Dependencies (Downloaded by PyPI):",config.classname)
+                console.print("Dependencies (Downloaded by PyPI):")
                 for i in config.dependencies:
                     console.print(f"  - [bold bright_magenta]{i}[/bold bright_magenta]")
         else:

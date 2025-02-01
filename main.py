@@ -518,8 +518,9 @@ def chdir(argsraw:list[str]):
         return None
 
     if not hasattr(args, "path"):
-        raise AttributeError(f"Argument 'path' missing.")
-    path: str = args.path # type: ignore
+        path = "~"
+    else:
+        path: str = args.path # type: ignore
     if not isinstance(path, str):
         raise TypeError(f"Type of 'path' ({type(path)}) does not match expected type (str)") # type: ignore
     
@@ -678,10 +679,10 @@ def tree(argsraw:list[str]):
     if parser.help_flag:
         return None
     
-    if args.path is None: # type: ignore
-        path = api.pwd
-    else:
+    if hasattr(args, "path") and args.path != None: # type: ignore
         path: str = args.path # type: ignore
+    else:
+        path = api.pwd
     
     if not isinstance(path, str):
         raise TypeError(f"Type of 'path' ({type(path)} does not match expected type (str).") # type: ignore

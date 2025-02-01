@@ -17,19 +17,13 @@ from cipher.exceptions import (
 )
 from wheel.wheelfile import WheelFile
 from rich.console import Console
-
+from cipher.exceptions import ParserError, ArgumentRequiredError
 
 '''
 #########################
 parser stuff
 #########################
 '''
-class ParserError(Exception):
-    pass
-
-class ArgumentRequiredError(Exception):
-    pass
-
 class Namespace:
     """Container for parsed arguments."""
     subcommand: str

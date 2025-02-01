@@ -19,3 +19,9 @@ class ExitCodes:
     ARGUMENTSREQUIRED = 232
     COMMANDNOTFOUND = 404
     OTHERERROR = 400
+
+class ParserError(Exception):
+    pass
+
+class ArgumentRequiredError(Exception):
+    pass

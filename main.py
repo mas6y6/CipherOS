@@ -201,7 +201,7 @@ def exit(args:list[str]):
 @api.command(name="open")
 def openfile(argsraw:list[str]):
     parser = ArgumentParser(api, description="Opens a file")
-    parser.add_argument(name="file", type=str,action="store",required=True,help_text="File to open")
+    parser.add_argument(name="file", argtype=str,action="store",required=True,help_text="File to open")
 
     args = parser.parse_args(argsraw)
     
@@ -209,12 +209,18 @@ def openfile(argsraw:list[str]):
     if parser.help_flag:
         return None
     
-    if os.path.exists(args.file):
-        base = os.path.basename(args.file)
+    if not hasattr(args, "file"):
+        raise AttributeError(f"Argument 'folder' missing.")
+    file = args.file # type: ignore
+    if not isinstance(file, str):
+        raise TypeError(f"Type of 'file' ({type(file)}) does not match expected type (str)") # type: ignore
+    
+    if os.path.exists(file):
+        base = os.path.basename(file)
         if base.endswith(".exe"):
             console.print("[blue]Starting Windows Executeable[/blue]")
-        elif base.endwith(".txt"):
-            viewfile([args.file])
+        else:
+            viewfile([file])
     
 
 @api.command(alias=["pscn"])
@@ -885,21 +891,28 @@ def remove(argsraw:list[str]):
         printerror(f"Error: '{file}' does not exist.")
 
 @api.command(alias=["rmdir"])
-def rmdir(argsraw):
+def rmdir(argsraw:list[str]):
     parser = ArgumentParser(api,description="Removes a directory")
-    parser.add_argument("file",type=str,help_text="File to directory",required=True)
+    parser.add_argument("file", argtype=str,help_text="File to directory",required=True)
     
     args = parser.parse_args(argsraw)
     
     #If the --help (-h) is passes it kills the rest of the script
     if parser.help_flag:
         return None
+    
+    if not hasattr(args, "file"):
+        raise AttributeError(f"Argument 'folder' missing.")
+    file = args.file # type: ignore
+    if not isinstance(file, str):
+        raise TypeError(f"Type of 'file' ({type(file)}) does not match expected type (str)") # type: ignore
+
     try:
-        os.rmdir(os.path.join(api.pwd, args.file))
+        os.rmdir(os.path.join(api.pwd, file))
     except PermissionError:
-        printerror(f"Error: Permission to delete '{args.file}' denied")
+        printerror(f"Error: Permission to delete '{file}' denied")
     except FileNotFoundError:
-        printerror(f"Error: '{args.file}' does not exist.")
+        printerror(f"Error: '{file}' does not exist.")
 
 if __name__ == "__main__":
     debugmode = executeargs.debug

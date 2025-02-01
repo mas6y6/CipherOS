@@ -1,6 +1,7 @@
 from cipher.cipher_aio import CipherPlugin, CipherAPI, ConfigParser
 import shutil
 from fcommands.fzf_tools import fzf_run
+from prompt_toolkit import prompt
 
 class FCommands(CipherPlugin):
     def __init__(self, api: CipherAPI, config:ConfigParser):
@@ -43,13 +44,10 @@ class FCommands(CipherPlugin):
                 selected_command = fzf_output_possible_commands[0]
             else:
                 selected_command = sorted(fzf_output_possible_commands, key=lambda x: len(x))[-1]
-            print("Press CTRL-C to cancel editing the command, press ENTER to execute it.")
-            try: selected_command_args = input(f"{self.api.commandlineinfo}> {selected_command}")
-            except KeyboardInterrupt:
-                print(f"Canceld...\n{self.api.commandlineinfo}>")
-                return
-            except Exception as e:    raise e
-            self.api.run(f"{selected_command}{selected_command_args}".split(" "))
+            try: selected_command_full = prompt(message=f"{self.api.commandlineinfo}> ", default=selected_command)
+            except KeyboardInterrupt: return
+            if selected_command_full == "": return
+            self.api.run(f"{selected_command_full}".split(" "))
         
         @self.command(desc=self.help["fhist"])
         def fhist(args:list[str]) -> None: # type: ignore
@@ -66,11 +64,9 @@ class FCommands(CipherPlugin):
             if len(fzf_output) > 1:
                 raise IndexError(f"'fzf_output' should be of length 1 but is {len(fzf_options)}.")
             selected_command = ": ".join(fzf_output[0].split(": ")[1:])
-            print("Press CTRL-C to cancel editing the command, press ENTER to execute it.")
-            try: selected_command_args = input(f"{self.api.commandlineinfo}> {selected_command}")
-            except KeyboardInterrupt:
-                print(f"Canceld...\n{self.api.commandlineinfo}>")
-                return
-            except Exception as e:    raise e
-            self.api.run(f"{selected_command}{selected_command_args}".split(" "))
+            try: selected_command_full = prompt(message=f"{self.api.commandlineinfo}> ", default=selected_command)
+            except KeyboardInterrupt: return
+            if selected_command_full == "": return
+            print(f"runing\"{selected_command_full}\"")
+            self.api.run(f"{selected_command_full}".split(" "))
 

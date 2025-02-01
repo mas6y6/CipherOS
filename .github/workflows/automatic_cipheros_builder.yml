@@ -145,34 +145,20 @@ jobs:
           tree
           for os in ubuntu-latest windows-latest macos-latest; do
           for arch in x64 arm64 x32; do
-            if [[ "$os" == "windows-latest" && ( "$arch" == "arm64" || "$arch" == "x32" ) ]]; then
+            if [[ "$os" == "windows-latest" ]]; then
               continue
             fi
-            artifact="${os}-${arch}-build"
-            mkdir -p "build/$artifact"
+            artifact="${os}-${arch}-executeable"
             tree
-            unzip "${artifact}" -d "build/$artifact"
+            cd $artifact build
           done
             done
+          
+          cd cipheros.exe build
       
       - name: Create Release Package for All OS
         run: |
-          mkdir -p release/bundle
-          for os in ubuntu-latest windows-latest macos-latest; do
-            for arch in x64 arm64 x32; do
-              if [[ "$os" == "windows-latest" && ( "$arch" == "arm64" || "$arch" == "x32" ) ]]; then
-                continue
-              fi
-              artifact="${os}-${arch}-build"
-              if [ -d "$artifact" ]; then
-                cp -r "$artifact"/* release/bundle/
-              else
-                echo "Warning: Artifact $artifact not found, skipping..."
-              fi
-            done
-          done
-          cd release
-          zip -r cipheros_release.zip bundle
+          zip -r build release/cipheros_release.zip *
 
       
       - name: Upload Release Package

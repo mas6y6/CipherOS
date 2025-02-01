@@ -44,6 +44,11 @@ fi
 
 echo "System architecture: $ARCHITECTURE"
 
+if [ "$(id -u)" -ne 0 ]; then
+    echo "${RED}Please run as root using sudo.$CLEAR"
+    exit 1
+fi
+
 if [ "$OS" = "Linux" ]; then
     if [ "$ARCHITECTURE" = "x64" ]; then
         GITHUB_REPO_URL="https://github.com/mas6y6/CipherOS/releases/latest/download/linux-x64-executeable"
@@ -66,10 +71,8 @@ else
     echo "Unsupported operating system: $OS"
     exit 1
 fi
-echo "${BLUE}Running a sudo command this will prompt a password prompt...$CLEAR"
-
 echo "${BLUE}Downloading CipherOS executable...$CLEAR"
-sudo mkdir -p "$INSTALL_DIR"
+mkdir -p "$INSTALL_DIR"
 
 HTTP_STATUS=$(curl -L -s -o "$INSTALL_DIR/$EXECUTABLE" -w "%{http_code}" "$GITHUB_REPO_URL")
 
@@ -84,9 +87,9 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-sudo chmod +x "$INSTALL_DIR/$EXECUTABLE"
+chmod +x "$INSTALL_DIR/$EXECUTABLE"
 
 echo "${BLUE}Creating symbolic link...$CLEAR"
-sudo ln -sf "$INSTALL_DIR/$EXECUTABLE" /usr/local/bin/$EXECUTABLE
+ln -sf "$INSTALL_DIR/$EXECUTABLE" /usr/local/bin/$EXECUTABLE
 
 echo "${GREEN}CipherOS installation complete! You can run CipherOS by typing 'cipheros' in the terminal.$CLEAR"

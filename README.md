@@ -18,9 +18,13 @@ You can use the standalone .exe from [releases](https://github.com/mas6y6/Cipher
 > the standalone .exe will generate the `plugins` and `data` folder in the directory that the executable is run in, so it is recommended to drop the .exe in a dedicated folder before running.
 
 ### macOS / Linux
-You can run:
+You can run this to download the installer
+```sh
+curl https://raw.githubusercontent.com/mas6y6/CipherOS/refs/heads/main/installer.sh -o installer.sh
 ```
-curl -sSL https://raw.githubusercontent.com/mas6y6/CipherOS/refs/heads/main/installer.sh | bash
+To run the installer in sudo mode
+```sh
+sudo sh installer.sh
 ```
 To use the automatic installer.
 

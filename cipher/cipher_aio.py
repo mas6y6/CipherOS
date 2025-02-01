@@ -58,7 +58,7 @@ class ConfigParser:
         """
         with open(file_path, "r", encoding="utf-8") as file:
             self.yml = safe_load(file)
-            self.dict = json.loads(json.dumps(self.yml))
+            self.dict: dict[str, str|list[str]|int|None] = json.loads(json.dumps(self.yml))
 
         configversion = self.dict["configversion"]
         if type(configversion) != int:
@@ -72,11 +72,11 @@ class ConfigParser:
                 displayname = name
             
             version = self.dict["version"]
-            authors: list[str] | None = None
+            authors = None
             team = None
             description = None
             classname = self.dict["class"]
-            dependencies = self.dict["dependencies"]
+            dependencies = self.dict.get("dependencies")
         elif configversion == 2:
             name = self.dict["name"]
             
@@ -87,10 +87,10 @@ class ConfigParser:
             
             version = self.dict["version"]
             authors = self.dict["authors"]
-            team = self.dict["team"]
+            team = self.dict.get("team")
             description = None
             classname = self.dict["class"]
-            dependencies = self.dict["dependencies"]
+            dependencies = self.dict.get("dependencies")
         elif configversion == 3:
             name = self.dict["name"]
             
@@ -101,10 +101,10 @@ class ConfigParser:
             
             version = self.dict["version"]
             authors = self.dict["authors"]
-            team = self.dict["team"]
+            team = self.dict.get("team")
             description = self.dict["description"]
             classname = self.dict["class"]
-            dependencies = self.dict["dependencies"]
+            dependencies = self.dict.get("dependencies")
         else:
             raise ParserError(
                 f"The specified configversion \"{configversion}\" defined in the \"plugin.yml\" is not supported.\n"
@@ -122,30 +122,19 @@ class ConfigParser:
         ]
         types_match = [isinstance(variable, type_of_variable) for variable, type_of_variable in expected_type_match_list]
         if not all(types_match): raise ParserError(f"Some parsed data has incorrect types.")
-        self.name: str = name
-        self.displayname: str = displayname
-        self.version: int = version
-        self.authors: list[str] | None = authors
-        self.team: str | None = team
-        self.description: str | None = description
-        self.classname: str = classname
-        self.dependencies: list[str] | None = dependencies
+        self.name: str = name # type: ignore
+        self.displayname: str = displayname # type: ignore
+        self.version: int = version # type: ignore
+        self.authors: list[str] | None = authors # type: ignore
+        self.team: str | None = team # type: ignore
+        self.description: str | None = description # type: ignore
+        self.classname: str = classname # type: ignore
+        self.dependencies: list[str] | None = dependencies # type: ignore
 
         if isinstance(self.authors,list):
             if not len(self.authors) >= 1:
                 raise ParserError("There must be one or more authors in the \"authors\" config")
 
-    def get(self, key: str) -> str:
-        """Returns a value of the specified key
-        To provide support for older code of CipherOS that still use YAMLObject
-
-        Args:
-            key (str): Specified key
-
-        Returns:
-            str: Return of requested value
-        """
-        return self.dict[key]
 
 @dataclass
 class Flag:
@@ -332,18 +321,44 @@ class Command:
 class CipherAPI:
     def __init__(self):
         self.commands: dict[str, Command] = {}
-        self.pwd = os.getcwd()
-        self.configdir = os.getcwd()
+        self._pwd = os.getcwd()
+        self._currentenvironment = "COS"
         self.addressconnected = ""
+        self._update_change_commandlineinfo()
+        self.configdir = os.getcwd()
         self.hostname = socket.gethostname()
         self.localip = socket.gethostbyname(self.hostname)
-        self.currentenvironment = "COS"
         self.plugins: dict[str, CipherPlugin] = {}
         self.plugincommands: dict[str, list[str]] = {}
         self.threads = {}
         self.debug = False
         self.completions = []
         self.console = Console()
+
+    @property
+    def pwd(self) -> str:
+        return self._pwd
+    @pwd.setter
+    def pwd(self, pwd:str) -> None:
+        self._pwd = pwd
+        self._update_change_commandlineinfo()
+    @pwd.deleter
+    def pwd(self) -> None:
+        del self._pwd
+    
+    @property
+    def currentenvironment(self) -> str:
+        return self._currentenvironment
+    @currentenvironment.setter
+    def currentenvironment(self, cwd:str) -> None:
+        self._currentenvironment = cwd
+        self._update_change_commandlineinfo()
+    @currentenvironment.deleter
+    def currentenvironment(self) -> None:
+        del self._currentenvironment
+    
+    def _update_change_commandlineinfo(self) -> None:
+        self.commandlineinfo = f"{self.currentenvironment}{f" {self.addressconnected}" if self.addressconnected != "" else ""} {self.pwd}"
 
     def command(
             self, name:str|None=None, helpflag:str="--help", desc:str|None=None, extradata:dict[str, str]={}, alias:list[str]=[]
@@ -423,10 +438,10 @@ class CipherAPI:
                     self.console.print("Failed duplicate is older then already enabled.",style="bold bright_yellow")
                     return None
             
-        plugin_name = yml.get("name")
-        plugin_class_name = yml.get("class")
-        plugin_displayname = yml.get("displayname")
-        plugin_dependencies: list[str] | None = yml.get("dependencies") # type: ignore
+        plugin_name = yml.name
+        plugin_class_name = yml.classname
+        plugin_displayname = yml.displayname
+        plugin_dependencies: list[str] | None = yml.dependencies
         print(f"Loading {plugin_displayname}")
         
         pm = PackageManager(self)

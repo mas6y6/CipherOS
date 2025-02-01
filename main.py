@@ -213,6 +213,24 @@ def exit(args):
     print("Closing CipherOS")
     sys.exit(0)
 
+@api.command(name="open")
+def openfile(argsraw):
+    parser = ArgumentParser(api, description="Opens a file")
+    parser.add_argument("file",type=str,action="store",required=True,help_text="File to open")
+
+    args = parser.parse_args(argsraw)
+    
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
+    
+    if os.path.exists(args.file):
+        base = os.path.basename(args.file)
+        if base.endswith(".exe"):
+            console.print("[blue]Starting Windows Executeable[/blue]")
+        elif base.endwith(".txt"):
+            viewfile([args.file])
+    
 
 @api.command(alias=["pscn"])
 def portscan(argsraw):
@@ -320,8 +338,8 @@ def executables(argsraw):
         tab.add_row(i)
     console.print(tab)
 
-@api.command()
-def sudomode(argsraw):
+@api.command(name="elevate")
+def elevateperm(argsraw):
     parser = ArgumentParser(api, description="Elevates permissions to admin permissions for CipherOS")
 
     args = parser.parse_args(argsraw)
@@ -330,7 +348,7 @@ def sudomode(argsraw):
         return None
     
     if not is_root():
-        console.print("Entering Sudomode",style="bright_red")
+        console.print("Attempting to elevate permissions for CipherOS",style="bright_red")
         console.print("Acquiring Admin privileges (This may open a password prompt)",style="bright_red")
         elevate(graphical=False)
     else:
@@ -811,7 +829,22 @@ def remove(argsraw):
     except FileNotFoundError:
         printerror(f"Error: '{args.file}' does not exist.")
 
-
+@api.command(alias=["rmdir"])
+def rmdir(argsraw):
+    parser = ArgumentParser(api,description="Removes a directory")
+    parser.add_argument("file",type=str,help_text="File to directory",required=True)
+    
+    args = parser.parse_args(argsraw)
+    
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
+    try:
+        os.rmdir(os.path.join(api.pwd, args.file))
+    except PermissionError:
+        printerror(f"Error: Permission to delete '{args.file}' denied")
+    except FileNotFoundError:
+        printerror(f"Error: '{args.file}' does not exist.")
 
 if __name__ == "__main__":
     debugmode = executeargs.debug

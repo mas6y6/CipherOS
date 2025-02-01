@@ -141,8 +141,8 @@ jobs:
       
       - name: Extract Build Artifacts
         run: |
-          tree
           mkdir -p build
+          tree
           for os in ubuntu-latest windows-latest macos-latest; do
           for arch in x64 arm64 x32; do
             if [[ "$os" == "windows-latest" && ( "$arch" == "arm64" || "$arch" == "x32" ) ]]; then
@@ -150,6 +150,7 @@ jobs:
             fi
             artifact="${os}-${arch}-build"
             mkdir -p "build/$artifact"
+            tree
             unzip "${artifact}" -d "build/$artifact"
           done
             done

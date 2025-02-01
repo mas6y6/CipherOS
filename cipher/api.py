@@ -24,7 +24,12 @@ class CipherAPI:
         self.starterdir = os.getcwd()
         self.addressconnected = ""
         self.hostname = socket.gethostname()
-        self.localip = socket.gethostbyname(self.hostname)
+        try:
+            self.localip = socket.gethostbyname(self.hostname)
+        except:
+            self.console.print("[bold red]ERROR: A error occurred when getting local IP. Local IP will be set to 127.0.0.1[bold red\]")
+            self.console.print(f"[red]{traceback.format_exception()}[/]")
+            self.localip = "127.0.0.1"
         self.currentenvironment = "COS"
         self.plugins = {}
         self.plugincommands = {}
@@ -56,6 +61,25 @@ class CipherAPI:
             return func
 
         return decorator
+
+    def add_command(self, name, func, desc=None, helpflag="--help", extradata={}, alias=[]):
+        self.commands[name] = {
+            "func": func,
+            "desc": desc,
+            "helpflag": helpflag,
+            "alias":alias,
+            "parentcommand":True,
+            "extradata": extradata,
+        }
+        for i in alias:
+            self.commands[i] = {
+                "func": func,
+                "desc": desc,
+                "helpflag": helpflag,
+                "alias":[],
+                "parentcommand":False,
+                "extradata": extradata,
+            }
 
     def rm_command(self, name):
         self.commands.pop(name)
@@ -104,7 +128,7 @@ class CipherAPI:
                 return None
             else:
                 if newv > enabledv:
-                    self.console.print("Duplicate is newer then already enabled.\nDisabling and continuing enabling process...",style="bold bright_yellow")
+                    self.console.print("Duplicate is newer then already enabled.\nDisabling and continuing plugin startup process...",style="bold bright_yellow")
                     self.disable_plugin(self.plugins[yml.name])
                     self.console.print("Continuing...")
                 else:

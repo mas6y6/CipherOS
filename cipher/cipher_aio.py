@@ -334,6 +334,7 @@ class CipherAPI:
         self.debug = False
         self.completions = []
         self.console = Console()
+        self.command_history: list[str] = []
 
     @property
     def pwd(self) -> str:
@@ -391,6 +392,7 @@ class CipherAPI:
         exc = None
         try:
             exc = self.commands[args[0]].func(args[1:])
+            self.command_history.append(" ".join(args))
         except KeyError:
             return ExitCodes.COMMANDNOTFOUND, traceback.format_exc()
         except ExitCodeError:

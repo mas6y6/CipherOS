@@ -2,7 +2,7 @@
 
 Making plugins for CipherOS is very easy if you know how to do object orianted programming for Python and if you know how to build modules with the `__init__.py` class.
 
-You can use the [Example plugin](https://github.com/TEX479/CipherOS/tree/main/example_plugin) if you want.
+You can use the [Example plugin](example_plugin/) if you want.
 
 # Setting up the directory structure
 
@@ -14,7 +14,7 @@ So the directory structure of a plugin is very similar to modules it must look s
 > [!TIP]
 > **There is a `displayname` argument in the config for `pl info`**
 
-```py
+```tree
 .
 ├── __init__.py
 └── plugin.yml

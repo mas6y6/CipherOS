@@ -69,7 +69,7 @@ fi
 echo "${BLUE}Running a sudo command this will prompt a password prompt...$CLEAR"
 
 echo "${BLUE}Downloading CipherOS executable...$CLEAR"
-mkdir -p "$INSTALL_DIR"
+sudo mkdir -p "$INSTALL_DIR"
 
 HTTP_STATUS=$(curl -L -s -o "$INSTALL_DIR/$EXECUTABLE" -w "%{http_code}" "$GITHUB_REPO_URL")
 

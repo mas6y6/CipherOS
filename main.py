@@ -332,7 +332,10 @@ def sudomode(argsraw):
     if not is_root():
         console.print("Entering Sudomode",style="bright_red")
         console.print("Acquiring Admin privileges (This may open a password prompt)",style="bright_red")
-        elevate(graphical=False)
+        if os.name == "nt":
+            elevate(show_console=True,graphical=False)
+        else:
+            elevate(graphical=False)
     else:
         printerror("Error: Admin permissions already acquired")
 

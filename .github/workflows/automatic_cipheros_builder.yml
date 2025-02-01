@@ -150,11 +150,11 @@ jobs:
             fi
             artifact="${os}-${arch}-executeable"
             tree
-            cd ./${artifact} build
+            mv ./${artifact} build
           done
             done
           
-          cd ./cipheros.exe build
+          mv ./cipheros.exe build
       
       - name: Create Release Package for All OS
         run: |

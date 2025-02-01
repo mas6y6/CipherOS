@@ -149,7 +149,6 @@ jobs:
               continue
             fi
             artifact="${os}-${arch}-executeable"
-            tree
             mv ./${artifact} build
           done
             done
@@ -158,7 +157,7 @@ jobs:
       
       - name: Create Release Package for All OS
         run: |
-          zip -r build releasebuild.zip
+            zip -r releasebuild.zip build/*
 
       
       - name: Upload Release Package

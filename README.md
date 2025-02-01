@@ -10,9 +10,14 @@
 An hacknet inspired hacking program
 
 ## Contents
+- [Features](#features)
 - [How to install](#how-to-install)
 - [Running from source](#running-from-source)
 - [About](#about)
+
+## Features
+- modular plugin system (see [plugins.md](plugins.md))
+- probably more stuff
 
 ## How to install
 

@@ -158,11 +158,11 @@ jobs:
       
       - name: Create Release Package for All OS
         run: |
-          zip -r build cipheros_release.zip *
+          zip -r build releasebuild.zip
 
       
       - name: Upload Release Package
         uses: actions/upload-artifact@v4
         with:
-          path: cipheros_release.zip
+          path: releasebuild.zip
           name: cipheros_release_package

@@ -327,7 +327,12 @@ class CipherAPI:
         self._update_change_commandlineinfo()
         self.configdir = os.getcwd()
         self.hostname = socket.gethostname()
-        self.localip = socket.gethostbyname(self.hostname)
+        try:
+            self.localip = socket.gethostbyname(self.hostname)
+        except Exception as e:
+            self.console.print("[bold red]ERROR: A error occurred when getting local IP. Local IP will be set to 127.0.0.1[/bold red]")
+            self.console.print(f"[red]{traceback.format_exception(e)}[/]")
+            self.localip = "127.0.0.1"
         self.plugins: dict[str, CipherPlugin] = {}
         self.plugincommands: dict[str, list[str]] = {}
         self.threads = {}
@@ -384,6 +389,24 @@ class CipherAPI:
             return func
 
         return decorator
+    
+    def add_command(self, func:Callable[[list[str]], None], name:str|None=None, desc:str|None=None, helpflag:str="--help", extradata:dict[str, str]={}, alias:list[str]=[]) -> None:
+        name = name if name != None else func.__name__
+        self.commands[name] = Command(
+                func=func,
+                desc=desc,
+                helpflag=helpflag,
+                alias=alias.copy(),
+                extradata=extradata
+            )
+        for i in alias:
+            self.commands[i] = Command(
+                    func=func,
+                    desc=desc,
+                    helpflag=helpflag,
+                    alias=alias.copy(),
+                    extradata=extradata
+                )
 
     def rm_command(self, name:str):
         self.commands.pop(name)
@@ -433,7 +456,7 @@ class CipherAPI:
                 return None
             else:
                 if newv > enabledv:
-                    self.console.print("Duplicate is newer then already enabled.\nDisabling and continuing enabling process...",style="bold bright_yellow")
+                    self.console.print("Duplicate is newer then already enabled.\nDisabling and continuing plugin startup process...",style="bold bright_yellow")
                     self.disable_plugin(yml.name)
                     self.console.print("Continuing...")
                 else:

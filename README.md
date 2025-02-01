@@ -3,6 +3,8 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/TEX479/CipherOS/refs/heads/main/logos/banner.png">
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/TEX479/CipherOS/refs/heads/main/logos/banner_black.png">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/TEX479/CipherOS/refs/heads/main/logos/banner.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/TEX479/CipherOS/refs/heads/main/logos/banner_black.png">
   <img alt="CipherOS logo" src="https://user-images.githubusercontent.com/25423296/163456779-a8556205-d0a5-45e2-ac17-42d089e3c3f8.png">
 </picture>
 
@@ -23,9 +25,13 @@ You can use the standalone .exe from [releases](https://github.com/mas6y6/Cipher
 > the standalone .exe will generate the `plugins` and `data` folder in the directory that the executable is run in, so it is recommended to drop the .exe in a dedicated folder before running.
 
 ### macOS / Linux
-You can run:
+You can run this to download the installer
+```sh
+curl https://raw.githubusercontent.com/mas6y6/CipherOS/refs/heads/main/installer.sh -o installer.sh
 ```
-curl -sSL https://raw.githubusercontent.com/TEX479/CipherOS/refs/heads/main/installer.sh | bash
+To run the installer in sudo mode
+```sh
+sudo sh installer.sh
 ```
 To use the automatic installer.
 
@@ -86,7 +92,7 @@ python3 main.py
 + [@mas6y6](https://github.com/mas6y6) (original author)
 + [@malachi196](https://github.com/malachi196)
 + [@overo3](https://github.com/Overo3)
-+ [@tex479](https://github.com/TEX479) (me `;)`)
++ [@tex479](https://github.com/TEX479)
 
 ### Credits
 None yet..

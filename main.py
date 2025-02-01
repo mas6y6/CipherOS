@@ -198,7 +198,26 @@ def exit(args:list[str]):
     print("Closing CipherOS")
     sys.exit(0)
 
-@api.command(alias=["pscn"], desc="Scan the specified device for open ports")
+@api.command(name="open")
+def openfile(argsraw:list[str]):
+    parser = ArgumentParser(api, description="Opens a file")
+    parser.add_argument(name="file", type=str,action="store",required=True,help_text="File to open")
+
+    args = parser.parse_args(argsraw)
+    
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
+    
+    if os.path.exists(args.file):
+        base = os.path.basename(args.file)
+        if base.endswith(".exe"):
+            console.print("[blue]Starting Windows Executeable[/blue]")
+        elif base.endwith(".txt"):
+            viewfile([args.file])
+    
+
+@api.command(alias=["pscn"])
 def portscan(argsraw:list[str]):
     parser = ArgumentParser(api, description="Scan the specified device for open ports (This is work in progress so it will not be reliable)")
     parser.add_argument("ip",argtype=str, action="store", required=True, help_text="IP Address to device to scan")
@@ -308,8 +327,8 @@ def executables(argsraw:list[str]):
         tab.add_row(i)
     console.print(tab)
 
-@api.command(desc="Elevates permissions to admin permissions for CipherOS")
-def sudomode(argsraw:list[str]):
+@api.command(name="elevate", desc="Elevates permissions to admin permissions for CipherOS", alias=["sudo-su"])
+def elevateperm(argsraw:list[str]):
     parser = ArgumentParser(api, description="Elevates permissions to admin permissions for CipherOS")
 
     _args = parser.parse_args(argsraw)
@@ -318,9 +337,12 @@ def sudomode(argsraw:list[str]):
         return None
     
     if not is_root():
-        console.print("Entering Sudomode",style="bright_red")
+        console.print("Attempting to elevate permissions for CipherOS",style="bright_red")
         console.print("Acquiring Admin privileges (This may open a password prompt)",style="bright_red")
-        elevate(graphical=False)
+        if os.name == "nt":
+            elevate(show_console=True,graphical=False)
+        else:
+            elevate(graphical=False)
     else:
         printerror("Error: Admin permissions already acquired")
 
@@ -847,14 +869,37 @@ def remove(argsraw:list[str]):
     if not isinstance(file, str):
         raise TypeError(f"Type of 'file' ({type(file)}) does not match expected type (str)") # type: ignore
     
+
+    if not hasattr(args, "file"):
+        raise AttributeError(f"Argument 'file' missing.")
+    file: str = args.file # type: ignore
+    if not isinstance(file, str):
+        raise TypeError(f"Type of 'file' ({type(file)}) does not match expected type (str)") # type: ignore
+    
     try:
         os.remove(os.path.join(api.pwd, file))
     except PermissionError:
         printerror(f"Error: Permission to delete '{file}' denied")
+        printerror(f"Error: Permission to delete '{file}' denied")
     except FileNotFoundError:
         printerror(f"Error: '{file}' does not exist.")
 
-
+@api.command(alias=["rmdir"])
+def rmdir(argsraw):
+    parser = ArgumentParser(api,description="Removes a directory")
+    parser.add_argument("file",type=str,help_text="File to directory",required=True)
+    
+    args = parser.parse_args(argsraw)
+    
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
+    try:
+        os.rmdir(os.path.join(api.pwd, args.file))
+    except PermissionError:
+        printerror(f"Error: Permission to delete '{args.file}' denied")
+    except FileNotFoundError:
+        printerror(f"Error: '{args.file}' does not exist.")
 
 if __name__ == "__main__":
     debugmode = executeargs.debug

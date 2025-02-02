@@ -1,11 +1,7 @@
 import errno
 import os
 import sys
-try:
-    from shlex import quote
-except ImportError:
-    from pipes import quote
-
+from shlex import quote
 
 def quote_shell(args:list[str]) -> str:
     return " ".join(quote(arg) for arg in args)

@@ -1,6 +1,3 @@
-class ExitCodeError(Exception):
-    pass
-
 class PluginError(Exception):
     pass
 

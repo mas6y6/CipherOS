@@ -33,12 +33,10 @@ import json
 import platform
 import signal
 import traceback
-#import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from ipaddress import IPv4Address, IPv4Network
 import colorama
 import progressbar # type: ignore
-#import pyinputplus
 import requests
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter

@@ -18,6 +18,7 @@ from cipher.exceptions import (
 from wheel.wheelfile import WheelFile
 from rich.console import Console
 from cipher.exceptions import ParserError, ArgumentRequiredError
+from urllib.parse import unquote
 
 '''
 #########################
@@ -468,8 +469,8 @@ class CipherAPI:
             for i in plugin_dependencies:
                 if not os.path.exists(os.path.join(self.configdir, "data", "cache", "packages", i)):
                     if i.startswith("https://") or i.startswith("http://"):
-                        raise NotImplementedError(f"Feature not yet implemented. Please contact the editors of this program for more detail")
-                        #pm.download_from_url(i)
+                        #raise NotImplementedError(f"Feature not yet implemented. Please contact the editors of this program for more detail")
+                        pm.download_from_url(i)
                     else:
                         pm.download_package(i)
 
@@ -701,17 +702,22 @@ class PackageManager:
             package_path = os.path.join(installed_dir, package_name)
             return os.path.exists(package_path)
 
-    '''
-    # TODO: finish function.
-    # The filename is never set, so I (tex) just assume that this function was not finished.
     def download_from_url(self, url:str):
+        '''
+        TODO: test this function, make filename-generation more reliable
+        '''
+        url_unquoted = unquote(url)
         download_dir = os.path.join(self.api.configdir, "data", "cache", "packageswhl")
         packages_dir = os.path.join(self.api.configdir, "data", "cache", "packages")
         
-        filename
+        filename: str | None = None
+        if (len(url_unquoted.split("/")) <= 1) or (len(url_unquoted.split("/")[-1]) < 3):
+            raise ValueError(f"Could not manage to get a filename.")
+        else:
+            filename = url_unquoted.split("/")[-1]
         file_path = os.path.join(download_dir, filename)
         self._download_file(url, file_path)
-    '''
+        self._extract_package(file_path, packages_dir, filename)
 
 '''
 #########################

@@ -4,8 +4,6 @@ import socket
 import sys
 import runpy
 
-import cipher.cipher_aio
-
 # Check if the cipher folder exists and add it to the sys.path
 if "cipher" in os.listdir() and os.path.isdir("cipher"):
     sys.path.append(os.getcwd())
@@ -33,12 +31,10 @@ import json
 import platform
 import signal
 import traceback
-#import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from ipaddress import IPv4Address, IPv4Network
 import colorama
 import progressbar # type: ignore
-#import pyinputplus
 import requests
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
@@ -47,6 +43,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.tree import Tree
 from rich.markdown import Markdown
+from cipher.exceptions import ExitCodes
 
 
 colorama.init()
@@ -92,14 +89,14 @@ if os.name == "posix":
                 sys.exit()
 '''
 
-from cipher.cipher_aio import CipherAPI, ArgumentParser
+from cipher.api import CipherAPI
+from cipher.parsers import ArgumentParser
 import cipher.network
 from cipher.elevate import elevate, is_root
 
 # variables
 version = 1
 api = CipherAPI()
-#cipher.cipher_aio.api_instance = api
 console = api.console
 debugmode = False
 
@@ -193,12 +190,12 @@ def networkmap_save():
         json.dump(networkmap, f, indent=4)
         f.close()
 
-@api.command(desc="Exits CipherOS")
-def exit(args:list[str]):
+@api.command(name="exit", desc="Exits CipherOS")
+def exit_command(args:list[str]):
     print("Closing CipherOS")
     sys.exit(0)
 
-@api.command(name="open")
+@api.command(name="open", desc="Opens a file")
 def openfile(argsraw:list[str]):
     parser = ArgumentParser(api, description="Opens a file")
     parser.add_argument(name="file", argtype=str,action="store",required=True,help_text="File to open")
@@ -221,9 +218,8 @@ def openfile(argsraw:list[str]):
             console.print("[blue]Starting Windows Executeable[/blue]")
         else:
             viewfile([file])
-    
 
-@api.command(alias=["pscn"])
+@api.command(aliases=["pscn"], desc="Scan the specified device for open ports (This is work in progress so it will not be reliable)")
 def portscan(argsraw:list[str]):
     parser = ArgumentParser(api, description="Scan the specified device for open ports (This is work in progress so it will not be reliable)")
     parser.add_argument("ip",argtype=str, action="store", required=True, help_text="IP Address to device to scan")
@@ -317,7 +313,7 @@ def portscan(argsraw:list[str]):
         table.add_row(str(port))
     console.print(table)
 
-@api.command(alias=["exe","cmd"], desc="Lists all commands")
+@api.command(aliases=["exe","cmd"], desc="Lists all commands")
 def executables(argsraw:list[str]):
     parser = ArgumentParser(api, description="Lists all commands")
 
@@ -333,7 +329,7 @@ def executables(argsraw:list[str]):
         tab.add_row(i)
     console.print(tab)
 
-@api.command(name="elevate", desc="Elevates permissions to admin permissions for CipherOS", alias=["sudo-su"])
+@api.command(name="elevate", desc="Elevates permissions to admin permissions for CipherOS", aliases=["sudo-su"])
 def elevateperm(argsraw:list[str]):
     parser = ArgumentParser(api, description="Elevates permissions to admin permissions for CipherOS")
 
@@ -352,7 +348,7 @@ def elevateperm(argsraw:list[str]):
     else:
         printerror("Error: Admin permissions already acquired")
 
-@api.command(alias=["scn", "netscan"], desc="Scan your network for devices")
+@api.command(aliases=["scn", "netscan"], desc="Scan your network for devices")
 def scannet(argsraw:list[str]):
     parser = ArgumentParser(api, description="Scan your network for devices")
 
@@ -534,7 +530,7 @@ def scannet(argsraw:list[str]):
         console.print(table)
     networkmap_save()
 
-@api.command(alias=["cd"], desc="Change to a directory")
+@api.command(aliases=["cd"], desc="Change to a directory")
 def chdir(argsraw:list[str]):
     parser = ArgumentParser(api, description="Change to a directory")
     parser.add_argument("path",argtype=str,required=True,help_text="Directory to move to")
@@ -584,11 +580,11 @@ def mkdir(argsraw:list[str]):
     else:
         printerror(f"Error: {folder} exists")
 
-@api.command(alias=["cls"], desc="Clears the screen")
+@api.command(aliases=["cls"], desc="Clears the screen")
 def clear(args:list[str]):
     print("\033c", end="")
 
-@api.command(alias=["pl"], desc="Manage plugins for the system.")
+@api.command(aliases=["pl"], desc="Manage plugins for the system.")
 def plugins(argsraw:list[str]):
     parser = ArgumentParser(api, description="Manage plugins for the system.")
 
@@ -734,7 +730,7 @@ def tree(argsraw:list[str]):
             branch.add(filename)
     console.print(tree)
 
-@api.command(alias=["list", "l"], desc="List the contents of a path")
+@api.command(aliases=["list", "l"], desc="List the contents of a path")
 def ls(argsraw:list[str]):
     parser = ArgumentParser(api,description="List the contents of a path")
     parser.add_argument("path",argtype=str,help_text="Folder or path to list",required=False)
@@ -800,7 +796,7 @@ def touch(argsraw:list[str]):
             "exists" + colorama.Fore.RESET + colorama.Style.NORMAL,
         )
         
-@api.command(name="python", alias=["py"], desc="Executes a python file")
+@api.command(name="python", aliases=["py"], desc="Executes a python file")
 def pythoncode(argsraw:list[str]):
     parser = ArgumentParser(api,description="Executes a python file")
     parser.add_argument("file", argtype=str, help_text="The file to display", required=True)
@@ -819,7 +815,7 @@ def pythoncode(argsraw:list[str]):
     
     runpy.run_path(file)
 
-@api.command(alias=["cat"], desc="Echos a file's contents to the console")
+@api.command(aliases=["cat"], desc="Echos a file's contents to the console")
 def viewfile(argsraw:list[str]):
     parser = ArgumentParser(api,description="Echos a file's contents to the console")
     parser.add_argument("file", argtype=str, help_text="The file to display", required=True)
@@ -858,7 +854,7 @@ def viewfile(argsraw:list[str]):
         else:
             print(f.read())
 
-@api.command(alias=["rm"], desc="Removes a file")
+@api.command(aliases=["rm"], desc="Removes a file")
 def remove(argsraw:list[str]):
     parser = ArgumentParser(api,description="Removes a file")
     parser.add_argument("file",argtype=str,help_text="File to delete",required=True)
@@ -890,7 +886,7 @@ def remove(argsraw:list[str]):
     except FileNotFoundError:
         printerror(f"Error: '{file}' does not exist.")
 
-@api.command(alias=["rmdir"])
+@api.command(aliases=["rmdir"], desc="Removes a directory")
 def rmdir(argsraw:list[str]):
     parser = ArgumentParser(api,description="Removes a directory")
     parser.add_argument("file", argtype=str,help_text="File to directory",required=True)
@@ -1021,11 +1017,11 @@ Project Codename: Paradox"""
                 if cmd in api.commands:
                     e = api.run(_argx)
 
-                    if e[0] == 232:
+                    if e[0] == ExitCodes.ARGUMENTSREQUIRED:
                         printerror(f'Error: "{cmd}" requires arguments:\n{e[1]}')
-                    elif e[0] == 231:
+                    elif e[0] == ExitCodes.ARGUMENTPARSERERROR:
                         printerror(f'Error: {e[1]}')
-                    elif not e[0] == 0:
+                    elif not e[0] == ExitCodes.SUCCESS:
                         printerror(f'Error: Command "{cmd}" encountered an error\n{e[1]}')
                     else:
                         pass
@@ -1035,5 +1031,5 @@ Project Codename: Paradox"""
                 pass
         except (EOFError, KeyboardInterrupt):
             print()
-            exit([])
+            exit_command([])
             break

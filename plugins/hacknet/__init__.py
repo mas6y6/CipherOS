@@ -12,14 +12,37 @@ class HacknetPlugin(CipherPlugin):
         self.register_commands()
         self.console = self.api.console
         self.traceactive = False
-        self.ipAddress = requests.get("https://ifconfig.me/").text
-        if os.name == "nt":
-            tracert = subprocess.run(["tracert","-h","2","8.8.8.8"],capture_output=True).stdout
-            self.ispAddress = tracert[int(tracert.rfind(b"["))+1:int(tracert.rfind(b"]"))].decode("UTF-8")
-        if os.name == "posix":
-            tracert = subprocess.run(["traceroute","-m","2","8.8.8.8"],capture_output=True).stdout.decode(encoding="UTF-8", errors="replace").splitlines()[-1]
-            self.ispAddress = tracert[int(tracert.rfind("("))+1:int(tracert.rfind(")"))]
-
+        self._ipAddress: str | None = None
+        self._ispAddress: str | None = None
+    
+    @property
+    def ipAddress(self) -> str:
+        if self._ipAddress == None:
+            self._ipAddress = requests.get("https://ifconfig.me/").text
+        return self._ipAddress
+    @ipAddress.setter
+    def ipAddress(self, value:str) -> None:
+        self._ipAddress = value
+    @ipAddress.deleter
+    def ipAddress(self) -> None:
+        del self._ipAddress
+    
+    @property
+    def ispAddress(self) -> str:
+        if self._ispAddress == None:
+            if os.name == "nt":
+                tracert = subprocess.run(["tracert","-h","2","8.8.8.8"],capture_output=True).stdout
+                self._ispAddress = tracert[int(tracert.rfind(b"["))+1:int(tracert.rfind(b"]"))].decode("UTF-8")
+            elif os.name == "posix":
+                tracert = subprocess.run(["traceroute","-m","2","8.8.8.8"],capture_output=True).stdout.decode(encoding="UTF-8", errors="replace").splitlines()[-1]
+                self._ispAddress = tracert[int(tracert.rfind("("))+1:int(tracert.rfind(")"))]
+        return self._ispAddress
+    @ispAddress.setter
+    def ispAddress(self, value:str) -> None:
+        self._ispAddress = value
+    @ispAddress.deleter
+    def ispAddress(self) -> None:
+        del self._ispAddress
     
     def register_commands(self):
         """Method to register all commands for this plugin"""

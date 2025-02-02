@@ -13,7 +13,7 @@ class hpt(CipherPlugin):
         print("hostprobe-terminal disabled.")
    
     def register_commands(self):
-        @self.command(name="hpt")
+        @self.command(name="hpt", desc="hostprobe terminal: the cross-platform nmap of python")
         def hpt(args:list[str]):
             if len(args) == 1:
                 netprobe(args[0], output=True, info=True)

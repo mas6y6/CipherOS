@@ -13,7 +13,7 @@ class neofetch(CipherPlugin):
         print("neofetch disabled.")
         
     def register_commands(self):
-        @self.command()
+        @self.command(desc="Fetches the system infomation and prints it to the console.")
         def neofetch(argsraw:list[str]):
             parser = ArgumentParser(self.api,"Fetches the system infomation and prints it to the console.")
             parser.parse_args(argsraw)

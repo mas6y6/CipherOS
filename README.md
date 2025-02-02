@@ -28,12 +28,21 @@ You can use the standalone .exe from [releases](https://github.com/mas6y6/Cipher
 > the standalone .exe will generate the `plugins` and `data` folder in the directory that the executable is run in, so it is recommended to drop the .exe in a dedicated folder before running.
 
 ### macOS / Linux
-You can install this project using the one-command installer:
+You can install this project using one of the three commands below.\
+Install using `curl`
 ```shell
-sudo "$(curl https://raw.githubusercontent.com/mas6y6/CipherOS/refs/heads/main/installer.sh)"
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/mas6y6/CipherOS/refs/heads/main/installer.sh)"
+```
+Install using `wget`
+```shell
+sh -c "$(wget -O- https://raw.githubusercontent.com/mas6y6/CipherOS/refs/heads/main/installer.sh)"
+```
+Install using `fetch`
+```shell
+sh -c "$(fetch -o - https://raw.githubusercontent.com/mas6y6/CipherOS/refs/heads/main/installer.sh)"
 ```
 
-But if your architecture isn't supported you can build your own CipherOS build can just use the [compile.sh](compile.sh) to compile the `main.py` file to `cipher`.
+But if your architecture isn't supported you can build your own CipherOS build can just use the [compile.sh](compile.sh) to compile the `main.py` file to `cipher` or [run CipherOS from source](#running-from-source).
 
 And download the cipher folder and put it in the same directory as `cipher`
 ```tree

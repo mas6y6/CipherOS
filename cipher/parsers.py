@@ -12,6 +12,9 @@ class Namespace:
     subcommand: str
     def __init__(self) -> None:
         pass
+    
+    def __setattr__(self, name: str, value: Any) -> None:
+        self.__dict__[name] = value
 
     def __repr__(self) -> str:
         return str(self.__dict__)

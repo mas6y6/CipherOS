@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+env:
+  VERSION: 1.5.3
+
 jobs:
   test-and-build:
     strategy:
@@ -154,6 +157,7 @@ jobs:
             done
           
           mv ./cipheros.exe build
+            mv ./"CipherOS Windows ${{ env.VERSION }} x64.exe" build
       
       - name: Create Release Package for All OS
         run: |

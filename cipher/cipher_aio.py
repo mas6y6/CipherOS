@@ -6,13 +6,12 @@ I know that split files are super cool for maintenance and stuff, but I put work
 '''
 
 import types
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 from yaml import safe_load #,YAMLObject
 from dataclasses import dataclass
 import os, socket, tarfile, traceback, importlib.util, requests, zipfile, progressbar, re, json
 from cipher.exceptions import (
     ExitCodes,
-    ExitCodeError,
     PluginInitializationError,
 )
 from wheel.wheelfile import WheelFile
@@ -306,7 +305,7 @@ api stuff
 '''
 @dataclass
 class Command:
-    func: Callable[[list[str]], None]
+    func: Callable[[list[str]], Any]
     desc: str | None
     helpflag: str
     alias: list[str]
@@ -363,8 +362,8 @@ class CipherAPI:
 
     def command(
             self, name:str|None=None, helpflag:str="--help", desc:str|None=None, extradata:dict[str, str]={}, aliases:list[str]=[]
-        ) -> Callable[[Callable[[list[str]], None]], Callable[[list[str]], None]]:
-        def decorator(func:Callable[[list[str]], None]) -> Callable[[list[str]], None]:
+        ) -> Callable[[Callable[[list[str]], Any]], Callable[[list[str]], Any]]:
+        def decorator(func:Callable[[list[str]], Any]) -> Callable[[list[str]], Any]:
             funcname = name if name is not None else func.__name__
             self.commands[funcname] = Command(
                 func=func,
@@ -385,7 +384,7 @@ class CipherAPI:
 
         return decorator
     
-    def add_command(self, func:Callable[[list[str]], None], name:str|None=None, desc:str|None=None, helpflag:str="--help", extradata:dict[str, str]={}, aliases:list[str]=[]) -> None:
+    def add_command(self, func:Callable[[list[str]], Any], name:str|None=None, desc:str|None=None, helpflag:str="--help", extradata:dict[str, str]={}, aliases:list[str]=[]) -> None:
         name = name if name != None else func.__name__
         self.commands[name] = Command(
                 func=func,
@@ -406,15 +405,13 @@ class CipherAPI:
     def rm_command(self, name:str):
         self.commands.pop(name)
 
-    def run(self, args:list[str]):
-        exc = None
+    def run(self, args:list[str]) -> tuple[Literal[0, 130, 231, 232, 400, 404], Any]:
+        ret_val = None
         try:
-            exc = self.commands[args[0]].func(args[1:])
+            ret_val = self.commands[args[0]].func(args[1:])
             self.command_history.append(" ".join(args))
         except KeyError:
             return ExitCodes.COMMANDNOTFOUND, traceback.format_exc()
-        except ExitCodeError:
-            return exc, traceback.format_exc()
         except ArgumentRequiredError as e:
             return ExitCodes.ARGUMENTSREQUIRED, e
         except ParserError as e:
@@ -424,7 +421,7 @@ class CipherAPI:
         except Exception:
             return ExitCodes.FATALERROR, traceback.format_exc()
         else:
-            return ExitCodes.SUCCESS, None
+            return ExitCodes.SUCCESS, ret_val
 
     def _version_hash(self,version: str) -> int:
         sanitized_version = re.sub(r'[^0-9.]', '', version)
@@ -725,7 +722,7 @@ plugin stuff
 #########################
 '''
 class CipherPlugin:
-    def __init__(self, api:CipherAPI, config:ConfigParser): #api:CipherAPI        
+    def __init__(self, api:CipherAPI, config:ConfigParser):     
         self.api = api
         
         self.config = config
@@ -746,7 +743,7 @@ class CipherPlugin:
         if extradata is None: extradata = {}
         if aliases   is None: aliases = []
 
-        def decorator(func:Callable[[list[str]], None]):
+        def decorator(func:Callable[[list[str]], Any]) -> Callable[[list[str]], Any]:
             funcname = name if name is not None else func.__name__
             
             self.api.commands[funcname] = Command(func=func, desc=desc, helpflag=helpflag, alias=aliases, extradata=extradata) #parrentcommand = True
@@ -765,7 +762,7 @@ class CipherPlugin:
 
     def add_command(
             self,
-            func:Callable[[list[str]], None],
+            func:Callable[[list[str]], Any],
             name:str|None=None,
             helpflag:str="--help",
             desc:str|None=None,

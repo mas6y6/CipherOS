@@ -4,8 +4,6 @@ import socket
 import sys
 import runpy
 
-import cipher.cipher_aio
-
 # Check if the cipher folder exists and add it to the sys.path
 if "cipher" in os.listdir() and os.path.isdir("cipher"):
     sys.path.append(os.getcwd())
@@ -45,6 +43,8 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.tree import Tree
 from rich.markdown import Markdown
+import cipher.cipher_aio
+from cipher.exceptions import ExitCodes
 
 
 colorama.init()
@@ -1018,11 +1018,11 @@ Project Codename: Paradox"""
                 if cmd in api.commands:
                     e = api.run(_argx)
 
-                    if e[0] == 232:
+                    if e[0] == ExitCodes.ARGUMENTSREQUIRED:
                         printerror(f'Error: "{cmd}" requires arguments:\n{e[1]}')
-                    elif e[0] == 231:
+                    elif e[0] == ExitCodes.ARGUMENTPARSERERROR:
                         printerror(f'Error: {e[1]}')
-                    elif not e[0] == 0:
+                    elif not e[0] == ExitCodes.SUCCESS:
                         printerror(f'Error: Command "{cmd}" encountered an error\n{e[1]}')
                     else:
                         pass

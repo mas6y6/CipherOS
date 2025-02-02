@@ -1,5 +1,4 @@
 from rich.console import Console
-from dataclasses import dataclass
 from typing import Callable, Any, Literal
 import os, socket, traceback, re, requests, progressbar, zipfile, tarfile
 from cipher.plugins import CipherPlugin
@@ -8,15 +7,8 @@ from cipher.parsers import ConfigParser
 import importlib.util
 from urllib.parse import unquote
 from wheel.wheelfile import WheelFile
+from cipher.custom_types import Command
 
-@dataclass
-class Command:
-    func: Callable[[list[str]], Any]
-    desc: str | None
-    helpflag: str
-    alias: list[str]
-    extradata: dict[str, str]
-    #parentcommand: bool | None
 
 class CipherAPI:
     def __init__(self):

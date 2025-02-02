@@ -191,7 +191,7 @@ def networkmap_save():
         f.close()
 
 @api.command(desc="Exits CipherOS")
-def exit(args:list[str]):
+def exit_command(args:list[str]):
     console.print("Closing CipherOS",style="bright_red")
     try:
         for i in api.plugins.copy():

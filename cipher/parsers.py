@@ -177,7 +177,6 @@ class ArgumentParser:
         """Parses the provided argument list."""
         parsed = Namespace()
 
-        print(args)
         if len(args) == 0 or args.count(" ") == len(args) or args[0] == '': return parsed
         
         if "--help" in args or "-h" in args:

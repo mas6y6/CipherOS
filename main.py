@@ -190,7 +190,7 @@ def networkmap_save():
         json.dump(networkmap, f, indent=4)
         f.close()
 
-@api.command(desc="Exits CipherOS")
+@api.command(desc="Exits CipherOS",name="exit")
 def exit_command(args:list[str]):
     console.print("Closing CipherOS",style="bright_red")
     try:

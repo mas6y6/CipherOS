@@ -1,4 +1,6 @@
-from cipher.cipher_aio import CipherPlugin, CipherAPI, ConfigParser
+from cipher.api import CipherAPI
+from cipher.parsers import ConfigParser
+from cipher.plugins import CipherPlugin
 
 # This structure of a plugin 
 

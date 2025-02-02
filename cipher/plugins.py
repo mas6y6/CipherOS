@@ -1,8 +1,10 @@
-from cipher.api import CipherAPI, ConfigParser, Command
-from typing import Callable, Any
+from typing import Callable, Any, TYPE_CHECKING
+from cipher.custom_types import Command
+if TYPE_CHECKING:
+    from cipher.api import CipherAPI, ConfigParser
 
 class CipherPlugin:
-    def __init__(self, api:CipherAPI, config:ConfigParser):     
+    def __init__(self, api:'CipherAPI', config:'ConfigParser'):     
         self.api = api
         
         self.config = config

@@ -1,7 +1,9 @@
 import random
 import shutil
 import string
-from cipher.cipher_aio import CipherPlugin, ConfigParser, CipherAPI, ArgumentParser
+from cipher.api import CipherAPI
+from cipher.parsers import ConfigParser, ArgumentParser
+from cipher.plugins import CipherPlugin
 from rich.panel import Panel
 import os, pygame, time, subprocess, requests
 from .cursor import hide, show

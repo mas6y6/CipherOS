@@ -1036,5 +1036,5 @@ Project Codename: Paradox"""
                 pass
         except (EOFError, KeyboardInterrupt):
             print()
-            exit_command([])
+            exit([])
             break

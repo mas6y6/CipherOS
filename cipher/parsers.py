@@ -1,10 +1,11 @@
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from yaml import safe_load
 import json
 from exceptions import ParserError, ArgumentRequiredError
 import types
 from dataclasses import dataclass
-from cipher.api import CipherAPI
+if TYPE_CHECKING:
+    from cipher.api import CipherAPI
 
 class Namespace:
     """Container for parsed arguments."""
@@ -122,7 +123,7 @@ class Flag:
     name: str
 
 class ArgumentParser:
-    def __init__(self, api:CipherAPI, description:str|None=None, include_help:bool=True):
+    def __init__(self, api:"CipherAPI", description:str|None=None, include_help:bool=True):
         self.description = description
         self._arguments: list[Flag] = []
         self._flags: dict[str, Flag] = {}

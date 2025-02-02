@@ -26,9 +26,11 @@ echo
 echo "Starting CipherOS installation..."
 
 OS=$(uname -s)
+INSTALL_DIR="$HOME/.local/bin/cipheros"
 EXECUTABLE="cipheros"
 RAW_ARCHITECTURE=$(uname -m)
 
+# get system architecture
 if [ "$RAW_ARCHITECTURE" = "x86_64" ]; then
     ARCHITECTURE="x64"
 elif [ "$RAW_ARCHITECTURE" = "aarch64" ]; then
@@ -41,13 +43,7 @@ else
     echo "Unsupported architecture: $ARCHITECTURE"
     exit 1
 fi
-
 echo "System architecture: $ARCHITECTURE"
-
-if [ "$(id -u)" -ne 0 ]; then
-    echo "${RED}Please run as root using sudo.$CLEAR"
-    exit 1
-fi
 
 if [ "$OS" = "Linux" ]; then
     if [ "$ARCHITECTURE" = "x64" ]; then
@@ -57,7 +53,6 @@ if [ "$OS" = "Linux" ]; then
     elif [ "$ARCHITECTURE" = "x32" ]; then
         GITHUB_REPO_URL="https://github.com/mas6y6/CipherOS/releases/latest/download/linux-x32-executeable"
     fi
-    INSTALL_DIR="/opt/cipheros"
 elif [ "$OS" = "Darwin" ]; then
     if [ "$ARCHITECTURE" = "x64" ]; then
         GITHUB_REPO_URL="https://github.com/mas6y6/CipherOS/releases/latest/download/macos-x64-executeable"
@@ -66,14 +61,19 @@ elif [ "$OS" = "Darwin" ]; then
     elif [ "$ARCHITECTURE" = "x32" ]; then
         GITHUB_REPO_URL="https://github.com/mas6y6/CipherOS/releases/latest/download/macos-x32-executeable"
     fi
-    INSTALL_DIR="/usr/local/cipheros"
 else
     echo "Unsupported operating system: $OS"
     exit 1
 fi
-echo "${BLUE}Downloading CipherOS executable...$CLEAR"
 mkdir -p "$INSTALL_DIR"
 
+if [ -e $INSTALL_DIR/$EXECUTABLE ] ; then
+    echo "Found existing \"cipheros\" binary. If you wish to reinstall it, please run the following line and rerun the install script again."
+    echo "rm -rf $INSTALL_DIR"
+    exit 1
+fi
+
+echo "${BLUE}Downloading CipherOS executable...$CLEAR"
 HTTP_STATUS=$(curl -L -s -o "$INSTALL_DIR/$EXECUTABLE" -w "%{http_code}" "$GITHUB_REPO_URL")
 
 if [ "$HTTP_STATUS" -ne 200 ]; then
@@ -89,7 +89,26 @@ fi
 
 chmod +x "$INSTALL_DIR/$EXECUTABLE"
 
+if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]] ; then
+    echo "Adding $INSTALL_DIR to \$PATH variable."
+    PATHPERSISTENCENOTE="# This line is used to add \"cipheros\" to \$PATH"
+    if [[ $SHELL == *bash ]] ; then
+        echo $PATHPERSISTENCENOTE >> $HOME/.bashrc
+        echo "PATH=$INSTALL_DIR:\$PATH" >> $HOME/.bashrc
+    elif [[ $SHELL == *zsh ]] ; then
+        echo $PATHPERSISTENCENOTE >> $HOME/.zshrc
+        echo "PATH=$INSTALL_DIR:\$PATH" >> $HOME/.zshrc
+    else
+        echo $RED"Your shell is not supported yet."
+        echo "Please add the following line to the file for your shell, that equals the \".bashrc\" file for bash."
+        echo $YELLOW"PATH=$INSTALL_DIR:\$PATH"$CLEAR
+    fi
+fi
+
+PATH=$INSTALL_DIR:$PATH
+export PATH
+
 echo "${BLUE}Creating symbolic link...$CLEAR"
-ln -sf "$INSTALL_DIR/$EXECUTABLE" /usr/local/bin/$EXECUTABLE
+#ln -sf "$INSTALL_DIR/$EXECUTABLE" /usr/local/bin/$EXECUTABLE
 
 echo "${GREEN}CipherOS installation complete! You can run CipherOS by typing 'cipheros' in the terminal.$CLEAR"

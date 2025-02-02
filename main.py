@@ -195,7 +195,13 @@ def networkmap_save():
 
 @api.command(desc="Exits CipherOS")
 def exit(args:list[str]):
-    print("Closing CipherOS")
+    console.print("Closing CipherOS",style="bright_red")
+    try:
+        for i in api.plugins.copy():
+            api.disable_plugin(i)
+    except (EOFError, KeyboardInterrupt):
+        console.print("Force Closing CipherOS",style="bold bright_red")
+        sys.exit(0)
     sys.exit(0)
 
 @api.command(name="open")
@@ -504,7 +510,6 @@ def scannet(argsraw:list[str]):
         s += 1
         bar.finish() # type: ignore
 
-        print()
         console.print("Scan Complete", style="bold bright_green")
         networkmap[onlineip] = {"devices": {}}
         sorted_devices = sorted(

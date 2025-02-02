@@ -362,7 +362,7 @@ class CipherAPI:
         self.commandlineinfo = f"{self.currentenvironment}{f" {self.addressconnected}" if self.addressconnected != "" else ""} {self.pwd}"
 
     def command(
-            self, name:str|None=None, helpflag:str="--help", desc:str|None=None, extradata:dict[str, str]={}, alias:list[str]=[]
+            self, name:str|None=None, helpflag:str="--help", desc:str|None=None, extradata:dict[str, str]={}, aliases:list[str]=[]
         ) -> Callable[[Callable[[list[str]], None]], Callable[[list[str]], None]]:
         def decorator(func:Callable[[list[str]], None]) -> Callable[[list[str]], None]:
             funcname = name if name is not None else func.__name__
@@ -370,36 +370,36 @@ class CipherAPI:
                 func=func,
                 desc=desc,
                 helpflag=helpflag,
-                alias=alias.copy(),
+                alias=aliases.copy(),
                 extradata=extradata
             )
-            for i in alias:
+            for i in aliases:
                 self.commands[i] = self.commands[funcname] = Command(
                     func=func,
                     desc=desc,
                     helpflag=helpflag,
-                    alias=alias.copy(),
+                    alias=aliases.copy(),
                     extradata=extradata
                 )
             return func
 
         return decorator
     
-    def add_command(self, func:Callable[[list[str]], None], name:str|None=None, desc:str|None=None, helpflag:str="--help", extradata:dict[str, str]={}, alias:list[str]=[]) -> None:
+    def add_command(self, func:Callable[[list[str]], None], name:str|None=None, desc:str|None=None, helpflag:str="--help", extradata:dict[str, str]={}, aliases:list[str]=[]) -> None:
         name = name if name != None else func.__name__
         self.commands[name] = Command(
                 func=func,
                 desc=desc,
                 helpflag=helpflag,
-                alias=alias.copy(),
+                alias=aliases.copy(),
                 extradata=extradata
             )
-        for i in alias:
+        for i in aliases:
             self.commands[i] = Command(
                     func=func,
                     desc=desc,
                     helpflag=helpflag,
-                    alias=alias.copy(),
+                    alias=aliases.copy(),
                     extradata=extradata
                 )
 
@@ -738,30 +738,49 @@ class CipherPlugin:
         self.api.plugincommands[config.name] = []
 
     #@classmethod
-    def command(self, name:str|None=None, helpflag:str="--help", desc:str|None=None, extradata:dict[str, str]|None=None, alias:list[str]|None=None):
+    def command(self, name:str|None=None, helpflag:str="--help", desc:str|None=None, extradata:dict[str, str]|None=None, aliases:list[str]|None=None):
         """
         A method to add commands through the plugin class using the API.
         This method is now a class method, so it can be used with `CipherPlugin.command()`.
         """
-        if extradata is None:
-            extradata = {}
-        if alias is None:
-            alias = []
+        if extradata is None: extradata = {}
+        if aliases   is None: aliases = []
 
         def decorator(func:Callable[[list[str]], None]):
             funcname = name if name is not None else func.__name__
             
-            self.api.commands[funcname] = Command(func=func, desc=desc, helpflag=helpflag, alias=alias, extradata=extradata) #parrentcommand = True
+            self.api.commands[funcname] = Command(func=func, desc=desc, helpflag=helpflag, alias=aliases, extradata=extradata) #parrentcommand = True
 
             if self.name not in self.api.plugincommands:
                 self.api.plugincommands[self.name] = []
             
             self.api.plugincommands[self.name].append(funcname)
 
-            for i in alias:
-                self.api.commands[i] = Command(func=func, desc=desc, helpflag=helpflag, alias=alias, extradata=extradata) #parrentcommand = False
+            for i in aliases:
+                self.api.commands[i] = Command(func=func, desc=desc, helpflag=helpflag, alias=aliases, extradata=extradata) #parrentcommand = False
                 self.api.plugincommands[self.name].append(i)
 
             return func
         return decorator
 
+    def add_command(
+            self,
+            func:Callable[[list[str]], None],
+            name:str|None=None,
+            helpflag:str="--help",
+            desc:str|None=None,
+            extradata:dict[str, str]|None=None,
+            aliases:list[str]|None=None
+        ) -> None:
+
+        funcname = name if name is not None else func.__name__
+        if extradata is None: extradata = {}
+        if aliases   is None: aliases = []
+
+        self.api.commands[funcname] = Command(func=func, desc=desc, helpflag=helpflag, alias=aliases, extradata=extradata)
+        if self.name not in self.api.plugincommands: self.api.plugincommands[self.name] = []
+        self.api.plugincommands[self.name].append(funcname)
+
+        for i in aliases:
+            self.api.commands[i] = Command(func=func, desc=desc, helpflag=helpflag, alias=aliases, extradata=extradata) #parrentcommand = False
+            self.api.plugincommands[self.name].append(i)

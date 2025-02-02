@@ -220,7 +220,7 @@ def openfile(argsraw:list[str]):
         else:
             viewfile([file])
 
-@api.command(alias=["pscn"], desc="Scan the specified device for open ports (This is work in progress so it will not be reliable)")
+@api.command(aliases=["pscn"], desc="Scan the specified device for open ports (This is work in progress so it will not be reliable)")
 def portscan(argsraw:list[str]):
     parser = ArgumentParser(api, description="Scan the specified device for open ports (This is work in progress so it will not be reliable)")
     parser.add_argument("ip",argtype=str, action="store", required=True, help_text="IP Address to device to scan")
@@ -314,7 +314,7 @@ def portscan(argsraw:list[str]):
         table.add_row(str(port))
     console.print(table)
 
-@api.command(alias=["exe","cmd"], desc="Lists all commands")
+@api.command(aliases=["exe","cmd"], desc="Lists all commands")
 def executables(argsraw:list[str]):
     parser = ArgumentParser(api, description="Lists all commands")
 
@@ -330,7 +330,7 @@ def executables(argsraw:list[str]):
         tab.add_row(i)
     console.print(tab)
 
-@api.command(name="elevate", desc="Elevates permissions to admin permissions for CipherOS", alias=["sudo-su"])
+@api.command(name="elevate", desc="Elevates permissions to admin permissions for CipherOS", aliases=["sudo-su"])
 def elevateperm(argsraw:list[str]):
     parser = ArgumentParser(api, description="Elevates permissions to admin permissions for CipherOS")
 
@@ -349,7 +349,7 @@ def elevateperm(argsraw:list[str]):
     else:
         printerror("Error: Admin permissions already acquired")
 
-@api.command(alias=["scn", "netscan"], desc="Scan your network for devices")
+@api.command(aliases=["scn", "netscan"], desc="Scan your network for devices")
 def scannet(argsraw:list[str]):
     parser = ArgumentParser(api, description="Scan your network for devices")
 
@@ -531,7 +531,7 @@ def scannet(argsraw:list[str]):
         console.print(table)
     networkmap_save()
 
-@api.command(alias=["cd"], desc="Change to a directory")
+@api.command(aliases=["cd"], desc="Change to a directory")
 def chdir(argsraw:list[str]):
     parser = ArgumentParser(api, description="Change to a directory")
     parser.add_argument("path",argtype=str,required=True,help_text="Directory to move to")
@@ -581,11 +581,11 @@ def mkdir(argsraw:list[str]):
     else:
         printerror(f"Error: {folder} exists")
 
-@api.command(alias=["cls"], desc="Clears the screen")
+@api.command(aliases=["cls"], desc="Clears the screen")
 def clear(args:list[str]):
     print("\033c", end="")
 
-@api.command(alias=["pl"], desc="Manage plugins for the system.")
+@api.command(aliases=["pl"], desc="Manage plugins for the system.")
 def plugins(argsraw:list[str]):
     parser = ArgumentParser(api, description="Manage plugins for the system.")
 
@@ -731,7 +731,7 @@ def tree(argsraw:list[str]):
             branch.add(filename)
     console.print(tree)
 
-@api.command(alias=["list", "l"], desc="List the contents of a path")
+@api.command(aliases=["list", "l"], desc="List the contents of a path")
 def ls(argsraw:list[str]):
     parser = ArgumentParser(api,description="List the contents of a path")
     parser.add_argument("path",argtype=str,help_text="Folder or path to list",required=False)
@@ -797,7 +797,7 @@ def touch(argsraw:list[str]):
             "exists" + colorama.Fore.RESET + colorama.Style.NORMAL,
         )
         
-@api.command(name="python", alias=["py"], desc="Executes a python file")
+@api.command(name="python", aliases=["py"], desc="Executes a python file")
 def pythoncode(argsraw:list[str]):
     parser = ArgumentParser(api,description="Executes a python file")
     parser.add_argument("file", argtype=str, help_text="The file to display", required=True)
@@ -816,7 +816,7 @@ def pythoncode(argsraw:list[str]):
     
     runpy.run_path(file)
 
-@api.command(alias=["cat"], desc="Echos a file's contents to the console")
+@api.command(aliases=["cat"], desc="Echos a file's contents to the console")
 def viewfile(argsraw:list[str]):
     parser = ArgumentParser(api,description="Echos a file's contents to the console")
     parser.add_argument("file", argtype=str, help_text="The file to display", required=True)
@@ -855,7 +855,7 @@ def viewfile(argsraw:list[str]):
         else:
             print(f.read())
 
-@api.command(alias=["rm"], desc="Removes a file")
+@api.command(aliases=["rm"], desc="Removes a file")
 def remove(argsraw:list[str]):
     parser = ArgumentParser(api,description="Removes a file")
     parser.add_argument("file",argtype=str,help_text="File to delete",required=True)
@@ -887,7 +887,7 @@ def remove(argsraw:list[str]):
     except FileNotFoundError:
         printerror(f"Error: '{file}' does not exist.")
 
-@api.command(alias=["rmdir"], desc="Removes a directory")
+@api.command(aliases=["rmdir"], desc="Removes a directory")
 def rmdir(argsraw:list[str]):
     parser = ArgumentParser(api,description="Removes a directory")
     parser.add_argument("file", argtype=str,help_text="File to directory",required=True)

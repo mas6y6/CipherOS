@@ -191,8 +191,8 @@ def networkmap_save():
         json.dump(networkmap, f, indent=4)
         f.close()
 
-@api.command(desc="Exits CipherOS")
-def exit(args:list[str]):
+@api.command(name="exit", desc="Exits CipherOS")
+def exit_command(args:list[str]):
     print("Closing CipherOS")
     sys.exit(0)
 
@@ -1032,5 +1032,5 @@ Project Codename: Paradox"""
                 pass
         except (EOFError, KeyboardInterrupt):
             print()
-            exit([])
+            exit_command([])
             break

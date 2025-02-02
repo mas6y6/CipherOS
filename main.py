@@ -43,7 +43,6 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.tree import Tree
 from rich.markdown import Markdown
-import cipher.cipher_aio
 from cipher.exceptions import ExitCodes
 
 
@@ -90,14 +89,14 @@ if os.name == "posix":
                 sys.exit()
 '''
 
-from cipher.cipher_aio import CipherAPI, ArgumentParser
+from cipher.api import CipherAPI
+from cipher.parsers import ArgumentParser
 import cipher.network
 from cipher.elevate import elevate, is_root
 
 # variables
 version = 1
 api = CipherAPI()
-#cipher.cipher_aio.api_instance = api
 console = api.console
 debugmode = False
 

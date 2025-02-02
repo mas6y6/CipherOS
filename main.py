@@ -981,10 +981,7 @@ if __name__ == "__main__":
         console.print("No plugins found")
 
     console.print(
-        "[bold bright_magenta]Made by @mas6y6, @malachi196, and @overo3 (on github)[/bold bright_magenta]"
-    )
-    console.print(
-        "[bold bright_magenta]Fixed & modded by tex[/bold bright_magenta]"
+        "[bold bright_magenta]Made by @mas6y6, @malachi196, @TEX479 and @overo3 (on github)[/bold bright_magenta]"
     )
 
     print(
@@ -1036,5 +1033,5 @@ Project Codename: Paradox"""
                 pass
         except (EOFError, KeyboardInterrupt):
             print()
-            exit([])
+            exit_command([])
             break

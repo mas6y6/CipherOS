@@ -427,6 +427,14 @@ class CipherAPI:
         sanitized_version = re.sub(r'[^0-9.]', '', version)
         version_digits = ''.join(c for c in sanitized_version if c.isdigit())
         return int(version_digits * 1000)
+    
+    def dependency_is_present(self, dependency_name:str) -> bool:
+        dir_contents = os.listdir(os.path.join(self.configdir, "data", "cache", "packages"))
+        for existing_package in dir_contents:
+            #if existing_package.lower().startswith(dependency_name.lower()):
+            if re.split("(-|=|.|\\s)", existing_package)[0].lower() == re.split("(-|=|.|\\s)", dependency_name)[0].lower():
+                return True
+        return False
 
     def load_plugin(self, filepath:str):
         yml_path = os.path.join(filepath, "plugin.yml")
@@ -463,13 +471,13 @@ class CipherAPI:
         
         pm = PackageManager(self)
         if plugin_dependencies != None:
-            for i in plugin_dependencies:
-                if not os.path.exists(os.path.join(self.configdir, "data", "cache", "packages", i)):
-                    if i.startswith("https://") or i.startswith("http://"):
+            for dependency_name in plugin_dependencies:
+                if not self.dependency_is_present(dependency_name):
+                    if dependency_name.startswith("https://") or dependency_name.startswith("http://"):
                         #raise NotImplementedError(f"Feature not yet implemented. Please contact the editors of this program for more detail")
-                        pm.download_from_url(i)
+                        pm.download_from_url(dependency_name)
                     else:
-                        pm.download_package(i)
+                        pm.download_package(dependency_name)
 
         if not plugin_name:
             raise PluginInitializationError(f"'name' is missing in {yml_path}")

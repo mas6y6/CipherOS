@@ -14,3 +14,6 @@ displayname: "Fuzzy-Commands" # This is just the displayname of your plugin
 description: "A collection of commands that use the program `fzf` (fuzzy-finder)." # Description of your plugin
 
 class: FCommands #This must match the class in the __init__.py class
+
+dependencies:
+- PyInputPlus

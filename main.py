@@ -196,7 +196,7 @@ def exit(args:list[str]):
     print("Closing CipherOS")
     sys.exit(0)
 
-@api.command(name="open")
+@api.command(name="open", desc="Opens a file")
 def openfile(argsraw:list[str]):
     parser = ArgumentParser(api, description="Opens a file")
     parser.add_argument(name="file", argtype=str,action="store",required=True,help_text="File to open")
@@ -219,9 +219,8 @@ def openfile(argsraw:list[str]):
             console.print("[blue]Starting Windows Executeable[/blue]")
         else:
             viewfile([file])
-    
 
-@api.command(alias=["pscn"])
+@api.command(alias=["pscn"], desc="Scan the specified device for open ports (This is work in progress so it will not be reliable)")
 def portscan(argsraw:list[str]):
     parser = ArgumentParser(api, description="Scan the specified device for open ports (This is work in progress so it will not be reliable)")
     parser.add_argument("ip",argtype=str, action="store", required=True, help_text="IP Address to device to scan")
@@ -888,7 +887,7 @@ def remove(argsraw:list[str]):
     except FileNotFoundError:
         printerror(f"Error: '{file}' does not exist.")
 
-@api.command(alias=["rmdir"])
+@api.command(alias=["rmdir"], desc="Removes a directory")
 def rmdir(argsraw:list[str]):
     parser = ArgumentParser(api,description="Removes a directory")
     parser.add_argument("file", argtype=str,help_text="File to directory",required=True)

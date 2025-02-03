@@ -156,9 +156,8 @@ jobs:
           done
             done
 
-          zip ./cipheros.exe windows-latest-x64-build.zip
-
-          mv windows-latest-x64-build.zip build
+              zip -j windows-latest-x64-build.zip "./cipheros.exe"
+              mv windows-latest-x64-build.zip build/
 
           mv ./"CipherOS Windows ${{ env.VERSION }} x64.exe" build
       

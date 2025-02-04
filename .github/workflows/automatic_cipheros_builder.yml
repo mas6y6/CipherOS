@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  VERSION: 1.5.3
+  VERSION: 1.6
 
 jobs:
   test-and-build:
@@ -155,9 +155,11 @@ jobs:
             mv ./${artifact} build
           done
             done
-          
-          mv ./cipheros.exe build
-            mv ./"CipherOS Windows ${{ env.VERSION }} x64.exe" build
+
+              zip -j windows-latest-x64-build.zip "./cipheros.exe"
+              mv windows-latest-x64-build.zip build/
+
+          mv ./"CipherOS Windows ${{ env.VERSION }} x64.exe" build
       
       - name: Create Release Package for All OS
         run: |

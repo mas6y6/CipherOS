@@ -1,4 +1,6 @@
-from cipher.cipher_aio import CipherPlugin, CipherAPI, ConfigParser
+from cipher.api import CipherAPI
+from cipher.parsers import ConfigParser
+from cipher.plugins import CipherPlugin
 from hostprobe import netprobe # type: ignore
 
 class hpt(CipherPlugin):
@@ -13,7 +15,7 @@ class hpt(CipherPlugin):
         print("hostprobe-terminal disabled.")
    
     def register_commands(self):
-        @self.command(name="hpt")
+        @self.command(name="hpt", desc="hostprobe terminal: the cross-platform nmap of python")
         def hpt(args:list[str]):
             if len(args) == 1:
                 netprobe(args[0], output=True, info=True)

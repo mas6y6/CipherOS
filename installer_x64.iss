@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "CipherOS"
-#define MyAppVersion "1.5.3"
+#define MyAppVersion "1.6"
 #define MyAppPublisher "Cipher HackSquad"
 #define MyAppURL "https://www.mas6y6.com/cipheros"
 #define MyAppExeName "cipheros.exe"
@@ -35,7 +35,7 @@ DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 PrivilegesRequired=lowest
 OutputDir=./distworkflow
-OutputBaseFilename=CipherOS Windows 1.5.3 x64
+OutputBaseFilename=CipherOS Windows 1.6 x64
 SetupIconFile=./icon.ico
 Compression=lzma
 SolidCompression=yes

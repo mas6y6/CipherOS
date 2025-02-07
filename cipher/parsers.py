@@ -219,7 +219,7 @@ class ArgumentParser:
         while index < len(args):
             arg = args[index]
             if arg.strip() == "":
-                raise ArgumentRequiredError(f"Argument requires a value. Use --help for usage information.")
+                index += 1
             if arg in self._flags:
                 flag = self._flags[arg]
                 canonical_name = flag.name

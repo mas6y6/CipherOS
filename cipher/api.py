@@ -103,19 +103,27 @@ class CipherAPI:
     def rm_command(self, name:str):
         self.commands.pop(name)
 
-    def run(self, args:list[str]) -> tuple[Literal[0, 130, 231, 232, 400, 404], Any]:
+    def run(self, args: list[str]) -> tuple[Literal[0, 130, 231, 232, 400, 404], Any]:
         ret_val = None
         try:
             ret_val = self.commands[args[0]].func(args[1:])
             self.command_history.append(" ".join(args))
         except KeyError:
+            if self.debug:
+                traceback.print_exc()
             return ExitCodes.COMMANDNOTFOUND, traceback.format_exc()
         except ArgumentRequiredError as e:
+            if self.debug:
+                traceback.print_exc()
             return ExitCodes.ARGUMENTSREQUIRED, e
         except ParserError as e:
+            if self.debug:
+                traceback.print_exc()
             return ExitCodes.ARGUMENTPARSERERROR, e
         except IndexError as e:
-            return ExitCodes.OTHERERROR, f"This command requires arguments: {e}"
+            if self.debug:
+                traceback.print_exc()
+            return ExitCodes.OTHERERROR, f"Argument Indexing Failed: {e}"
         except Exception:
             return ExitCodes.FATALERROR, traceback.format_exc()
         else:

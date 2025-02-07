@@ -1,7 +1,7 @@
 from typing import Any, TYPE_CHECKING
 from yaml import safe_load
 import json
-from exceptions import ParserError, ArgumentRequiredError
+from cipher.exceptions import ParserError, ArgumentRequiredError
 import types
 from dataclasses import dataclass
 if TYPE_CHECKING:
@@ -173,17 +173,22 @@ class ArgumentParser:
                     raise ValueError(f"Duplicate argument name: {name}")
                 self._arguments.append(Flag(type=argtype, default=default, required=required, help_text=help_text, action=None, name=name))
 
-    def parse_args(self, args:list[str]) -> Namespace:
+    def parse_args(self, args: list[str]) -> Namespace:
         """Parses the provided argument list."""
         parsed = Namespace()
-
-        if len(args) == 0 or args.count(" ") == len(args) or args[0] == '': return parsed
         
         if "--help" in args or "-h" in args:
             self.print_help()
             self.help_flag = True
             return parsed
 
+        if len(args) == 0:
+            if self._subcommands:
+                raise ParserError("A subcommand is required. Use --help for usage information.")
+            if self._arguments:
+                raise ArgumentRequiredError(f"Missing required arguments: {', '.join(arg.name for arg in self._arguments)}")
+            return parsed
+        
         if args[0] in self._subcommands:
             subcommand = args[0]
             subcommand_args = args[1:]
@@ -199,22 +204,21 @@ class ArgumentParser:
 
         index = 0
         used_flags: set[str] = set()
-        missing_args: list[Flag] = []
         for arg in self._arguments:
             if index < len(args):
+                if args[index].strip() == "":
+                    raise ArgumentRequiredError(f"Missing required argument: {arg.name}")
                 setattr(parsed, arg.name, arg.type(args[index]))
                 index += 1
             elif arg.required:
-                missing_args.append(arg)
+                raise ArgumentRequiredError(f"Missing required argument: {arg.name}")
             else:
                 setattr(parsed, arg.name, arg.default)
-        if len(missing_args) > 0:
-            error_message: str = "Missing required argument" + ("s" if len(missing_args) > 1 else "") + ": "
-            error_message += " ".join(missing_args[i].name for i in range(len(missing_args)))
-            raise ArgumentRequiredError(error_message)
-
+        
         while index < len(args):
             arg = args[index]
+            if arg.strip() == "":
+                raise ArgumentRequiredError(f"Argument requires a value. Use --help for usage information.")
             if arg in self._flags:
                 flag = self._flags[arg]
                 canonical_name = flag.name
@@ -225,9 +229,11 @@ class ArgumentParser:
                 else:
                     if index + 1 < len(args):
                         index += 1
+                        if args[index].strip() == "":
+                            raise ArgumentRequiredError(f"Flag {arg} requires a value. Use --help for usage information.")
                         setattr(parsed, canonical_name, flag.type(args[index]))
                     else:
-                        raise ArgumentRequiredError(f"Flag {arg} requires a value")
+                        raise ArgumentRequiredError(f"Flag {arg} requires a value. Use --help for usage information.")
             else:
                 raise ParserError(f"Unrecognized argument: {arg}")
             index += 1

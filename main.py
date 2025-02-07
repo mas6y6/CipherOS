@@ -647,6 +647,24 @@ def plugins(argsraw:list[str]):
     else:
         print("Unknown subcommand.")
 
+@api.command(name="python", aliases=["py"], desc="Executes a python file")
+def pythoncode(argsraw:list[str]):
+    parser = ArgumentParser(api,description="Executes a python file")
+    parser.add_argument("file", argtype=str, help_text="The file to display", required=True)
+    
+    args = parser.parse_args(argsraw)
+
+    #If the --help (-h) is passes it kills the rest of the script
+    if parser.help_flag:
+        return None
+
+    if not hasattr(args, "file"):
+        raise AttributeError(f"Argument 'file' missing.")
+    file: str = args.file # type: ignore
+    if not isinstance(file, str):
+        raise TypeError(f"Type of 'file' ({type(file)}) does not match expected type (str)") # type: ignore
+    
+    runpy.run_path(file)
 
 ### Filesystem commands
 
@@ -753,25 +771,6 @@ def touch(argsraw:list[str]):
             file,
             "exists" + colorama.Fore.RESET + colorama.Style.NORMAL,
         )
-        
-@api.command(name="python", aliases=["py"], desc="Executes a python file")
-def pythoncode(argsraw:list[str]):
-    parser = ArgumentParser(api,description="Executes a python file")
-    parser.add_argument("file", argtype=str, help_text="The file to display", required=True)
-    
-    args = parser.parse_args(argsraw)
-
-    #If the --help (-h) is passes it kills the rest of the script
-    if parser.help_flag:
-        return None
-
-    if not hasattr(args, "file"):
-        raise AttributeError(f"Argument 'file' missing.")
-    file: str = args.file # type: ignore
-    if not isinstance(file, str):
-        raise TypeError(f"Type of 'file' ({type(file)}) does not match expected type (str)") # type: ignore
-    
-    runpy.run_path(file)
 
 @api.command(aliases=["cat"], desc="Echos a file's contents to the console")
 def viewfile(argsraw:list[str]):
@@ -868,7 +867,7 @@ def rmdir(argsraw:list[str]):
     except FileNotFoundError:
         printerror(f"Error: '{file}' does not exist.")
 
-@api.command(alias=["cd"], desc="Change to a directory")
+@api.command(aliases=["cd"], desc="Change to a directory")
 def chdir(argsraw:list[str]):
     parser = ArgumentParser(api, description="Change to a directory")
     parser.add_argument("path",argtype=str,required=True,help_text="Directory to move to")
@@ -919,16 +918,22 @@ def mkdir(argsraw:list[str]):
         printerror(f"Error: {folder} exists")
 
 @api.command()
-def touch(argsraw:list[str]):
-    parser = ArgumentParser(api, description="Appends a new file")
+def chmod(argsraw:list[str]):
+    parser = ArgumentParser(api, description="Changes permissions to a file")
     parser.add_argument("path",argtype=str,required=True,help_text="Path to file")
+    parser.add_argument("perm",argtype=str,required=True,help_text="Permissions")
     
     if parser.help_flag:
         return None
 
     args = parser.parse_args(argsraw)
     
-    
+    try:
+        os.chmod(args.path, args.perm)
+    except PermissionError:
+        printerror(f"Error: Permission to change '{args.path}' permissions denied")
+    except FileNotFoundError:
+        printerror(f"Error: '{args.path}' does not exist.")
 
 if __name__ == "__main__":
     debugmode = executeargs.debug

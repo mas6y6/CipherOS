@@ -185,8 +185,9 @@ class ArgumentParser:
         if len(args) == 0:
             if self._subcommands:
                 raise ParserError("A subcommand is required. Use --help for usage information.")
-            if self._arguments:
-                raise ArgumentRequiredError(f"Missing required arguments: {', '.join(arg.name for arg in self._arguments)}")
+            missing_required_args = [arg.name for arg in self._arguments if arg.required]
+            if missing_required_args:
+                raise ArgumentRequiredError(f"Missing required arguments: {', '.join(missing_required_args)}")
             return parsed
         
         if args[0] in self._subcommands:

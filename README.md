@@ -61,7 +61,7 @@ And download the cipher folder and put it in the same directory as `cipher`
 
 ## Running from source
 ### getting the code
-Download the project either [here](https://github.com/TEX479/CipherOS/archive/refs/heads/main.zip) or using
+Download the project either [here](https://github.com/mas6y6/CipherOS/archive/refs/heads/main.zip) or using
 ```shell
 git clone https://github.com/TEX479/CipherOS.git
 ```

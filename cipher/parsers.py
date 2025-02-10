@@ -218,8 +218,11 @@ class ArgumentParser:
         
         while index < len(args):
             arg = args[index]
+            
             if arg.strip() == "":
                 index += 1
+                continue
+                
             if arg in self._flags:
                 flag = self._flags[arg]
                 canonical_name = flag.name

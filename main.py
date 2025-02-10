@@ -1,6 +1,7 @@
 import argparse
 import os
 import socket
+import subprocess
 import sys
 import runpy
 
@@ -318,6 +319,47 @@ def portscan(argsraw:list[str]):
     for port in open_ports:
         table.add_row(str(port))
     console.print(table)
+
+@api.command(desc="Pings a server/device")
+def ping(argsraw: list[str]):
+    arg_parser = ArgumentParser(api, description="Pings a server/device")
+    arg_parser.add_argument(
+        "ip", argtype=str, action="store", required=True, help_text="IP Address to ping"
+    )
+    arg_parser.add_argument(
+        "--pings",
+        argtype=int,
+        action="store",
+        required=False,
+        help_text="Amount of pings to send",
+        default=1,
+    )
+
+    args = arg_parser.parse_args(argsraw)
+
+    # If the --help (-h) is passed it kills the rest of the script
+    if arg_parser.help_flag:
+        return None
+
+    ip: str = args.ip  # type: ignore
+    pings: int = args.pings  # type: ignore
+    timeout = 1  # Define a default timeout value
+
+    if platform.system().lower().startswith("win"):
+        command = f"ping /n {pings} /w {int(timeout * 1000)} {ip}"
+    else:
+        command = f"ping -c {pings} -W {timeout} {ip}"
+
+    try:
+        _output = subprocess.check_output(command, shell=True).decode(
+            encoding="utf-8", errors="replace"
+        )
+    except subprocess.CalledProcessError:
+        return False
+
+    pan1 = Panel("Ping Result:", expand=True,style="bold bright_green")
+    console.print(pan1)
+    console.print(_output)
 
 @api.command(aliases=["exe","cmd"], desc="Lists all commands")
 def executables(argsraw:list[str]):

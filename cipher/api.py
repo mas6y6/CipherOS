@@ -9,7 +9,6 @@ from urllib.parse import unquote
 from wheel.wheelfile import WheelFile
 from cipher.custom_types import Command
 
-
 class CipherAPI:
     def __init__(self):
         self.commands: dict[str, Command] = {}

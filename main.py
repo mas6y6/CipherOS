@@ -5,6 +5,8 @@ import subprocess
 import sys
 import runpy
 
+import cipher.api
+
 # Check if the cipher folder exists and add it to the sys.path
 if "cipher" in os.listdir() and os.path.isdir("cipher"):
     sys.path.append(os.getcwd())
@@ -98,6 +100,7 @@ from cipher.elevate import elevate, is_root
 # variables
 version = 1
 api = CipherAPI()
+
 console = api.console
 debugmode = False
 
@@ -319,6 +322,15 @@ def portscan(argsraw:list[str]):
     for port in open_ports:
         table.add_row(str(port))
     console.print(table)
+
+@api.command(name="shell",desc="Shell")
+def useshell(argsraw):
+    arg_parser = ArgumentParser(api, description="Pings a server/device")
+    arg_parser.add_argument(
+        "command", argtype=str, action="store", required=True, help_text="IP Address to ping"
+    )
+    
+    subprocess.Popen(argsraw[0:], shell=True)
 
 @api.command(desc="Pings a server/device")
 def ping(argsraw: list[str]):

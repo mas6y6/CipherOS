@@ -126,22 +126,27 @@ class Flag:
     name: str
 
 class ArgumentParser:
-    def __init__(self, api:"CipherAPI", description:str|None=None, include_help:bool=True):
+    def __init__(self,api: "CipherAPI", description:str|None=None, include_help:bool=True):
         self.description = description
         self._arguments: list[Flag] = []
         self._flags: dict[str, Flag] = {}
         self._api = api
-        self._console = api.console
+        self._console = api.INIT
         self._subcommands: dict[str, ArgumentParser] = {}
         self.help_flag = False
         self.include_help = include_help
         self.argument_groups: list[ArgumentGroup] = []
+        self.text = []
 
     def add_argument_group(self, name:str, description:str|None=None):
         """Adds a new argument group."""
         group = ArgumentGroup(name, description)
         self.argument_groups.append(group)
         return group
+
+    def addtext(self, text:str):
+        """Adds text to the parser."""
+        self.text.append(text)
 
     def add_subcommand(self, name:str, description:str|None=None):
         """Adds a subcommand with its own ArgumentParser."""
@@ -262,6 +267,9 @@ class ArgumentParser:
         if self._arguments:
             for arg in self._arguments:
                 self._console.print(f"  [bold bright_blue]{arg.name}[/bold bright_blue]  {arg.help_text or ''} (required={arg.required})")
+        
+        for i in self.text:
+            self._console.print(i)
         
         seen_flags: set[str] = set()
         if self.include_help:

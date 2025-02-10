@@ -63,7 +63,7 @@ And download the cipher folder and put it in the same directory as `cipher`
 ### getting the code
 Download the project either [here](https://github.com/mas6y6/CipherOS/archive/refs/heads/main.zip) or using
 ```shell
-git clone https://github.com/TEX479/CipherOS.git
+git clone https://github.com/mas6y6/CipherOS.git
 ```
 ### getting the requirements
 Note: I (tex) can only provide detailed information for linux. If you use a different operating system and are having trouble, google will be your friend. On websites like stackexchange there are usually answers for your problems.\

@@ -158,12 +158,12 @@ class CipherAPI:
     def load_plugin(self, filepath:str):
         yml_path = os.path.join(filepath, "plugin.yml")
         if self.debug:
-            print(filepath)
+            self.console.print(filepath)
         if not os.path.exists(yml_path):
             raise PluginInitializationError(f"'plugin.yml' not found in {filepath}")
         yml = ConfigParser(yml_path)
         if self.debug:
-            print("PARSERINIT",yml.dict)
+            self.console.print("[DEBUG] PARSERINIT",yml.dict)
         
         # To handle if dupilcates are found
         if yml.name in self.plugins:
@@ -209,7 +209,7 @@ class CipherAPI:
         if spec.loader == None: raise PluginInitializationError(f"Something went wrong while loading the import-spec")
         spec.loader.exec_module(module)
         if self.debug:
-            print(module)
+            self.console.print(module)
 
         plugin_class = getattr(module, plugin_class_name, None)
         if plugin_class is None:
@@ -218,10 +218,10 @@ class CipherAPI:
             )
 
         if self.debug:
-            print(plugin_class)
+            self.console.print(plugin_class)
         plugin_instance = plugin_class(self, yml)
         if self.debug:
-            print("AFTERINIT",plugin_instance.config.dict)
+            self.console.print("[DEBUG] AFTERINIT",plugin_instance.config.dict)
         if hasattr(plugin_instance, "on_enable") and callable(
             plugin_instance.on_enable
         ):
@@ -230,7 +230,7 @@ class CipherAPI:
             print(self.plugins)
         self.updatecompletions()
         if self.debug:
-            print("\n\n")
+            self.console.print("\n\n")
 
     def disable_plugin(self, plugin_name:str):
         print(f"Disabling {plugin_name}")

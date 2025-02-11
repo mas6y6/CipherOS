@@ -210,14 +210,4 @@ These are tools for helping you make your plugin that is built into CipherOS.
 
 This is the custom built in `ArgumentParser` that CipherOS.
 
-> [!IMPORTANT]
-> **Please include after the `parser.parse_args()` function**
-> ```py
-> if parser.help_flag
->   return None
-> ```
->
-> **This required because when the flags (--help,-h) are passed the Help message is printed into the console.**
-> **But it continues the script so this is required to kill the rest of the script**
-
 - I will continue writing it later :D @mas6y6 12/3/24 9:40

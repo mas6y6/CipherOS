@@ -6,6 +6,7 @@ import sys
 import runpy
 
 import cipher.api
+import cipher.globalvariables
 
 # Check if the cipher folder exists and add it to the sys.path
 if "cipher" in os.listdir() and os.path.isdir("cipher"):
@@ -100,6 +101,7 @@ from cipher.elevate import elevate, is_root
 # variables
 version = 1
 api = CipherAPI()
+cipher.globalvariables.API = api
 
 console = api.console
 debugmode = False
@@ -207,7 +209,7 @@ def exit_command(args:list[str]):
 
 @api.command(name="open", desc="Opens a file")
 def openfile(argsraw:list[str]):
-    parser = ArgumentParser(api, description="Opens a file")
+    parser = ArgumentParser(description="Opens a file")
     parser.add_argument(name="file", argtype=str,action="store",required=True,help_text="File to open")
 
     args = parser.parse_args(argsraw)
@@ -230,7 +232,7 @@ def openfile(argsraw:list[str]):
 
 @api.command(aliases=["pscn"], desc="Scan the specified device for open ports (This is work in progress so it will not be reliable)")
 def portscan(argsraw:list[str]):
-    parser = ArgumentParser(api, description="Scan the specified device for open ports (This is work in progress so it will not be reliable)")
+    parser = ArgumentParser(description="Scan the specified device for open ports (This is work in progress so it will not be reliable)")
     parser.add_argument("ip",argtype=str, action="store", required=True, help_text="IP Address to device to scan")
 
     args = parser.parse_args(argsraw)
@@ -323,7 +325,7 @@ def portscan(argsraw:list[str]):
 
 @api.command(name="shell",desc="Shell")
 def useshell(argsraw):
-    arg_parser = ArgumentParser(api, description="Pings a server/device")
+    arg_parser = ArgumentParser(description="Pings a server/device")
     arg_parser.add_argument(
         "command", argtype=str, action="store", required=True, help_text="IP Address to ping"
     )
@@ -332,7 +334,7 @@ def useshell(argsraw):
 
 @api.command(desc="Pings a server/device")
 def ping(argsraw: list[str]):
-    arg_parser = ArgumentParser(api, description="Pings a server/device")
+    arg_parser = ArgumentParser(description="Pings a server/device")
     arg_parser.add_argument(
         "ip", argtype=str, action="store", required=True, help_text="IP Address to ping"
     )
@@ -373,7 +375,7 @@ def ping(argsraw: list[str]):
 
 @api.command(aliases=["exe","cmd"], desc="Lists all commands")
 def executables(argsraw:list[str]):
-    parser = ArgumentParser(api, description="Lists all commands")
+    parser = ArgumentParser(description="Lists all commands")
 
     _args = parser.parse_args(argsraw)
     
@@ -388,7 +390,7 @@ def executables(argsraw:list[str]):
 
 @api.command(name="elevate", desc="Elevates permissions to admin permissions for CipherOS", aliases=["sudo-su"])
 def elevateperm(argsraw:list[str]):
-    parser = ArgumentParser(api, description="Elevates permissions to admin permissions for CipherOS")
+    parser = ArgumentParser(description="Elevates permissions to admin permissions for CipherOS")
 
     _args = parser.parse_args(argsraw)
     
@@ -406,7 +408,7 @@ def elevateperm(argsraw:list[str]):
 
 @api.command(aliases=["scn", "netscan"], desc="Scan your network for devices")
 def scannet(argsraw:list[str]):
-    parser = ArgumentParser(api, description="Scan your network for devices")
+    parser = ArgumentParser(description="Scan your network for devices")
 
     _args = parser.parse_args(argsraw)
     
@@ -590,7 +592,7 @@ def clear(args:list[str]):
 
 @api.command(name="pwd",aliases=["dir","path","cwd"], desc="Prints the current working directory")
 def pwd_com(argsraw:list[str]):
-    parser = ArgumentParser(api, description="Manage plugins for the system.")
+    parser = ArgumentParser(description="Manage plugins for the system.")
     parser.parse_args(argsraw)
     
     
@@ -598,7 +600,7 @@ def pwd_com(argsraw:list[str]):
 
 @api.command(aliases=["pl"], desc="Manage plugins for the system.")
 def plugins(argsraw:list[str]):
-    parser = ArgumentParser(api, description="Manage plugins for the system.")
+    parser = ArgumentParser(description="Manage plugins for the system.")
 
     reload_parser = parser.add_subcommand("reload", description="Reloads a given plugin.")
     reload_parser.add_argument("plugin",argtype=str, help_text="The name of the plugin to reload.",required=True)
@@ -723,7 +725,7 @@ def pythoncode(argsraw:list[str]):
 
 @api.command(desc="List the contents of a path in a tree-like structure, making it easier to read.")
 def tree(argsraw:list[str]):
-    parser = ArgumentParser(api, description="List the contents of a path in a tree-like structure, making it easier to read.")
+    parser = ArgumentParser(description="List the contents of a path in a tree-like structure, making it easier to read.")
     parser.add_argument("path", argtype=str, help_text="Folder or path to list", required=False)
     
     args = parser.parse_args(argsraw)
@@ -916,7 +918,7 @@ def rmdir(argsraw:list[str]):
 
 @api.command(aliases=["cd"], desc="Change to a directory")
 def chdir(argsraw:list[str]):
-    parser = ArgumentParser(api, description="Change to a directory")
+    parser = ArgumentParser(description="Change to a directory")
     parser.add_argument("path",argtype=str,required=True,help_text="Directory to move to")
 
     args = parser.parse_args(argsraw)
@@ -944,7 +946,7 @@ def chdir(argsraw:list[str]):
 
 @api.command(desc="Makes a directory")
 def mkdir(argsraw:list[str]):
-    parser = ArgumentParser(api, description="Makes a directory")
+    parser = ArgumentParser(description="Makes a directory")
     parser.add_argument("path",argtype=str,required=True,help_text="Directory to create")
 
     
@@ -964,7 +966,7 @@ def mkdir(argsraw:list[str]):
 
 @api.command()
 def chmod(argsraw:list[str]):
-    parser = ArgumentParser(api, description="Changes permissions to a file")
+    parser = ArgumentParser(description="Changes permissions to a file")
     parser.add_argument("path",argtype=str,required=True,help_text="Path to file")
     parser.add_argument("perm",argtype=str,required=True,help_text="Permissions")
 
@@ -1005,7 +1007,7 @@ if __name__ == "__main__":
                 print(f"arbc encountered an error: {e}")
         @api.command()
         def vdump(argsraw:list[str]):
-            parser = ArgumentParser(api, description="Dumps all variables to console")
+            parser = ArgumentParser(description="Dumps all variables to console")
             parser.add_argument("scope", argtype=str, help_text="Scope (global/local)",required=True)
 
             args = parser.parse_args(argsraw)

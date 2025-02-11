@@ -6,6 +6,7 @@ import types
 from dataclasses import dataclass
 if TYPE_CHECKING:
     from cipher.api import CipherAPI
+import cipher.globalvariables as gv
 
 class Namespace:
     """Container for parsed arguments."""
@@ -126,12 +127,12 @@ class Flag:
     name: str
 
 class ArgumentParser:
-    def __init__(self,api: "CipherAPI", description:str|None=None, include_help:bool=True):
+    def __init__(self, description:str|None=None, include_help:bool=True):
         self.description = description
         self._arguments: list[Flag] = []
         self._flags: dict[str, Flag] = {}
-        self._api = api
-        self._console = api.console
+        self._api: "CipherAPI" = gv.API
+        self._console: "CipherAPI.console" = gv.API.console
         self._subcommands: dict[str, ArgumentParser] = {}
         self.help_flag = False
         self.include_help = include_help

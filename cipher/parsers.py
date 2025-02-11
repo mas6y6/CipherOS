@@ -1,7 +1,7 @@
 from typing import Any, TYPE_CHECKING
 from yaml import safe_load
 import json
-from cipher.exceptions import ParserError, ArgumentRequiredError
+from cipher.exceptions import ParserError, ArgumentRequiredError, HelpFlagException
 import types
 from dataclasses import dataclass
 if TYPE_CHECKING:
@@ -131,7 +131,7 @@ class ArgumentParser:
         self._arguments: list[Flag] = []
         self._flags: dict[str, Flag] = {}
         self._api = api
-        self._console = api.INIT
+        self._console = api.console
         self._subcommands: dict[str, ArgumentParser] = {}
         self.help_flag = False
         self.include_help = include_help
@@ -301,3 +301,5 @@ class ArgumentParser:
                         flag_aliases = ", ".join(aliases)
                         self._console.print(f"    [bold bright_yellow]{flag_aliases}[/bold bright_yellow]  {details.help_text or ''} (default={details.default})")
                         seen_flags.update(aliases)
+                        
+        raise HelpFlagException("#310")

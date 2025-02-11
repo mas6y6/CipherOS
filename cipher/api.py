@@ -123,8 +123,22 @@ class CipherAPI:
             if self.debug:
                 traceback.print_exc()
             return ExitCodes.OTHERERROR, f"Argument Indexing Failed: {e}"
-        except Exception:
-            return ExitCodes.FATALERROR, traceback.format_exc()
+        except Exception as execptionreturn:
+            if str(execptionreturn)[0] == "#":
+                if str(execptionreturn)[0:] == "#310":
+                    #Ignore command (Used when help window is displayed)
+                    if self.debug:
+                        self.console.print("[DEBUG] Help command exception raised",style="dim")
+                    return ExitCodes.SUCCESS, ret_val
+                if str(execptionreturn)[0:] == "#315":
+                    #Ignore command (Used when help window is displayed)
+                    if self.debug:
+                        self.console.print("[DEBUG] Exception Ignored.",style="dim")
+                    return ExitCodes.SUCCESS, ret_val
+            else:
+                if self.debug:
+                    traceback.print_exc()
+                return ExitCodes.FATALERROR, traceback.format_exc()
         else:
             return ExitCodes.SUCCESS, ret_val
 
@@ -153,7 +167,7 @@ class CipherAPI:
         
         # To handle if dupilcates are found
         if yml.name in self.plugins:
-            self.console.print(f"Duplicate \"{yml.name}\" plugins found.\nResolving...",style="bold bright_yellow")
+            self.console.print(f"Duplicate \"{yml.name}\" plugins found.\n",style="bold bright_yellow")
             newv = self._version_hash(str(yml.version))
             enabledv = self._version_hash(str(self.plugins[yml.name].config.version))
             if newv == enabledv:

@@ -18,7 +18,13 @@ class ExitCodes:
     OTHERERROR = 400
 
 class ParserError(Exception):
+    """Exception raised when a parser error occurs."""
     pass
 
 class ArgumentRequiredError(Exception):
+    """Exception raised when a required argument is missing."""
+    pass
+
+class HelpFlagException(Exception):
+    """Exception raised when the help flag is encountered."""
     pass

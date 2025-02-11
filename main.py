@@ -212,9 +212,8 @@ def openfile(argsraw:list[str]):
 
     args = parser.parse_args(argsraw)
     
-    #If the --help (-h) is passes it kills the rest of the script
-    if parser.help_flag:
-        return None
+    
+    
     
     if not hasattr(args, "file"):
         raise AttributeError(f"Argument 'folder' missing.")
@@ -236,9 +235,8 @@ def portscan(argsraw:list[str]):
 
     args = parser.parse_args(argsraw)
     
-    #If the --help (-h) is passes it kills the rest of the script
-    if parser.help_flag:
-        return None
+    
+    
     
     global sigIntPscn
     sigIntPscn = False
@@ -379,9 +377,8 @@ def executables(argsraw:list[str]):
 
     _args = parser.parse_args(argsraw)
     
-    #If the --help (-h) is passes it kills the rest of the script
-    if parser.help_flag:
-        return None
+    
+    
 
     tab = Table()
     tab.add_column("Commands")
@@ -395,8 +392,7 @@ def elevateperm(argsraw:list[str]):
 
     _args = parser.parse_args(argsraw)
     
-    if parser.help_flag:
-        return None
+    
     
     if not is_root():
         console.print("Attempting to elevate permissions for CipherOS",style="bright_red")
@@ -414,9 +410,8 @@ def scannet(argsraw:list[str]):
 
     _args = parser.parse_args(argsraw)
     
-    #If the --help (-h) is passes it kills the rest of the script
-    if parser.help_flag:
-        return None
+    
+    
     
     global sigIntScn
     sigIntScn = False
@@ -593,6 +588,14 @@ def scannet(argsraw:list[str]):
 def clear(args:list[str]):
     print("\033c", end="")
 
+@api.command(name="pwd",aliases=["dir","path","cwd"], desc="Prints the current working directory")
+def pwd_com(argsraw:list[str]):
+    parser = ArgumentParser(api, description="Manage plugins for the system.")
+    parser.parse_args(argsraw)
+    
+    
+    console.print(Panel(os.getcwd()))
+
 @api.command(aliases=["pl"], desc="Manage plugins for the system.")
 def plugins(argsraw:list[str]):
     parser = ArgumentParser(api, description="Manage plugins for the system.")
@@ -614,7 +617,7 @@ def plugins(argsraw:list[str]):
     info_parser.add_argument("plugin", argtype=str, help_text="The name of the plugin to get info about.",required=True)
 
     args = parser.parse_args(argsraw)
-    if parser.help_flag: return
+    
     if len(argsraw) == 0:
         parser.print_help()
         return
@@ -624,9 +627,6 @@ def plugins(argsraw:list[str]):
     if not isinstance(args_plugin, str):
         raise TypeError(f"Type of 'arg_plugin' ({type(args_plugin)}) does not match expected type (str)") # type: ignore
 
-    #If the --help (-h) is passes it kills the rest of the script
-    if parser.help_flag:
-        return None
 
     if args.subcommand == "reload":
         if args_plugin in api.plugins:
@@ -708,9 +708,8 @@ def pythoncode(argsraw:list[str]):
     
     args = parser.parse_args(argsraw)
 
-    #If the --help (-h) is passes it kills the rest of the script
-    if parser.help_flag:
-        return None
+    
+    
 
     if not hasattr(args, "file"):
         raise AttributeError(f"Argument 'file' missing.")
@@ -730,8 +729,7 @@ def tree(argsraw:list[str]):
     args = parser.parse_args(argsraw)
     
     # If the --help (-h) is passed, it kills the rest of the script
-    if parser.help_flag:
-        return None
+    
     
     if hasattr(args, "path") and args.path != None: # type: ignore
         path: str = args.path # type: ignore
@@ -767,9 +765,8 @@ def ls(argsraw:list[str]):
     
     args = parser.parse_args(argsraw)
     
-    #If the --help (-h) is passes it kills the rest of the script
-    if parser.help_flag:
-        return None
+    
+    
     
     if hasattr(args, "path") and isinstance(args.path, str): # type: ignore
         path: str = args.path # type: ignore
@@ -805,9 +802,8 @@ def touch(argsraw:list[str]):
     
     args = parser.parse_args(argsraw)
     
-    #If the --help (-h) is passes it kills the rest of the script
-    if parser.help_flag:
-        return None
+    
+    
     
     if not hasattr(args, "file"):
         raise AttributeError(f"Argument 'file' missing.")
@@ -835,9 +831,8 @@ def viewfile(argsraw:list[str]):
     
     args = parser.parse_args(argsraw)
 
-    #If the --help (-h) is passes it kills the rest of the script
-    if parser.help_flag:
-        return None
+    
+    
 
     if not hasattr(args, "file"):
         raise AttributeError(f"Argument 'file' missing.")
@@ -872,9 +867,8 @@ def remove(argsraw:list[str]):
     
     args = parser.parse_args(argsraw)
 
-    #If the --help (-h) is passes it kills the rest of the script
-    if parser.help_flag:
-        return None
+    
+    
 
     if not hasattr(args, "file"):
         raise AttributeError(f"Argument 'file' missing.")
@@ -904,9 +898,8 @@ def rmdir(argsraw:list[str]):
     
     args = parser.parse_args(argsraw)
     
-    #If the --help (-h) is passes it kills the rest of the script
-    if parser.help_flag:
-        return None
+    
+    
     
     if not hasattr(args, "file"):
         raise AttributeError(f"Argument 'folder' missing.")
@@ -928,9 +921,8 @@ def chdir(argsraw:list[str]):
 
     args = parser.parse_args(argsraw)
 
-    #If the --help (-h) is passes it kills the rest of the script
-    if parser.help_flag:
-        return None
+    
+    
 
     if not hasattr(args, "path"):
         path = "~"
@@ -955,9 +947,8 @@ def mkdir(argsraw:list[str]):
     parser = ArgumentParser(api, description="Makes a directory")
     parser.add_argument("path",argtype=str,required=True,help_text="Directory to create")
 
-    #If the --help (-h) is passes it kills the rest of the script
-    if parser.help_flag:
-        return None
+    
+    
 
     args = parser.parse_args(argsraw)
     if not hasattr(args, "folder"):
@@ -976,11 +967,10 @@ def chmod(argsraw:list[str]):
     parser = ArgumentParser(api, description="Changes permissions to a file")
     parser.add_argument("path",argtype=str,required=True,help_text="Path to file")
     parser.add_argument("perm",argtype=str,required=True,help_text="Permissions")
-    
-    if parser.help_flag:
-        return None
 
     args = parser.parse_args(argsraw)
+    
+    
     
     try:
         os.chmod(args.path, args.perm)
@@ -1004,7 +994,7 @@ if __name__ == "__main__":
             
             _args = parser.parse_args(argsraw)
 
-            if parser.help_flag: return
+            
             if len(argsraw) == 0: raise AttributeError(f"Argument 'code' missing.")
             code = " ".join(argsraw)
             if parser.help_flag:
@@ -1019,7 +1009,6 @@ if __name__ == "__main__":
             parser.add_argument("scope", argtype=str, help_text="Scope (global/local)",required=True)
 
             args = parser.parse_args(argsraw)
-            if parser.help_flag: return None
 
             if not hasattr(args, "scope"):
                 raise AttributeError(f"Argument 'scope' missing.")

@@ -208,6 +208,46 @@ These are tools for helping you make your plugin that is built into CipherOS.
 
 ## `cipher.parsers.ArgumentParser`
 
-This is the custom built in `ArgumentParser` that CipherOS.
+The `ArgumentParser` class is a custom-built argument parser for CipherOS. It provides functionality to define and parse command-line arguments, flags, and subcommands.
 
-- I will continue writing it later :D @mas6y6 12/3/24 9:40
+### Attributes:
+- `description` (str | None): Description of the argument parser.
+- `include_help` (bool): Whether to include the help flag.
+- `_arguments` (list[Flag]): List of defined arguments.
+- `_flags` (dict[str, Flag]): Dictionary of defined flags.
+- `_api` ("CipherAPI"): Reference to the CipherAPI instance.
+- `_console` ("CipherAPI.console"): Reference to the console instance.
+- `_subcommands` (dict[str, ArgumentParser]): Dictionary of subcommands.
+- `help_flag` (bool): Indicates if the help flag was used.
+- `argument_groups` (list[ArgumentGroup]): List of argument groups.
+- `text` (list[str]): List of additional text to display in help.
+
+### Methods:
+- `add_argument_group(name: str, description: str | None = None) -> ArgumentGroup`: Adds a new argument group.
+- `addtext(text: str)`: Adds text to the parser.
+- `add_subcommand(name: str, description: str | None = None) -> ArgumentParser`: Adds a subcommand with its own ArgumentParser.
+- `add_argument(name: str, argtype: type = str, default: str | None = None, required: bool = False, help_text: str | None = None, action: str | None = None, aliases: list[str] | None = None)`: Adds an argument or flag.
+- `parse_args(args: list[str]) -> Namespace`: Parses the provided argument list.
+- `print_help()`: Prints the help message.
+
+## `cipher.parsers.ConfigParser`
+
+The `ConfigParser` class is responsible for parsing the `plugin.yml` configuration file for different versions.
+
+### Attributes:
+- `name` (str): Name of the plugin.
+- `displayname` (str): Display name of the plugin.
+- `version` (int): Version of the plugin.
+- `authors` (list[str] | None): List of authors of the plugin.
+- `team` (str | None): Team associated with the plugin.
+- `description` (str | None): Description of the plugin.
+- `classname` (str): Class name of the plugin.
+- `dependencies` (list[str] | None): List of dependencies of the plugin.
+
+### Methods:
+- `__init__(file_path: str)`: Initializes the ConfigParser and parses the `plugin.yml` file.
+
+### Exceptions:
+- `ParserError`: Raised when there is an error in parsing.
+- `ArgumentRequiredError`: Raised when a required argument is missing.
+- `HelpFlagException`: Raised when the help flag is used.

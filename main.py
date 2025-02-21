@@ -8,6 +8,7 @@ import runpy
 import cipher.api
 import cipher.globalvariables
 
+
 # Check if the cipher folder exists and add it to the sys.path
 if "cipher" in os.listdir() and os.path.isdir("cipher"):
     sys.path.append(os.getcwd())

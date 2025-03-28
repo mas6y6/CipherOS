@@ -418,6 +418,8 @@ class PackageManager:
         '''
         TODO: make version checks.
         '''
+        # Too much effort :sob: -mas
+        
         try:
             importlib.import_module(package_name)
             return True

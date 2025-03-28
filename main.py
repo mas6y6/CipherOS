@@ -706,7 +706,7 @@ def plugins(argsraw:list[str]):
 
 @api.command(name="python", aliases=["py"], desc="Executes a python file")
 def pythoncode(argsraw:list[str]):
-    parser = ArgumentParser(api,description="Executes a python file")
+    parser = ArgumentParser(description="Executes a python file")
     parser.add_argument("file", argtype=str, help_text="The file to display", required=True)
     
     args = parser.parse_args(argsraw)
@@ -763,7 +763,7 @@ def tree(argsraw:list[str]):
 
 @api.command(aliases=["list", "l"], desc="List the contents of a path")
 def ls(argsraw:list[str]):
-    parser = ArgumentParser(api,description="List the contents of a path")
+    parser = ArgumentParser(description="List the contents of a path")
     parser.add_argument("path",argtype=str,help_text="Folder or path to list",required=False)
     
     args = parser.parse_args(argsraw)
@@ -800,7 +800,7 @@ def ls(argsraw:list[str]):
 
 @api.command(desc="Creates a file")
 def touch(argsraw:list[str]):
-    parser = ArgumentParser(api,description="Creates a file")
+    parser = ArgumentParser(description="Creates a file")
     parser.add_argument("file",argtype=str,help_text="File to create",required=True)
     
     args = parser.parse_args(argsraw)
@@ -827,7 +827,7 @@ def touch(argsraw:list[str]):
 
 @api.command(aliases=["cat"], desc="Echos a file's contents to the console")
 def viewfile(argsraw:list[str]):
-    parser = ArgumentParser(api,description="Echos a file's contents to the console")
+    parser = ArgumentParser(description="Echos a file's contents to the console")
     parser.add_argument("file", argtype=str, help_text="The file to display", required=True)
     parser.add_argument("--markdown",action="store_true",help_text="Enables markdown text processing",aliases=["-md"])
     parser.add_argument("--color",action="store_true",help_text="Enables Color code texting (Uses rich as processer)",aliases=["-c"])
@@ -865,7 +865,7 @@ def viewfile(argsraw:list[str]):
 
 @api.command(aliases=["rm"], desc="Removes a file")
 def remove(argsraw:list[str]):
-    parser = ArgumentParser(api,description="Removes a file")
+    parser = ArgumentParser(description="Removes a file")
     parser.add_argument("file",argtype=str,help_text="File to delete",required=True)
     
     args = parser.parse_args(argsraw)
@@ -896,7 +896,7 @@ def remove(argsraw:list[str]):
 
 @api.command(aliases=["rmdir"], desc="Removes a directory")
 def rmdir(argsraw:list[str]):
-    parser = ArgumentParser(api,description="Removes a directory")
+    parser = ArgumentParser(description="Removes a directory")
     parser.add_argument("file", argtype=str,help_text="File to directory",required=True)
     
     args = parser.parse_args(argsraw)

@@ -589,7 +589,7 @@ def scannet(argsraw:list[str]):
 
 @api.command(aliases=["cls"], desc="Clears the screen")
 def clear(args:list[str]):
-    print("\033c", end="")
+    os.system("cls" if os.name == 'nt' else "clear")
 
 @api.command(name="pwd",aliases=["dir","path","cwd"], desc="Prints the current working directory")
 def pwd_com(argsraw:list[str]):

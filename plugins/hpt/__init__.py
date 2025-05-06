@@ -1,6 +1,6 @@
 from cipher.api import CipherAPI
 from cipher.parsers import ConfigParser
-from cipher.plugins import CipherPlugin
+from cipher.plugins.plugins import CipherPlugin
 from hostprobe import netprobe # type: ignore
 
 class hpt(CipherPlugin):

@@ -1,3 +1,9 @@
+# Branch Information
+
+**This branch is a prototype. Not for production use**
+
+Improved plugin manager to allow more interaction with plugins
+
 # CipherOS
 
 <picture>

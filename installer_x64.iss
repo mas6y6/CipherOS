@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "CipherOS"
-#define MyAppVersion "1.6"
+#define MyAppVersion "1.7"
 #define MyAppPublisher "Cipher HackSquad"
 #define MyAppURL "https://www.mas6y6.com/cipheros"
 #define MyAppExeName "cipheros.exe"

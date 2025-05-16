@@ -100,7 +100,7 @@ import cipher.network
 from cipher.elevate import elevate, is_root
 
 # variables
-version = 1
+VERSION = 1
 api = CipherAPI()
 cipher.globalvariables.API = api
 

@@ -1,7 +1,7 @@
 from rich.console import Console
 from typing import Callable, Any, Literal
 import os, socket, traceback, re
-from cipher.plugins.plugins import CipherPlugin
+from cipher.plugins.legacyplugins import CipherPlugin
 from cipher.exceptions import ExitCodes, ArgumentRequiredError, ParserError
 from cipher.custom_types import Command
 

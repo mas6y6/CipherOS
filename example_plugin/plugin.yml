@@ -1,21 +1,28 @@
 # Don't change this
-configversion: 3
+configversion: 5
 
-# Version of your plugin
-version: 1
+info:
+  display_name: "Example Plugin"
+  description: "Example"
+  authors:
+    - "Example"
+  source_code_url: "https://github.com/example/exampleplugin"
+  
+config:
+  name: "example_plugin"
+  # The "name" field is case-sensitive and it NOT the display name.
+  # The "name" field must be unique from other plugins
 
-team: ExampleTeam # If you have like a whole team of people that are working on this plugin you can specify it here
+  version: "v1.0.0"
+  # Must be v1.0.0 or b1.0.0 to allow version comparing
 
-authors: # If you have a team of people that are working on this project
-- Example
+  class: "ExamplePlugin"
+  # Must match the class in the plugin. This is where the plugin will be launched from.
 
-name: example_plugin # The name must match the folder of the plugin
-
-displayname: "Example Plugin" # This is just the displayname of your plugin
-
-description: I am a example plugin! # Description of your plugin
-
-class: ExamplePlugin #This must match the class in the __init__.py class
-
-dependencies: #Put your dependencies here cipheros will install them so your plugin can use them (This are installed from pypi)
-#  - requests
+  pip-dependencies:
+  # This is for libraries and modules that are required for your plugin
+  # - requests==2.23.2
+  
+  plugin-dependencies:
+  # This is for plugins that your plugin depends on
+  # - exampleplugin

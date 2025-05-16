@@ -1,6 +1,6 @@
 from cipher.api import CipherAPI
 from cipher.parsers import ConfigParser
-from cipher.plugins.plugins import CipherPlugin
+from cipher.plugins.legacyplugins import CipherPlugin
 import shutil
 from fcommands.fzf_tools import fzf_run
 from prompt_toolkit import prompt

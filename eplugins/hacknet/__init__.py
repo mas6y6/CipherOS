@@ -3,7 +3,7 @@ import shutil
 import string
 from cipher.api import CipherAPI
 from cipher.parsers import ConfigParser, ArgumentParser
-from cipher.plugins.plugins import CipherPlugin
+from cipher.plugins.legacyplugins import CipherPlugin
 from rich.panel import Panel
 import os, pygame, time, subprocess, requests
 from .cursor import hide, show

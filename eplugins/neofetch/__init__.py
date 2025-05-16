@@ -1,6 +1,6 @@
 from cipher.api import CipherAPI
 from cipher.parsers import ConfigParser, ArgumentParser
-from cipher.plugins.plugins import CipherPlugin
+from cipher.plugins.legacyplugins import CipherPlugin
 import platform
 
 class neofetch(CipherPlugin):

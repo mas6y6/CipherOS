@@ -100,6 +100,7 @@ python3 main.py
 + [@malachi196](https://github.com/malachi196)
 + [@overo3](https://github.com/Overo3)
 + [@tex479](https://github.com/TEX479)
++ [@voltage-86](https://github.com/Voltage-86)
 
 ### Credits
 None yet..

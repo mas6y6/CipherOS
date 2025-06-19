@@ -4,6 +4,7 @@ import socket
 import subprocess
 import sys
 import runpy
+import psutil
 
 import cipher.api
 import cipher.globalvariables
@@ -589,6 +590,7 @@ def scannet(argsraw:list[str]):
 
 @api.command(aliases=["cls"], desc="Clears the screen")
 def clear(args:list[str]):
+    print("\033c", end="")
     os.system("cls" if os.name == 'nt' else "clear")
 
 @api.command(name="pwd",aliases=["dir","path","cwd"], desc="Prints the current working directory")
@@ -598,6 +600,56 @@ def pwd_com(argsraw:list[str]):
     
     
     console.print(Panel(os.getcwd()))
+
+@api.command(name="ps", desc="List running processes")
+def ps_com(args: list[str]):
+    processes = []
+    for proc in psutil.process_iter(attrs=["pid", "name", "username"]):
+        try:
+            uid = proc.info["username"] or "unknown"
+            pid = proc.info["pid"]
+            name = proc.info["name"] or "unknown"
+            processes.append((uid, str(pid), name))
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+
+    if not processes:
+        print("No Running Processes")
+        return
+
+    # Fix spacing so ps doesn't look weird
+    uid_width = max(len(uid) for uid, _, _ in processes)
+    pid_width = max(len(pid) for _, pid, _ in processes)
+    name_width = max(len(name) for _, _, name in processes)
+
+    print(f"{'UID':<{uid_width}} : {'PID':<{pid_width}} : {'NAME'}")
+
+    for uid, pid, name in sorted(processes, key=lambda p: int(p[1])):
+        print(f"{uid:<{uid_width}} : {pid:<{pid_width}} : {name}")
+
+@api.command(name="kill", desc="Kills a process by PID")
+def kill_com(args: list[str]):
+    if not args:
+        # I forgot what it said in Hacknet when you run kill without a PID, someone change this if I'm wrong
+        print("Usage: kill <pid>")
+        return
+
+    try:
+        pid = int(args[0])
+        proc = psutil.Process(pid)
+        proc.terminate()
+        proc.wait(timeout=3)
+        print(f"Process {pid} terminated.") # Also forgot what it said here, I'm not bothered to launch Hacknet to check
+    except ValueError:
+        print("Error: PID must be a number.") # Same here
+    except psutil.NoSuchProcess:
+        print(f"No process with PID {pid}.") # You get the point
+    except psutil.AccessDenied:
+        print(f"Access denied to kill PID {pid}. Try running as admin/root.") # Idc anymore, someone pls change to match hacknet
+    except psutil.TimeoutExpired:
+        print(f"PID {pid} didn't shut down in time.")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
 
 @api.command(aliases=["pl"], desc="Manage plugins for the system.")
 def plugins(argsraw:list[str]):
@@ -1047,7 +1099,7 @@ if __name__ == "__main__":
         console.print("No plugins found")
 
     console.print(
-        "[bold bright_magenta]Made by @mas6y6, @malachi196, @TEX479 and @overo3 (on github)[/bold bright_magenta]"
+        "[bold bright_magenta]Made by @mas6y6, @malachi196, @TEX479, @overo3 and @Voltage-86 (on github)[/bold bright_magenta]"
     )
 
     print(
